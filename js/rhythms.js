@@ -1383,7 +1383,7 @@ RX.RHYTHMS = [
       { name: 'Guitar', pattern: 'x...x...x...x...', sound: 'pluck' }
     ] },
 
-  { id: ' lando', name: 'Landó', region: 'Peru (Afro-Peruvian)', bpm: 70, range: '60–80', steps: 16, family: 'lando',
+  { id: 'lando', name: 'Landó', region: 'Peru (Afro-Peruvian)', bpm: 70, range: '60–80', steps: 16, family: 'lando',
     kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'cajon', groove: 'sw16:54', src: 'std',
     etymology: 'From "landó" = Angolan "lundú" = dance. Slow, sensual. "Landó" = the dance of the black woman. Minor key. Susana Baca, Eva Ayllón.',
     note: 'Slow 4/4 with swing. Cajón + cajita + guitar. Melancholic, sensual. "María Landó" (Chabuca Granda). 60-70 bpm.',

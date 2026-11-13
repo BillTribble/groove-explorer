@@ -12,63 +12,13 @@
   const VOICE_LABEL = { snare: 'Snare', tom: 'Tom', bass: 'Bass' };
   const TOP_VOICES = [['typical', 'Typical'], ['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass']];
 
-  // Family order & labels for carousel view
-  const FAMILIES = [
-    ['tresillo', 'Tresillo / 3-3-2'],
-    ['dembow', 'Dembow'],
-    ['cinquillo', 'Cinquillo'],
-    ['son-clave', 'Son / Rumba / Bossa'],
-    ['samba', 'Samba / Brazilian'],
-    ['afoxe', 'Afoxé / Ijexá'],
-    ['afrobeat', 'Afrobeat / Afrobeats'],
-    ['kuduro', 'Kuduro / Ndombolo / Funaná'],
-    ['gqom', 'Gqom'],
-    ['amapiano', 'Amapiano / 3-step'],
-    ['bacardi', 'Bacardi'],
-    ['afrohouse', 'Afro House'],
-    ['shangaan', 'Shangaan'],
-    ['bell12', '12/8 Bell'],
-    ['maloya', 'Maloya / Gnawa'],
-    ['maqsum', 'Maqsum / Saidi'],
-    ['makossa', 'Makossa'],
-    ['djembe', 'Djembe / Mandé'],
-    ['ewe', 'Ewe / Fon (Ghana/Togo)'],
-    ['bata', 'Batá / Yoruba Sacred'],
-    ['ingoma', 'Ingoma / Burundi-Rwanda'],
-    ['mbira', 'Mbira / Zimbabwe'],
-    ['baganda', 'Baganda / Uganda'],
-    ['taarab', 'Taarab / Swahili Coast'],
-    ['balkan-5', 'Balkan 5/16 (Paidushko)'],
-    ['balkan-7', 'Balkan 7/16 (Rachenitsa)'],
-    ['balkan-9', 'Balkan 9/16 (Daychovo)'],
-    ['balkan-11', 'Balkan 11/16 (Kopanitsa)'],
-    ['balkan-complex', 'Balkan Mixed Meters'],
-    ['tala-7', 'Indian Tala 7-beat'],
-    ['tala-10', 'Indian Tala 10-beat'],
-    ['tala-12', 'Indian Tala 12-beat'],
-    ['bomba', 'Bomba / Puerto Rico'],
-    ['samai', 'Samai / Arab Classical'],
-    ['jurjina', 'Jurjina / Iraq-Kurdish'],
-    ['kalamatianos', 'Kalamatianos / Greece'],
-    ['karsilama', 'Karsilama / Turkey 9/8'],
-    ['laz', 'Laz / Black Sea 7/8'],
-    ['chiftetelli', 'Chiftetelli / Turkish 8/4'],
-    ['dawr-hindi', 'Dawr Hindi / 7/8 Classical'],
-    ['festejo', 'Festejo / Afro-Peruvian'],
-    ['lando', 'Landó / Afro-Peruvian'],
-    ['zamacueca', 'Zamacueca / Andes'],
-    ['joropo', 'Joropo / Venezuela'],
-    ['nyabinghi', 'Nyabinghi / Rastafari'],
-    ['kumina', 'Kumina / Jamaica'],
-    ['andalusi', 'Andalusi / Maghreb Classical'],
-    ['ghaita', 'Ghaita / Rif Mountains'],
-  ];
-  const FAMILY_LABEL = Object.fromEntries(FAMILIES);
-  const FAMILY_ORDER = FAMILIES.map(([id]) => id);
+  // Families come from js/families.js (RX.FAMILIES: [id, label, member ids]).
+  const FAMILY_LABEL = Object.fromEntries(RX.FAMILIES.map(([id, label]) => [id, label]));
+  const FAMILY_ORDER = RX.FAMILIES.map(([id]) => id);
 
   // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
-  // viewMode: 'region' (default) or 'family'
-  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'synth', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'region', rows: {} };
+  // viewMode: 'family' (default) or 'region'
+  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'synth', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
@@ -85,6 +35,8 @@
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
     if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode', 'kit'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
+    // By family became the default view; saves from before that start there once.
+    if (saved && !saved.familyDefault) state.viewMode = 'family';
     RX.RHYTHMS.forEach((r) => {
       const s = saved && saved.rows && saved.rows[r.id];
       const ok = s && s.kick && s.kick.length === r.steps && s.top && s.top.length === r.steps && RX.GROOVE_BY_ID[s.groove];
@@ -469,7 +421,7 @@
   // ── Views ──
   // Region view: one vertical list, filtered by the region tabs.
   // Family view: the same rows, moved into one swipeable track per family.
-  const familyOf = (r) => r.family || 'other';
+  const familyOf = (r) => RX.FAMILY_OF[r.id] || r.family || 'other';
   const familyOrder = () => {
     const present = new Set(RX.RHYTHMS.map(familyOf));
     return FAMILY_ORDER.filter((f) => present.has(f)).concat([...present].filter((f) => !FAMILY_ORDER.includes(f)));
@@ -489,7 +441,10 @@
       return;
     }
     const sections = familyOrder().map((famId) => {
-      const ids = RX.RHYTHMS.filter((r) => familyOf(r) === famId).map((r) => r.id);
+      // Order follows the family's member list in families.js; unlisted members go last.
+      const listed = (RX.FAMILIES.find(([id]) => id === famId) || [, , []])[2];
+      const rank = (id) => { const k = listed.indexOf(id); return k < 0 ? listed.length : k; };
+      const ids = RX.RHYTHMS.filter((r) => familyOf(r) === famId).map((r) => r.id).sort((a, b) => rank(a) - rank(b));
       const section = el('section', 'family-section'); section.id = 'family-' + famId;
       const head = el('div', 'family-header');
       head.appendChild(el('h2', 'family-title', FAMILY_LABEL[famId] || famId));
@@ -520,6 +475,7 @@
     const shown = dom[f.ids[f.index]]?.root;
     if (shown) f.track.style.height = shown.offsetHeight + 'px';
     f.counter.textContent = (f.index + 1) + ' / ' + f.ids.length;
+    f.counter.hidden = f.ids.length < 2;
     f.prev.disabled = f.index === 0;
     f.next.disabled = f.index === f.ids.length - 1;
     f.prev.hidden = f.next.hidden = f.ids.length < 2;
