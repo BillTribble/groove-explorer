@@ -36,7 +36,7 @@
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
-  const defaults = (r) => ({ kick: r.kick, top: r.top, groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false });
+  const defaults = (r) => ({ kick: r.kick, top: r.top, groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false, topVoice: 'typical' });
   function load() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
@@ -53,7 +53,11 @@
 
   const nativeFour = (r) => r.kick === FOUR[r.steps];
   const patternOf = (r, lane) => (lane === 'kick' ? (state.rows[r.id].four ? FOUR[r.steps] : state.rows[r.id].kick) : state.rows[r.id].top);
-  const voiceOf = (r) => (state.topVoice === 'typical' ? r.sound : state.topVoice);
+  const voiceOf = (r) => {
+    const rowVoice = state.rows[r.id]?.topVoice;
+    if (rowVoice && rowVoice !== 'typical') return rowVoice;
+    return state.topVoice === 'typical' ? r.sound : state.topVoice;
+  };
   const bpmOf = (r) => (state.tempoMode === 'native' ? r.bpm : state.bpm);
   const cap = (lane) => (lane === 'kick' ? 'Kick' : 'Top');
   // A lane whose two halves match is shown as one half unless the user opens it.
@@ -202,6 +206,38 @@
     info.addEventListener('click', () => { note.hidden = !note.hidden; info.classList.toggle('active', !note.hidden); });
     reset.addEventListener('click', () => { state.rows[r.id] = defaults(r); sel.value = r.groove; paintRow(r); save(); });
     root.appendChild(note);
+
+    // Per-row settings panel (initially hidden)
+    const settingsPanel = d.settingsPanel = el('div', 'row-settings', '');
+    settingsPanel.hidden = true;
+    const settingsGrid = el('div', 'settings-grid');
+    // Top voice selector for this pattern
+    const voiceSelect = el('select', 'field-select');
+    voiceSelect.setAttribute('aria-label', 'Top sound for ' + r.name);
+    TOP_VOICES.forEach(([v, label]) => {
+      const o = el('option', null, label); o.value = v; voiceSelect.appendChild(o);
+    });
+    voiceSelect.value = state.rows[r.id].topVoice || 'typical';
+    voiceSelect.addEventListener('change', () => {
+      state.rows[r.id].topVoice = voiceSelect.value;
+      paintLane(r, 'top');
+      save();
+    });
+    const voiceLabel = el('label', 'setting-label', 'Top sound');
+    voiceLabel.appendChild(voiceSelect);
+    settingsGrid.appendChild(voiceLabel);
+    settingsPanel.appendChild(settingsGrid);
+    root.appendChild(settingsPanel);
+
+    // Settings toggle button
+    const settingsBtn = d.settingsBtn = iconBtn('tune', 'Pattern settings');
+    settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = settingsPanel.hidden;
+      settingsPanel.hidden = !isHidden;
+      settingsBtn.classList.toggle('active', !isHidden);
+    });
+    head.appendChild(settingsBtn);
 
     const lanes = el('div', 'lanes');
     lanes.appendChild(buildLane(r, 'kick'));

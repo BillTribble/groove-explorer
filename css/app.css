@@ -196,7 +196,19 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 .step-accent { background: var(--md-sys-color-primary); box-shadow: inset 0 0 0 3px var(--md-sys-color-on-primary-container); }
 .lane-locked .step { cursor: default; opacity: 0.7; }
 
-/* ── Family Carousel View ── */
+/* Per-row settings panel */
+.row-settings {
+  background: var(--md-sys-color-surface-container-lowest);
+  border-radius: 12px; padding: 12px 16px;
+  margin-top: 8px; border: 1px solid var(--md-sys-color-outline-variant);
+  animation: slideDown 150ms ease-out;
+}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.settings-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.setting-label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 500; color: var(--md-sys-color-on-surface-variant); }
+.setting-label .field-select { width: 100%; height: 40px; font-size: 14px; }
+
+/* Family Carousel View */
 .family-carousel { display: flex; flex-direction: column; gap: 12px; }
 .family-header { display: flex; align-items: center; gap: 12px; padding: 0 4px; }
 .family-title { font-size: 16px; font-weight: 600; color: var(--md-sys-color-on-surface); margin: 0; }
