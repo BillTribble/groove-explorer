@@ -1,7 +1,8 @@
 // Pitch for melodic parts (xylophones, mbira, lutes, bass, voice...).
 // A topLine may carry `notes`: semitone offsets from the instrument's base pitch,
 // one per hit, cycling through the bar. Lines without notes get a melody built from
-// the style's scale, in a register taken from the part name (low / mid / high).
+// the style's scale, kept within about a fifth of the voice's own pitch and shifted a
+// step up or down for parts named low / high.
 // These generated melodies are illustrative, not transcriptions.
 window.RX = window.RX || {};
 
@@ -36,13 +37,14 @@ window.RX = window.RX || {};
     return SCALES[hit ? hit[1] : 'minor5'];
   };
 
-  // Register from the part name, in semitones.
+  // Register from the part name, as a shift in scale steps (not octaves): parts stay
+  // close to the instrument's own pitch and are separated by a step or so.
   const registerFor = (name, idx) => {
     const n = (name || '').toLowerCase();
-    if (/low|bass|left hand|okunaga|sanduku|dununba/.test(n)) return -12;
-    if (/high|lead|right hand|treble|okukoonera/.test(n)) return 12;
+    if (/low|bass|left hand|okunaga|sanduku|dununba/.test(n)) return -1;
+    if (/high|lead|right hand|treble|okukoonera/.test(n)) return 1;
     if (/mid|okwawula/.test(n)) return 0;
-    return [0, 12, -12, 7][idx % 4];
+    return [0, 1, -1, 0][idx % 4];
   };
 
   // Scale-degree contours; each line takes a different one so interlocking parts differ.
@@ -59,9 +61,11 @@ window.RX = window.RX || {};
   RX.notesFor = function (r, line, idx, voice) {
     if (!RX.PITCHED.has(voice)) return null;
     if (line && Array.isArray(line.notes) && line.notes.length) return line.notes;
+    // Contour degrees 0..4 are centred on the root (-2..+2), then shifted by register,
+    // so every note sits within about a fifth of the voice's own pitch.
     const scale = scaleFor(r);
     const reg = registerFor(line && line.name, idx);
-    return CONTOURS[idx % CONTOURS.length].map((d) => degreeToSemis(scale, d) + reg);
+    return CONTOURS[idx % CONTOURS.length].map((d) => degreeToSemis(scale, d - 2 + reg));
   };
 
   /** Playback ratio for the hit at step i of a lane (notes cycle per hit within the bar). */
