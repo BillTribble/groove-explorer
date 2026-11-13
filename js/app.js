@@ -36,7 +36,13 @@
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
-  const defaults = (r) => ({ kick: r.kick, top: r.top, groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false, topVoice: 'typical' });
+  const defaults = (r) => {
+    const base = { kick: r.kick, top: r.top, groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false, topVoice: 'typical' };
+    if (r.topLines && r.topLines.length) {
+      r.topLines.forEach((_, idx) => { base['muteTop' + idx] = false; });
+    }
+    return base;
+  };
   function load() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
@@ -52,14 +58,21 @@
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
   const nativeFour = (r) => r.kick === FOUR[r.steps];
-  const patternOf = (r, lane) => (lane === 'kick' ? (state.rows[r.id].four ? FOUR[r.steps] : state.rows[r.id].kick) : state.rows[r.id].top);
+  const patternOf = (r, lane) => {
+    if (lane === 'kick') return state.rows[r.id].four ? FOUR[r.steps] : state.rows[r.id].kick;
+    if (lane.startsWith('top') && r.topLines) {
+      const idx = parseInt(lane.replace('top', ''), 10);
+      return state.rows[r.id]['top' + idx] || r.topLines[idx]?.pattern || '';
+    }
+    return state.rows[r.id].top;
+  };
   const voiceOf = (r) => {
     const rowVoice = state.rows[r.id]?.topVoice;
     if (rowVoice && rowVoice !== 'typical') return rowVoice;
     return state.topVoice === 'typical' ? r.sound : state.topVoice;
   };
   const bpmOf = (r) => (state.tempoMode === 'native' ? r.bpm : state.bpm);
-  const cap = (lane) => (lane === 'kick' ? 'Kick' : 'Top');
+  const cap = (lane) => (lane === 'kick' ? 'Kick' : lane.charAt(0).toUpperCase() + lane.slice(1));
   // A lane whose two halves match is shown as one half unless the user opens it.
   const foldable = (p) => p.slice(0, p.length / 2) === p.slice(p.length / 2);
   const shownSteps = (r, lane) => {
@@ -73,8 +86,19 @@
     if (!r) return null;
     const s = state.rows[id];
     const off = '.'.repeat(r.steps);
-    return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent,
-      lanes: [{ pattern: s.muteKick ? off : patternOf(r, 'kick'), voice: 'kick' }, { pattern: s.muteTop ? off : s.top, voice: voiceOf(r) }] };
+    const lanes = [{ pattern: s.muteKick ? off : patternOf(r, 'kick'), voice: 'kick' }];
+
+    // Support multi-instrument topLines (e.g., djembe ensemble, Gnawa, mbira)
+    if (r.topLines && r.topLines.length) {
+      r.topLines.forEach((tl, idx) => {
+        const muted = s['muteTop' + idx] || false;
+        lanes.push({ pattern: muted ? off : tl.pattern, voice: tl.sound });
+      });
+    } else {
+      lanes.push({ pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
+    }
+
+    return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent, lanes };
   }
 
   function el(tag, cls, text) {
@@ -102,14 +126,22 @@
     d[lane + 'Wrap'].classList.toggle('lane-muted', muted);
     d[lane + 'Mute'].setAttribute('aria-pressed', String(!muted));
     d[lane + 'MuteIcon'].textContent = muted ? 'volume_off' : 'volume_up';
-    d[lane + 'MuteLabel'].textContent = lane === 'kick' ? 'Kick' : VOICE_LABEL[voiceOf(r)];
+    // Find label for this lane
+    let label = lane === 'kick' ? 'Kick' : 'Top';
+    if (lane.startsWith('top') && r.topLines) {
+      const idx = parseInt(lane.replace('top', ''), 10);
+      if (r.topLines[idx]) label = r.topLines[idx].name;
+    } else if (lane === 'top') {
+      label = VOICE_LABEL[voiceOf(r)];
+    }
+    d[lane + 'MuteLabel'].textContent = label;
     d[lane + 'Fold'].hidden = !foldable(pattern);
     d[lane + 'FoldIcon'].textContent = shown < pattern.length ? 'unfold_more' : 'unfold_less';
     if (lane === 'kick' && d.fourBtns) d.fourBtns.forEach((b) => b.classList.toggle('active', (b.dataset.four === '1') === s.four));
   }
-  const paintRow = (r) => { paintLane(r, 'kick'); paintLane(r, 'top'); };
+  const paintRow = (r) => { paintLane(r, 'kick'); if (r.topLines && r.topLines.length) { r.topLines.forEach((_, idx) => paintLane(r, 'top' + idx)); } else { paintLane(r, 'top'); } };
 
-  function buildLane(r, lane) {
+  function buildLane(r, lane, topLine) {
     const d = dom[r.id], L = cap(lane);
     const wrap = d[lane + 'Wrap'] = el('div', 'lane');
     const head = el('div', 'lane-head');
@@ -136,9 +168,10 @@
     head.appendChild(fold);
 
     const dl = iconBtn('download', 'Export this part as MIDI', 'lane-download');
+    const voiceForExport = topLine ? topLine.sound : (lane === 'kick' ? 'kick' : voiceOf(r));
     dl.addEventListener('click', () => {
-      const s = state.rows[r.id], voice = lane === 'kick' ? 'kick' : voiceOf(r);
-      RX.exportMidi({ rhythmName: r.name, partName: voice, steps: r.steps, bpm: bpmOf(r), pattern: patternOf(r, lane), voice,
+      const s = state.rows[r.id];
+      RX.exportMidi({ rhythmName: r.name, partName: voiceForExport, steps: r.steps, bpm: bpmOf(r), pattern: patternOf(r, lane), voice: voiceForExport,
         groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent });
     });
     head.appendChild(dl);
@@ -151,7 +184,7 @@
         if (lane === 'kick' && s.four) return;
         const cur = s[lane], half = r.steps / 2, folded = shownSteps(r, lane) < r.steps;
         // One tap turns a step on or off; turning it back on restores the rhythm's own accent level.
-        const next = cur[i] !== '.' ? '.' : (r[lane][i] !== '.' ? r[lane][i] : 'x');
+        const next = cur[i] !== '.' ? '.' : (topLine ? topLine.pattern[i] : (r[lane][i] !== '.' ? r[lane][i] : 'x'));
         const arr = cur.split('');
         arr[i] = next;
         if (folded) arr[i + half] = next;
@@ -230,7 +263,8 @@
     head.appendChild(info); head.appendChild(reset);
     root.appendChild(head);
 
-    const note = el('p', 'row-note', r.note); note.hidden = true;
+    const noteText = (r.etymology ? '<strong>Etymology:</strong> ' + r.etymology + '<br><br>' : '') + r.note;
+    const note = el('p', 'row-note', ''); note.hidden = true; note.innerHTML = noteText;
     info.addEventListener('click', () => { note.hidden = !note.hidden; info.classList.toggle('active', !note.hidden); });
     reset.addEventListener('click', () => { state.rows[r.id] = defaults(r); sel.value = r.groove; paintRow(r); save(); });
     root.appendChild(note);
@@ -254,6 +288,34 @@
     const voiceLabel = el('label', 'setting-label', 'Top sound');
     voiceLabel.appendChild(voiceSelect);
     settingsGrid.appendChild(voiceLabel);
+
+    // Add voice selectors for additional top lines (multi-instrument patterns)
+    if (r.topLines && r.topLines.length) {
+      r.topLines.forEach((tl, idx) => {
+        const tlVoiceSelect = el('select', 'field-select');
+        tlVoiceSelect.setAttribute('aria-label', tl.name + ' sound for ' + r.name);
+        // Extended voice list for multi-instrument patterns
+        const EXTENDED_VOICES = [
+          ['typical', 'Typical'], ['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass'],
+          ['dunun', 'Dunun'], ['guembri', 'Guembri'], ['mbira', 'Mbira'],
+          ['pluck', 'Pluck'], ['bow', 'Bow'], ['wind', 'Wind'],
+          ['voice', 'Voice'], ['shaker', 'Shaker'], ['metal', 'Metal'], ['clap', 'Clap']
+        ];
+        EXTENDED_VOICES.forEach(([v, label]) => {
+          const o = el('option', null, label); o.value = v; tlVoiceSelect.appendChild(o);
+        });
+        tlVoiceSelect.value = state.rows[r.id]['topVoice' + idx] || tl.sound;
+        tlVoiceSelect.addEventListener('change', () => {
+          state.rows[r.id]['topVoice' + idx] = tlVoiceSelect.value;
+          paintLane(r, 'top' + idx);
+          save();
+        });
+        const tlVoiceLabel = el('label', 'setting-label', tl.name);
+        tlVoiceLabel.appendChild(tlVoiceSelect);
+        settingsGrid.appendChild(tlVoiceLabel);
+      });
+    }
+
     settingsPanel.appendChild(settingsGrid);
     root.appendChild(settingsPanel);
 
@@ -269,7 +331,11 @@
 
     const lanes = el('div', 'lanes');
     lanes.appendChild(buildLane(r, 'kick'));
-    lanes.appendChild(buildLane(r, 'top'));
+    if (r.topLines && r.topLines.length) {
+      r.topLines.forEach((tl, idx) => lanes.appendChild(buildLane(r, 'top' + idx, tl)));
+    } else {
+      lanes.appendChild(buildLane(r, 'top'));
+    }
     root.appendChild(lanes);
     paintRow(r);
     return root;
@@ -279,14 +345,29 @@
   let nowRow = null;
   let pendingSwitchTarget = null; // rowId that is queued to play next
   function clearPlayhead() {
-    if (nowRow && dom[nowRow]) ['kickSteps', 'topSteps'].forEach((k) => dom[nowRow][k].forEach((b) => b.classList.remove('step-now')));
+    if (nowRow && dom[nowRow]) {
+      ['kickSteps', 'topSteps'].forEach((k) => dom[nowRow][k]?.forEach((b) => b.classList.remove('step-now')));
+      // Also clear any additional topN steps
+      Object.keys(dom[nowRow]).forEach((k) => {
+        if (k.startsWith('top') && k.endsWith('Steps')) {
+          dom[nowRow][k]?.forEach((b) => b.classList.remove('step-now'));
+        }
+      });
+    }
     nowRow = null;
   }
   function onStep(id, i) {
     clearPlayhead();
     nowRow = id;
     const r = byId[id];
-    ['kick', 'top'].forEach((lane) => { const b = dom[id][lane + 'Steps'][i % shownSteps(r, lane)]; if (b) b.classList.add('step-now'); });
+    // Highlight kick
+    const kickSteps = dom[id].kickSteps;
+    if (kickSteps) kickSteps[i % shownSteps(r, 'kick')]?.classList.add('step-now');
+    // Highlight all top lanes
+    ['top'].concat(r.topLines ? r.topLines.map((_, idx) => 'top' + idx) : []).forEach((lane) => {
+      const steps = dom[id][lane + 'Steps'];
+      if (steps) steps[i % shownSteps(r, lane)]?.classList.add('step-now');
+    });
   }
   function paintTempo() {
     const cur = RX.audio.playing(), native = state.tempoMode === 'native';
@@ -430,7 +511,13 @@
     const badge = el('span', 'badge ' + REGION_CLASS[RX.REGIONS.indexOf(r.region) % REGION_CLASS.length], r.region);
     head.appendChild(badge);
     if (r.steps === 12) head.appendChild(el('span', 'badge', '12/8'));
+    if (r.etymology) head.appendChild(el('span', 'badge badge-amber', '📖 Etymology'));
     card.appendChild(head);
+    // Etymology tooltip
+    if (r.etymology) {
+      const ety = el('div', 'card-etymology', r.etymology);
+      card.appendChild(ety);
+    }
     // Mini step grid (read-only preview)
     const preview = el('div', 'card-preview');
     const kickGrid = el('div', 'steps steps-' + r.steps + ' mini');
@@ -440,13 +527,20 @@
         (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : ''));
       kickGrid.appendChild(b);
     });
-    r.top.split('').forEach((ch, i) => {
+    // For multi-instrument topLines, show first top line or combined
+    const topPattern = r.topLines && r.topLines.length ? r.topLines[0].pattern : r.top;
+    topPattern.split('').forEach((ch, i) => {
       const b = el('div', 'step' + (i % (r.steps / 4) === 0 ? ' step-beat' : '') +
         (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : ''));
       topGrid.appendChild(b);
     });
     preview.appendChild(kickGrid);
     preview.appendChild(topGrid);
+    // Show instrument count for multi-instrument patterns
+    if (r.topLines && r.topLines.length > 1) {
+      const instCount = el('div', 'card-instruments', '🎵 ' + r.topLines.length + ' parts');
+      preview.appendChild(instCount);
+    }
     card.appendChild(preview);
     // Play button
     const playBtn = el('button', 'card-play');

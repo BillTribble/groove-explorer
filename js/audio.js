@@ -49,6 +49,36 @@ window.RX = window.RX || {};
     tom(t, v) { tone(topBus, t, 165, 92, 0.16, 0.42, 0.8 * v); },
     // Low percussive bass in the log-drum family: fast pitch drop, short body.
     bass(t, v) { tone(topBus, t, 190, 55, 0.045, 0.3, 0.9 * v); tone(topBus, t, 110, 55, 0.03, 0.22, 0.25 * v, 'triangle'); },
+
+    // Dunun (West African bass drums: kenkeni, sangban, dununba)
+    dunun(t, v) { tone(topBus, t, 110, 65, 0.08, 0.25, 0.85 * v); noise(topBus, t, 0.02, 0.1 * v, 800); },
+
+    // Guembri / Sintir (Gnawa 3-string bass lute)
+    guembri(t, v) { tone(topBus, t, 80, 40, 0.06, 0.35, 0.7 * v); tone(topBus, t, 160, 80, 0.04, 0.15, 0.2 * v, 'triangle'); },
+
+    // Mbira / Kalimba (thumb piano)
+    mbira(t, v) { tone(topBus, t, 800, 600, 0.03, 0.18, 0.6 * v); tone(topBus, t, 1200, 800, 0.02, 0.08, 0.15 * v, 'sine'); },
+
+    // Plucked string (krar, oud, guitar, kora)
+    pluck(t, v) { tone(topBus, t, 300, 150, 0.04, 0.2, 0.5 * v); tone(topBus, t, 600, 300, 0.02, 0.08, 0.1 * v, 'triangle'); },
+
+    // Bowed string (masinko, goje, violin, rebab)
+    bow(t, v) { tone(topBus, t, 200, 180, 0.12, 0.4, 0.55 * v); tone(topBus, t, 400, 350, 0.08, 0.15, 0.15 * v, 'sawtooth'); },
+
+    // Wind (washint, flute, mizmar)
+    wind(t, v) { tone(topBus, t, 400, 350, 0.08, 0.35, 0.5 * v); noise(topBus, t, 0.08, 0.08 * v, 2000); },
+
+    // Voice (vocal)
+    voice(t, v) { tone(topBus, t, 220, 180, 0.1, 0.3, 0.6 * v); tone(topBus, t, 440, 350, 0.06, 0.12, 0.15 * v, 'triangle'); },
+
+    // Shaker / Hosho / Cherewa
+    shaker(t, v) { noise(topBus, t, 0.05, 0.3 * v, 4000); },
+
+    // Metal (qraqeb, gankogui, bell, krakeb)
+    metal(t, v) { tone(topBus, t, 2000, 1500, 0.02, 0.06, 0.7 * v); tone(topBus, t, 4000, 3000, 0.015, 0.03, 0.2 * v); },
+
+    // Handclaps
+    clap(t, v) { noise(topBus, t, 0.03, 0.5 * v, 2000); tone(topBus, t, 300, 200, 0.02, 0.04, 0.1 * v); },
   };
 
   // ── Scheduler ──
