@@ -79,7 +79,20 @@ window.RX = window.RX || {};
 
     // Handclaps
     clap(t, v) { noise(topBus, t, 0.03, 0.5 * v, 2000); tone(topBus, t, 300, 200, 0.02, 0.04, 0.1 * v); },
+
+    // Djembe (Mandé lead/accompaniment hand drum): bright open tone + slap.
+    djembe(t, v) { tone(topBus, t, 260, 180, 0.04, 0.28, 0.75 * v, 'triangle'); noise(topBus, t, 0.03, 0.3 * v, 2200); tone(topBus, t, 90, 70, 0.05, 0.2, 0.3 * v); },
+
+    // Conga / bongo (Afro-Cuban single-head drum): mid open tone.
+    conga(t, v) { tone(topBus, t, 200, 150, 0.05, 0.3, 0.7 * v); noise(topBus, t, 0.02, 0.12 * v, 1800); },
+
+    // Xylophone / marimba / gyil / balafon: woody pitched bar with overtone.
+    xylophone(t, v) { tone(topBus, t, 620, 600, 0.02, 0.22, 0.6 * v); tone(topBus, t, 1240, 1200, 0.01, 0.08, 0.15 * v, 'sine'); },
   };
+
+  // Rhythms name their native instruments (surdo, caixa, darbuka…) — an unknown
+  // name must never crash the scheduler, so fall back to a generic drum.
+  const voiceFor = (name) => VOICES[name] || VOICES.tom;
 
   // ── Scheduler ──
   const LOOKAHEAD = 0.14;
@@ -100,7 +113,7 @@ window.RX = window.RX || {};
         if (!lv) continue;
         const g = RX.applyGroove(st.groove, pos, st.timing, st.accent);
         const t = Math.max(ctx.currentTime, nextTime + g.offset * spb);
-        VOICES[lane.voice](t, lv * g.gain);
+        voiceFor(lane.voice)(t, lv * g.gain);
       }
       if (onStep) {
         const id = row, delay = Math.max(0, (nextTime - ctx.currentTime) * 1000);
@@ -158,5 +171,6 @@ window.RX = window.RX || {};
   }
 
   RX.audio = { play, stop, playing: () => row, scheduleSwitch, getSchedulerState,
-    setTopCutoff(hz) { topCutoff = hz; if (topBus) topBus.frequency.setTargetAtTime(hz, ctx.currentTime, 0.02); }, hit(voice) { ensure(); VOICES[voice](ctx.currentTime + 0.01, 0.8); } };
+    setTopCutoff(hz) { topCutoff = hz; if (topBus) topBus.frequency.setTargetAtTime(hz, ctx.currentTime, 0.02); },
+    hit(voice) { ensure(); voiceFor(voice)(ctx.currentTime + 0.01, 0.8); } };
 })();

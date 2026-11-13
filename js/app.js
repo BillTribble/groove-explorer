@@ -213,7 +213,7 @@
       b.addEventListener('click', () => {
         const s = state.rows[r.id];
         if (lane === 'kick' && s.four) return;
-        const cur = s[lane], half = r.steps / 2, folded = shownSteps(r, lane) < r.steps;
+        const cur = patternOf(r, lane), half = r.steps / 2, folded = shownSteps(r, lane) < r.steps;
         // One tap turns a step on or off; turning it back on restores the rhythm's own accent level.
         const next = cur[i] !== '.' ? '.' : (topLine ? topLine.pattern[i] : (r[lane][i] !== '.' ? r[lane][i] : 'x'));
         const arr = cur.split('');
@@ -304,21 +304,24 @@
     const settingsPanel = d.settingsPanel = el('div', 'row-settings', '');
     settingsPanel.hidden = true;
     const settingsGrid = el('div', 'settings-grid');
-    // Top voice selector for this pattern
-    const voiceSelect = el('select', 'field-select');
-    voiceSelect.setAttribute('aria-label', 'Top sound for ' + r.name);
-    TOP_VOICES.forEach(([v, label]) => {
-      const o = el('option', null, label); o.value = v; voiceSelect.appendChild(o);
-    });
-    voiceSelect.value = state.rows[r.id].topVoice || 'typical';
-    voiceSelect.addEventListener('change', () => {
-      state.rows[r.id].topVoice = voiceSelect.value;
-      paintLane(r, 'top');
-      save();
-    });
-    const voiceLabel = el('label', 'setting-label', 'Top sound');
-    voiceLabel.appendChild(voiceSelect);
-    settingsGrid.appendChild(voiceLabel);
+    // Top voice selector for this pattern (only for single-lane rhythms —
+    // multi-instrument rhythms get one selector per topLine below instead).
+    if (!(r.topLines && r.topLines.length)) {
+      const voiceSelect = el('select', 'field-select');
+      voiceSelect.setAttribute('aria-label', 'Top sound for ' + r.name);
+      TOP_VOICES.forEach(([v, label]) => {
+        const o = el('option', null, label); o.value = v; voiceSelect.appendChild(o);
+      });
+      voiceSelect.value = state.rows[r.id].topVoice || 'typical';
+      voiceSelect.addEventListener('change', () => {
+        state.rows[r.id].topVoice = voiceSelect.value;
+        paintLane(r, 'top');
+        save();
+      });
+      const voiceLabel = el('label', 'setting-label', 'Top sound');
+      voiceLabel.appendChild(voiceSelect);
+      settingsGrid.appendChild(voiceLabel);
+    }
 
     // Add voice selectors for additional top lines (multi-instrument patterns)
     if (r.topLines && r.topLines.length) {
