@@ -18,7 +18,7 @@
 
   // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
   // viewMode: 'family' (default) or 'region'
-  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'synth', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, rows: {} };
+  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
@@ -37,6 +37,8 @@
     if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode', 'kit'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
     // By family became the default view; saves from before that start there once.
     if (saved && !saved.familyDefault) state.viewMode = 'family';
+    // Recorded samples became the default kit; saves from before that switch to it once.
+    if (saved && !saved.samplesDefault) state.kit = 'samples';
     RX.RHYTHMS.forEach((r) => {
       const s = saved && saved.rows && saved.rows[r.id];
       const ok = s && s.kick && s.kick.length === r.steps && s.top && s.top.length === r.steps && RX.GROOVE_BY_ID[s.groove];
