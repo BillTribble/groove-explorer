@@ -242,6 +242,9 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 }
 .family-track::-webkit-scrollbar { display: none; }
 .family-track > .row { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+/* Pads take taps, not carousel swipes: a fingertip tap that drifts sideways would otherwise start a
+   swipe and cancel the tap. Vertical page scrolling still works over the pads. */
+.family-track .steps { touch-action: pan-y; }
 .badge-amber { background: var(--md-sys-color-amber-tonal); color: var(--md-sys-color-on-amber-tonal); }
 
 @media (max-width: 840px) {
