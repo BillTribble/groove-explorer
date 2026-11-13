@@ -273,38 +273,11 @@
     meta.appendChild(badges);
     head.appendChild(meta);
 
-    const bpm = el('button', 'bpm-chip'); bpm.title = 'Tap to adjust tempo';
+    // Tapping a row's tempo switches the whole app to that exact tempo.
+    const bpm = el('button', 'bpm-chip'); bpm.title = 'Set tempo to ' + r.bpm + ' bpm (usual range ' + r.range + ')';
     bpm.appendChild(icon('speed')); bpm.appendChild(el('span', 'bpm-chip-value', r.bpm + ' bpm')); bpm.appendChild(el('span', 'bpm-chip-range', r.range));
-    const sliderWrap = el('div', 'bpm-slider-wrap'); sliderWrap.hidden = true;
-    const slider = el('input', 'bpm-inline-slider');
-    slider.type = 'range'; slider.min = '60'; slider.max = '300'; slider.step = '1'; slider.value = r.bpm;
-    sliderWrap.appendChild(slider);
+    bpm.addEventListener('click', () => setBpm(r.bpm));
     head.appendChild(bpm);
-    head.appendChild(sliderWrap);
-
-    let sliderActive = false;
-    bpm.addEventListener('click', (e) => {
-      e.stopPropagation();
-      sliderWrap.hidden = false;
-      slider.focus();
-      sliderActive = true;
-    });
-    slider.addEventListener('input', (e) => {
-      const v = +e.target.value;
-      state.bpm = v; state.tempoMode = 'set';
-      bpm.querySelector('.bpm-chip-value').textContent = v + ' bpm';
-      paintTempo(); save();
-    });
-    slider.addEventListener('change', () => {
-      sliderWrap.hidden = true;
-      sliderActive = false;
-    });
-    slider.addEventListener('blur', () => {
-      if (!sliderActive) sliderWrap.hidden = true;
-    });
-    document.addEventListener('click', (e) => {
-      if (!bpm.contains(e.target) && !sliderWrap.contains(e.target)) sliderWrap.hidden = true;
-    });
 
     const sel = d.groove = el('select', 'field-select'); sel.setAttribute('aria-label', 'Groove for ' + r.name);
     const groups = {};
@@ -434,9 +407,9 @@
   }
   function paintTempo() {
     const cur = RX.audio.playing(), native = state.tempoMode === 'native';
-    $('bpm-value').textContent = native ? (cur ? byId[cur].bpm : '') : state.bpm;
+    $('bpm-value').textContent = native ? (cur ? byId[cur].bpm : 'Native') : state.bpm;
     $('bpm-unit').hidden = native && !cur;
-    $('bpm-slider').value = state.bpm; $('bpm-set-value').textContent = state.bpm;
+    $('bpm-slider').value = native && cur ? byId[cur].bpm : state.bpm;
     document.querySelectorAll('#tempo-mode .m3-pill-tab').forEach((b) => b.classList.toggle('active', b.dataset.mode === state.tempoMode));
   }
   function paintPlaying() {
@@ -617,6 +590,20 @@
       toggle.classList.toggle('active', !settings.hidden);
     });
 
+    // Top-bar tempo: tap the readout to open the fader.
+    const tempoBtn = $('tempo-btn'), tempoPop = $('tempo-pop');
+    const setTempoPop = (open) => {
+      tempoPop.hidden = !open;
+      tempoBtn.setAttribute('aria-expanded', String(open));
+      tempoBtn.classList.toggle('active', open);
+    };
+    tempoBtn.addEventListener('click', () => setTempoPop(tempoPop.hidden));
+    document.addEventListener('click', (e) => {
+      if (!tempoPop.hidden && !tempoPop.contains(e.target) && !tempoBtn.contains(e.target)) setTempoPop(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !tempoPop.hidden) { setTempoPop(false); e.stopImmediatePropagation(); }
+    }, true);
     $('bpm-slider').addEventListener('input', (e) => setBpm(+e.target.value));
     $('bpm-down').addEventListener('click', () => setBpm(state.bpm - 1));
     $('bpm-up').addEventListener('click', () => setBpm(state.bpm + 1));
