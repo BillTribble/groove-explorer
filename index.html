@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Groove explorer</title>
+  <script>
+    // Error overlay: paint failures on screen instead of a blank page.
+    window.APP_BUILD = '2026-11-13b';
+    (function () {
+      function show(msg) {
+        var el = document.getElementById('error-overlay');
+        if (!el) { el = document.createElement('pre'); el.id = 'error-overlay'; el.className = 'error-overlay'; (document.body || document.documentElement).appendChild(el); }
+        el.textContent += msg + '\n';
+      }
+      window.addEventListener('error', function (e) { show((e.message || 'Error') + ' @ ' + (e.filename || '').split('/').pop() + ':' + e.lineno); });
+      window.addEventListener('unhandledrejection', function (e) { show('Unhandled: ' + (e.reason && e.reason.stack || e.reason)); });
+      window.addEventListener('load', function () { setTimeout(function () { if (!window.__APP_LOADED__) show('App script did not finish loading (build ' + window.APP_BUILD + ')'); }, 1500); });
+      // Theme: saved override, else Helix parent, else OS preference.
+      function theme() {
+        var o = null; try { o = localStorage.getItem('rx-theme'); } catch (e) {}
+        if (o === 'light' || o === 'dark') return o;
+        try { if (window.parent !== window && window.parent.document.documentElement.getAttribute('data-theme') === 'dark') return 'dark'; } catch (e) {}
+        return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      window.RX_applyTheme = function () { var t = theme(); if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); else document.documentElement.removeAttribute('data-theme'); return t; };
+      window.RX_applyTheme();
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', window.RX_applyTheme);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0..1,0&display=block" rel="stylesheet">
+  <link rel="stylesheet" href="css/gm3-color-tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="app-bar">
+    <div class="app-bar-row">
+      <h1 class="app-title">Groove explorer</h1>
+      <div class="tempo">
+        <button class="icon-btn" id="bpm-down" title="Slower" aria-label="Slower"><span class="material-symbols-outlined">remove</span></button>
+        <div class="tempo-readout"><span id="bpm-value">120</span><span class="tempo-unit">bpm</span></div>
+        <button class="icon-btn" id="bpm-up" title="Faster" aria-label="Faster"><span class="material-symbols-outlined">add</span></button>
+        <input type="range" id="bpm-slider" class="slider tempo-slider" min="60" max="300" step="1" value="120" aria-label="Tempo">
+      </div>
+      <label class="amount" title="How far hits are pulled onto the groove">
+        <span class="amount-label">Groove <span id="timing-value">100%</span></span>
+        <input type="range" id="timing-slider" class="slider" min="0" max="130" step="5" value="100" aria-label="Groove timing amount">
+      </label>
+      <label class="amount" title="How much the groove's accents shape velocity">
+        <span class="amount-label">Accent <span id="accent-value">50%</span></span>
+        <input type="range" id="accent-slider" class="slider" min="0" max="100" step="5" value="50" aria-label="Groove accent amount">
+      </label>
+      <div class="app-actions">
+        <button class="btn-tonal" id="export-als" title="One scene per rhythm, groove baked in"><span class="material-symbols-outlined">download</span><span class="btn-label-text">Ableton set</span></button>
+        <button class="icon-btn" id="theme-toggle" title="Switch theme" aria-label="Switch theme"><span class="material-symbols-outlined" id="theme-icon">dark_mode</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="m3-pill-tabs region-tabs" id="region-tabs" role="tablist"></div>
+  <main class="rows" id="rows"></main>
+
+  <script src="js/grooves-ableton.js"></script>
+  <script src="js/als-template.js"></script>
+  <script src="js/rhythms.js"></script>
+  <script src="js/grooves.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/exporters.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
