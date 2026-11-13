@@ -10,17 +10,21 @@ window.RX = window.RX || {};
   add({ id: 'straight', name: 'Straight', group: 'Basic', len: 1, notes: [] });
 
   // Plain swing: off-beat 16th sits at pct% of the 8th note (50 straight, 66 triplet).
-  [52, 54, 57, 61, 66, 71].forEach((pct) => {
+  [52, 54, 55, 56, 57, 58, 60, 61, 62, 64, 66, 71].forEach((pct) => {
     const off = 0.5 * pct / 100;
     add({ id: 'sw16:' + pct, name: 'Swing 16ths ' + pct + '%', group: 'Basic',
       len: 1, notes: [[0, 127], [off, 127], [0.5, 127], [0.5 + off, 127]] });
   });
-  [57, 66].forEach((pct) => {
+  [57, 58, 60, 62, 66].forEach((pct) => {
     add({ id: 'sw8:' + pct, name: 'Swing 8ths ' + pct + '%', group: 'Basic',
       len: 1, notes: [[0, 127], [pct / 100, 127]] });
   });
 
   // Research-based feels (approximations of published timing data).
+  // Even 12/8 feel: on a 12-step grid this is the grid itself; on a 16-step grid it pulls the
+  // off-beat 16ths onto triplets, giving a binary-notated pattern its 6/8 lilt.
+  add({ id: 'tri:even', name: 'Triplet feel (even 12/8)', group: 'Research',
+    len: 1, notes: [[0, 127], [1 / 3, 110], [2 / 3, 118]] });
   add({ id: 'rs:polak', name: 'Jembe ternary 25:33:42 (Polak)', group: 'Research',
     len: 1, notes: [[0, 127], [0.25, 100], [0.58, 110]], window: 0.1 });
   add({ id: 'rs:samba', name: 'Samba suingue', group: 'Research',

@@ -18,7 +18,7 @@
 
   // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
   // viewMode: 'family' (default) or 'region'
-  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, rows: {} };
+  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, groovesV2: true, rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
@@ -45,6 +45,8 @@
       state.rows[r.id] = ok ? Object.assign(defaults(r), s) : defaults(r);
       // 12/8 rows used to default to the Polak groove, which bent the triplet grid; move saved rows to straight once.
       if (r.steps === 12 && !(saved && saved.straight12) && state.rows[r.id].groove === 'rs:polak') state.rows[r.id].groove = 'straight';
+      // Grooves were re-researched for every rhythm; saved rows pick up the new default once.
+      if (saved && !saved.groovesV2) state.rows[r.id].groove = r.groove;
     });
   }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }

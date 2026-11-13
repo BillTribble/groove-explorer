@@ -56,3 +56,55 @@ MP3 encoder's leading silence) and saved as WAV.
 | tabla-dha.wav | Da_Test01 (dha) | subodh3012 | https://freesound.org/people/subodh3012/sounds/345576/ |
 | tabla-na.wav | tabla_na | Ninad_P | https://freesound.org/people/Ninad_P/sounds/418377/ |
 | alfaia.wav | Alfaia Hit (combined) | Sassaby | https://freesound.org/people/Sassaby/sounds/511275/ |
+
+## FreePats World and Rare Percussion (CC0)
+
+Source: https://github.com/freepats/world-percussion (https://freepats.zenvoid.org/Percussion/world-and-rare-percussion.html),
+licence **CC0 1.0**. Recorded by FreePats contributors.
+
+| File | Source |
+|:---|:---|
+| cajon-a.wav | samples/CajonFlamenco/101.flac (Cajón flamenco 1) |
+| cajon-b.wav | samples/CajonFlamenco/106.flac (Cajón flamenco 2) |
+| cajon-c.wav | samples/CajonFlamenco/217.flac (Cajón flamenco 3) |
+
+## Sonic Pi sample set (CC0)
+
+Source: https://github.com/sonic-pi-net/sonic-pi/tree/dev/etc/samples — the project README
+states these samples are released under CC0.
+
+| File | Source |
+|:---|:---|
+| tabla-na-sp.wav | tabla_na.flac |
+| tabla-te.wav | tabla_te1.flac |
+| tabla-ghe.wav | tabla_ghe1.flac |
+| tabla-tun.wav | tabla_tun1.flac |
+
+## Karoryfer Samples — Gogodze Phu Vol. I (CC0)
+
+Source: https://github.com/sfzinstruments/karoryfer.gogodze-phu-vol-i — licence **CC0 1.0**.
+Bobobo drums from Ghana.
+
+| File | Source |
+|:---|:---|
+| bobobo-bass.wav | Samples/bobobo/bobobo_bass_vl3_rr1.wav |
+| bobobo-tenor.wav | Samples/bobobo/bobobo_tenor_l_vl3_rr1.wav |
+| bobobo-treble.wav | Samples/bobobo/bobobo_treble_l_vl3_rr1.wav |
+
+## Freesound, second search (CC0)
+
+All marked **Creative Commons 0** on their Freesound pages; taken from the HQ previews and
+trimmed to the attack.
+
+| Files | Sounds | Author | Pack / page |
+|:---|:---|:---|:---|
+| djembe-bass.wav | Djembe_low_2_loud (21902) | reflecs | https://freesound.org/people/reflecs/packs/1350/ |
+| dununba.wav, kenkeni.wav, sangban-open.wav | Dundunba, Kenkeni, Sangban (170180, 170179, 170177) | JIMMYJAMES112 | https://freesound.org/people/JIMMYJAMES112/packs/10586/ |
+| bata-iya-*.wav, bata-itotele-*.wav, bata-okonkolo-*.wav | Iya / Itotele / Okonkolo slap and tone (509892–509897) | Sassaby | https://freesound.org/people/Sassaby/ |
+| conga-tone.wav, conga-slap.wav, quinto-tone.wav, quinto-slap.wav | Conga A tone/slap, Quinto C# tone/slap (512064, 512065, 512067, 512068) | Sassaby | https://freesound.org/people/Sassaby/ |
+| shekere.wav | Shekere Hit (506383) | Sassaby | https://freesound.org/people/Sassaby/sounds/506383/ |
+| caixa-maracatu.wav | Maracatu Caixa Hit (506384) | Sassaby | https://freesound.org/people/Sassaby/sounds/506384/ |
+| alfaia-hit.wav | Alfaia Hit - Maracatu (506385) | Sassaby | https://freesound.org/people/Sassaby/sounds/506385/ |
+| doumbek-doum.wav, doumbek-tek.wav, doumbek-ka.wav | Doumbek_Doum, Doumbek_Tek, Doumbek_mute (268708, 268707, 268709) | gregstullsoundlab | https://freesound.org/people/gregstullsoundlab/packs/16580/ |
+| agogo-low.wav, agogo-high2.wav | Agogo Low1, High1 (524019, 524022) | BlueCircleSounds | https://freesound.org/people/BlueCircleSounds/packs/29528/ |
+| udu.wav | Udu 1 (479245) | iyankc | https://freesound.org/people/iyankc/sounds/479245/ |

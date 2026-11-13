@@ -6,7 +6,8 @@
 window.RX = window.RX || {};
 
 (function () {
-  const DOUM_TEK = ['darbuka-doum', 'darbuka-tek', 'darbuka-tek'];
+  // Darbuka: one player's doumbek (Freesound, gregstullsoundlab) — doum on accents, tek on hits, ka on ghosts.
+  const DOUM_TEK = ['doumbek-doum', 'doumbek-tek', 'doumbek-ka'];
   const BIG_DRUM = 'bdconcert';
 
   RX.SAMPLE_KIT = {
@@ -16,24 +17,29 @@ window.RX = window.RX || {};
     map: {
       kick: 'bdkit',
       // snare: the synth snare is preferred, so it has no sample here.
-      caixa: 'ropesnare', caja: 'ropesnare',
+      caixa: 'caixa-maracatu', caja: 'ropesnare',
       tom: ['tomlo', 'tomhi', 'tomhi'],
 
       // Bass drums
-      dunun: 'sangban',
-      surdo: 'alfaia', zabumba: 'alfaia', alfaia: 'alfaia',
+      // Dunun family (one player, Freesound JIMMYJAMES112): open sangban, muted on soft hits.
+      dunun: ['sangban-open', 'sangban-open', 'sangban'],
+      dununba: 'dununba', kenkeni: 'kenkeni',
+      surdo: 'alfaia', zabumba: 'alfaia', alfaia: 'alfaia-hit',
       tupan: BIG_DRUM, amashako: BIG_DRUM,
       tambora: 'tomlo',
 
       // Goblet and hand drums
-      djembe: ['djembe-slap', 'djembe-tone', 'djembe-tone'],
-      tabla: ['tabla-dha', 'tabla-na', 'tabla-na'], mridangam: ['tabla-dha', 'tabla-na', 'tabla-na'],
+      djembe: ['djembe-slap', 'djembe-tone', 'djembe-bass'],
+      // Tabla bols: dha on accents, na on hits, te on ghost strokes; mridangam leads with tun.
+      tabla: ['tabla-dha', 'tabla-na-sp', 'tabla-te'], mridangam: ['tabla-tun', 'tabla-na', 'tabla-te'],
       darbuka: DOUM_TEK, derbouka: DOUM_TEK, dumbak: DOUM_TEK,
-      conga: ['tumba', 'conga', 'quinto'],
+      // Congas (one player, Freesound Sassaby): slap on accents, open tone on hits, quinto on ghosts.
+      conga: ['conga-slap', 'conga-tone', 'quinto-tone'],
       barril: 'tumba', atsimevu: 'tumba', kebero: 'tumba',
       kpanlogo: 'conga', fundeh: 'conga', engalabi: 'conga',
       bongo: 'bongo', kagan: 'bongo',
-      cajon: ['cajonslap', 'cajonbass', 'cajonbass'],
+      // FreePats flamenco cajón: slap on accents, bass on hits, light slap on ghosts.
+      cajon: ['cajon-a', 'cajon-b', 'cajon-c'],
 
       // Frame drums
       bendir: 'framedrum', sakara: 'framedrumhi',
@@ -57,6 +63,15 @@ window.RX = window.RX || {};
       talking: 'tumba',
       small: 'bongo',
       bigstick: BIG_DRUM,
+      // Ewe / Akan drums by size, from the Karoryfer bobobo set (Ghana).
+      'ewe-big': 'bobobo-bass', 'ewe-mid': 'bobobo-tenor', 'ewe-small': 'bobobo-treble',
+      // Batá (one player, Freesound Sassaby): slap on accents, open tone otherwise.
+      'bata-iya': ['bata-iya-slap', 'bata-iya-tone', 'bata-iya-tone'],
+      'bata-itotele': ['bata-itotele-slap', 'bata-itotele-tone', 'bata-itotele-tone'],
+      'bata-okonkolo': ['bata-okonkolo-slap', 'bata-okonkolo-tone', 'bata-okonkolo-tone'],
+      agogo: ['agogo-low', 'agogo-high2', 'agogo-high2'],
+      shekere: 'shekere',
+      udu: 'udu',
     },
 
     // Many parts are tagged with a generic sound ('dunun', 'metal', 'snare'...). For samples,
@@ -64,21 +79,35 @@ window.RX = window.RX || {};
     byName: [
       [/caj[oó]n/i, 'cajon'],
       [/cajita|cu[aá](?![a-z])|playing cast/i, 'wood'],
-      [/darbuka|derbouka|dumbak|taarija|ghatam/i, 'darbuka'],
+      [/dununba/i, 'dununba'],
+      [/kenkeni/i, 'kenkeni'],
+      [/sangban/i, 'dunun'],
+      [/iy[aá](-ilu)?\b|iya-ilu/i, 'bata-iya'],
+      [/omele ako|it[oó]tele/i, 'bata-itotele'],
+      [/omele abo|ok[oó]nkolo/i, 'bata-okonkolo'],
+      [/agog/i, 'agogo'],
+      [/sekere|shekere|axatse/i, 'shekere'],
+      [/ghatam|\budu\b/i, 'udu'],
+      [/darbuka|derbouka|dumbak|taarija/i, 'darbuka'],
       [/tabla|pakhavaj|mridangam/i, 'tabla'],
       [/\bdaf\b|bendir|\btar\b|frame drum|kanjira|pandereta/i, 'bendir'],
       [/pandeiro/i, 'pandeiro'],
       [/\briq\b/i, 'riq'],
       [/triangle|manjira/i, 'triangle'],
       [/qraqeb/i, 'qraqeb'],
-      [/bongo|namunjoloba|omele|repeater|llamador|petia|kagan/i, 'small'],
-      [/conga|kpanlogo|kidi|engalabi|enzeko|ngoma|fundeh|buleador/i, 'conga'],
-      [/barril|atsimevu|sogo|kwadum|apentemma|iya-ilu|kebero|tamb[oó]r \(lead/i, 'barril'],
+      [/atsimevu|sogo|kwadum|apentemma/i, 'ewe-big'],
+      [/kidi/i, 'ewe-mid'],
+      [/kagan|petia/i, 'ewe-small'],
+      [/bongo|namunjoloba|omele|repeater|llamador/i, 'small'],
+      [/conga|kpanlogo|engalabi|enzeko|ngoma|fundeh|buleador/i, 'conga'],
+      [/barril|kebero|tamb[oó]r \(lead/i, 'barril'],
       [/atumpan/i, 'talking'],
       [/djembe/i, 'djembe'],
-      [/alfaia|surdo|zabumba|tant[aã]/i, 'surdo'],
+      [/alfaia/i, 'alfaia'],
+      [/surdo|zabumba|tant[aã]/i, 'surdo'],
       [/tupan|\btabl\b|tambora|msondo|ganga|karyenda|kbandu|empunya|bass \(thunder\)/i, 'bigstick'],
-      [/caixa|caja\b/i, 'caixa'],
+      [/caixa/i, 'caixa'],
+      [/caja\b/i, 'caja'],
       [/foot stomp/i, 'kick'],
     ],
   };
