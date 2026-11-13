@@ -67,8 +67,10 @@
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
+  // Some multi-instrument data has a top pattern longer or shorter than the row; fit it to the step count.
+  const fit = (p, n) => (p || '').slice(0, n).padEnd(n, '.');
   const defaults = (r) => {
-    const base = { kick: r.kick, top: r.top, groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false, topVoice: 'typical' };
+    const base = { kick: r.kick, top: fit(r.top, r.steps), groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false, topVoice: 'typical' };
     if (r.topLines && r.topLines.length) {
       r.topLines.forEach((_, idx) => { base['muteTop' + idx] = false; });
     }
@@ -91,7 +93,7 @@
   const nativeFour = (r) => r.kick === FOUR[r.steps];
   const patternOf = (r, lane) => {
     if (lane === 'kick') return state.rows[r.id].four ? FOUR[r.steps] : state.rows[r.id].kick;
-    if (lane.startsWith('top') && r.topLines) {
+    if (lane !== 'top' && lane.startsWith('top') && r.topLines) {
       const idx = parseInt(lane.replace('top', ''), 10);
       return state.rows[r.id]['top' + idx] || r.topLines[idx]?.pattern || '';
     }
@@ -124,7 +126,7 @@
     if (r.topLines && r.topLines.length) {
       const chosen = (s.topVoice && s.topVoice !== 'typical') ? s.topVoice : (state.topVoice !== 'typical' ? state.topVoice : null);
       if (chosen) {
-        lanes.push({ pattern: s.muteTop ? off : (s.top || r.top), voice: chosen });
+        lanes.push({ pattern: s.muteTop ? off : (s.top || fit(r.top, r.steps)), voice: chosen });
       } else {
         r.topLines.forEach((tl, idx) => {
           const muted = s['muteTop' + idx] || false;
@@ -155,6 +157,8 @@
     if (!d || !d[lane + 'Grid']) return; // multi-instrument rows have top0..topN, no plain top lane
     const pattern = patternOf(r, lane), shown = shownSteps(r, lane), muted = s['mute' + L];
     d[lane + 'Grid'].className = 'steps steps-' + shown + (lane === 'kick' && s.four ? ' lane-locked' : '');
+    d[lane + 'Grid'].style.setProperty('--cols', shown);
+    d[lane + 'Grid'].style.setProperty('--cols-m', shown > 12 ? Math.ceil(shown / 2) : shown);
     d[lane + 'Steps'].forEach((b, i) => {
       const ch = pattern[i];
       b.hidden = i >= shown;
@@ -166,7 +170,7 @@
     d[lane + 'MuteIcon'].textContent = muted ? 'volume_off' : 'volume_up';
     // Find label for this lane
     let label = lane === 'kick' ? 'Kick' : 'Top';
-    if (lane.startsWith('top') && r.topLines) {
+    if (lane !== 'top' && lane.startsWith('top') && r.topLines) {
       const idx = parseInt(lane.replace('top', ''), 10);
       if (r.topLines[idx]) label = r.topLines[idx].name;
     } else if (lane === 'top') {
@@ -190,6 +194,8 @@
         paintLane(r, 'top' + idx);
         dom[r.id]['top' + idx + 'Wrap']?.classList.toggle('lane-collapsed', col);
       });
+      paintLane(r, 'top');
+      dom[r.id].topWrap?.classList.toggle('lane-collapsed', !col);
     } else { paintLane(r, 'top'); }
   };
 
@@ -388,6 +394,8 @@
     lanes.appendChild(buildLane(r, 'kick'));
     if (r.topLines && r.topLines.length) {
       r.topLines.forEach((tl, idx) => lanes.appendChild(buildLane(r, 'top' + idx, tl)));
+      // Combined top lane, shown in place of the ensemble when a top sound is chosen.
+      lanes.appendChild(buildLane(r, 'top'));
     } else {
       lanes.appendChild(buildLane(r, 'top'));
     }
@@ -586,6 +594,8 @@
         (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : ''));
       topGrid.appendChild(b);
     });
+    kickGrid.style.setProperty('--cols', kickGrid.children.length);
+    topGrid.style.setProperty('--cols', topGrid.children.length);
     preview.appendChild(kickGrid);
     preview.appendChild(topGrid);
     // Show instrument count for multi-instrument patterns
