@@ -2,7 +2,12 @@
 (function () {
   const $ = (id) => document.getElementById(id);
   const STORE = 'rx-state-v2';
-  const FOUR = { 16: 'x...x...x...x...', 12: 'x..x..x..x..' };
+  // Four kicks per bar for any step count: beats at the steps nearest each quarter of the bar
+  // (16 -> 0,4,8,12; 12 -> 0,3,6,9; 7 -> 0,2,4,5).
+  const fourFor = (n) => {
+    const hits = new Set([0, 1, 2, 3].map((k) => Math.round((k * n) / 4) % n));
+    return Array.from({ length: n }, (_, i) => (hits.has(i) ? 'x' : '.')).join('');
+  };
   const REGION_CLASS = ['badge-fuchsia', 'badge-orange', 'badge-indigo', 'badge-teal', 'badge-lime', 'badge-rose', 'badge-cyan', 'badge-violet', 'badge-yellow'];
   const VOICE_LABEL = { snare: 'Snare', tom: 'Tom', bass: 'Bass' };
   const TOP_VOICES = [['typical', 'Typical'], ['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass']];
@@ -90,9 +95,9 @@
   }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
-  const nativeFour = (r) => r.kick === FOUR[r.steps];
+  const nativeFour = (r) => r.kick === fourFor(r.steps);
   const patternOf = (r, lane) => {
-    if (lane === 'kick') return state.rows[r.id].four ? FOUR[r.steps] : state.rows[r.id].kick;
+    if (lane === 'kick') return state.rows[r.id].four ? fourFor(r.steps) : state.rows[r.id].kick;
     if (lane !== 'top' && lane.startsWith('top') && r.topLines) {
       const idx = parseInt(lane.replace('top', ''), 10);
       return state.rows[r.id]['top' + idx] || r.topLines[idx]?.pattern || '';

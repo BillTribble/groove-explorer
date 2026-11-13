@@ -26,10 +26,20 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 .error-overlay {
-  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1200; margin: 0; padding: 16px;
-  border-radius: 12px; white-space: pre-wrap; font-size: 13px;
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1200; padding: 12px 16px 16px;
+  border-radius: 16px; display: flex; flex-direction: column; gap: 8px; max-height: 50vh;
   background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
 }
+.error-head { display: flex; align-items: center; gap: 8px; }
+.error-title { flex: 1 1 auto; font-weight: 600; font-size: 14px; }
+.error-btn {
+  height: 40px; padding: 0 16px; border-radius: 9999px; font-size: 14px; font-weight: 600; white-space: nowrap;
+  background: var(--md-sys-color-error); color: var(--md-sys-color-on-error);
+}
+.error-close { background: var(--md-sys-color-surface-container-lowest); color: var(--md-sys-color-on-surface); }
+.error-text { margin: 0; overflow: auto; white-space: pre-wrap; font-size: 13px; }
+.error-copy-buffer { position: fixed; left: -9999px; top: 0; opacity: 0; }
 
 /* ── App bar ── */
 .app-bar {
