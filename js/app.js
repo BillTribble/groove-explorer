@@ -1,39 +1,52 @@
 // UI: stacked rhythm rows, one playing at a time. All controls update local state first.
 (function () {
   const $ = (id) => document.getElementById(id);
-  const STORE = 'rx-state-v1';
+  const STORE = 'rx-state-v2';
   const FOUR = { 16: 'x...x...x...x...', 12: 'x..x..x..x..' };
-  const CYCLE = { '.': 'x', x: 'X', X: 'o', o: '.' };
   const SRC_LABEL = { agr: 'Ableton groove data', std: 'Documented timeline', approx: 'Approximation', audio: 'Measured from audio' };
   const SRC_CLASS = { agr: 'badge-green', std: 'badge-blue', approx: 'badge-amber', audio: 'badge-violet' };
   const REGION_CLASS = ['badge-fuchsia', 'badge-orange', 'badge-indigo', 'badge-teal', 'badge-lime', 'badge-rose', 'badge-cyan', 'badge-violet', 'badge-yellow'];
-  const SOUNDS = [['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass']];
+  const VOICE_LABEL = { snare: 'Snare', tom: 'Tom', bass: 'Bass' };
+  const TOP_VOICES = [['typical', 'Typical'], ['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass']];
 
-  const state = { bpm: 120, timing: 1, accent: 0.5, region: 'All', rows: {} };
-  const dom = {}; // rowId -> { root, play, kickSteps, topSteps, ... }
+  // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
+  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', region: 'All', rows: {} };
+  const dom = {}; // rowId -> element refs
+  const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
+  const defaults = (r) => ({ kick: r.kick, top: r.top, groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false });
   function load() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
-    if (saved) Object.assign(state, { bpm: saved.bpm || 120, timing: saved.timing ?? 1, accent: saved.accent ?? 0.5 });
+    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
     RX.RHYTHMS.forEach((r) => {
       const s = saved && saved.rows && saved.rows[r.id];
-      const ok = s && s.kick && s.kick.length === r.steps && s.top.length === r.steps && RX.GROOVE_BY_ID[s.groove];
-      state.rows[r.id] = ok ? s : defaults(r);
+      const ok = s && s.kick && s.kick.length === r.steps && s.top && s.top.length === r.steps && RX.GROOVE_BY_ID[s.groove];
+      state.rows[r.id] = ok ? Object.assign(defaults(r), s) : defaults(r);
     });
   }
-  const defaults = (r) => ({ kick: r.kick, top: r.top, sound: r.sound, groove: r.groove, four: false });
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
-  const kickOf = (r) => (state.rows[r.id].four ? FOUR[r.steps] : state.rows[r.id].kick);
+  const nativeFour = (r) => r.kick === FOUR[r.steps];
+  const patternOf = (r, lane) => (lane === 'kick' ? (state.rows[r.id].four ? FOUR[r.steps] : state.rows[r.id].kick) : state.rows[r.id].top);
+  const voiceOf = (r) => (state.topVoice === 'typical' ? r.sound : state.topVoice);
+  const bpmOf = (r) => (state.tempoMode === 'native' ? r.bpm : state.bpm);
+  const cap = (lane) => (lane === 'kick' ? 'Kick' : 'Top');
+  // A lane whose two halves match is shown as one half unless the user opens it.
+  const foldable = (p) => p.slice(0, p.length / 2) === p.slice(p.length / 2);
+  const shownSteps = (r, lane) => {
+    const p = patternOf(r, lane);
+    return foldable(p) && !state.rows[r.id]['open' + cap(lane)] ? p.length / 2 : p.length;
+  };
 
   // Live state for the scheduler: read on every tick, so edits and tempo changes land immediately.
   function playState(id) {
-    const r = RX.RHYTHMS.find((x) => x.id === id);
+    const r = byId[id];
     if (!r) return null;
     const s = state.rows[id];
-    return { bpm: state.bpm, steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent,
-      lanes: [{ pattern: kickOf(r), voice: 'kick' }, { pattern: s.top, voice: s.sound }] };
+    const off = '.'.repeat(r.steps);
+    return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent,
+      lanes: [{ pattern: s.muteKick ? off : patternOf(r, 'kick'), voice: 'kick' }, { pattern: s.muteTop ? off : s.top, voice: voiceOf(r) }] };
   }
 
   function el(tag, cls, text) {
@@ -43,62 +56,78 @@
     return n;
   }
   const icon = (name) => el('span', 'material-symbols-outlined', name);
-
-  function stepClass(ch, i, steps) {
-    const lv = ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : '';
-    return 'step' + (i % (steps / 4) === 0 ? ' step-beat' : '') + lv;
+  function iconBtn(name, title, cls) {
+    const b = el('button', 'icon-btn' + (cls ? ' ' + cls : '')); b.title = title; b.setAttribute('aria-label', title);
+    b.appendChild(icon(name)); return b;
   }
 
   function paintLane(r, lane) {
-    const d = dom[r.id], s = state.rows[r.id];
-    const pattern = lane === 'kick' ? kickOf(r) : s.top;
-    d[lane + 'Steps'].forEach((b, i) => { b.className = stepClass(pattern[i], i, r.steps); });
-    if (lane === 'kick') {
-      d.kickGrid.classList.toggle('lane-locked', s.four);
-      d.fourBtns.forEach((b) => b.classList.toggle('active', (b.dataset.four === '1') === s.four));
-    } else {
-      d.soundBtns.forEach((b) => b.classList.toggle('active', b.dataset.sound === s.sound));
-    }
+    const d = dom[r.id], s = state.rows[r.id], L = cap(lane);
+    const pattern = patternOf(r, lane), shown = shownSteps(r, lane), muted = s['mute' + L];
+    d[lane + 'Grid'].className = 'steps steps-' + shown + (lane === 'kick' && s.four ? ' lane-locked' : '');
+    d[lane + 'Steps'].forEach((b, i) => {
+      const ch = pattern[i];
+      b.hidden = i >= shown;
+      b.className = 'step' + (i % (r.steps / 4) === 0 ? ' step-beat' : '') +
+        (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : '');
+    });
+    d[lane + 'Wrap'].classList.toggle('lane-muted', muted);
+    d[lane + 'Mute'].setAttribute('aria-pressed', String(!muted));
+    d[lane + 'MuteIcon'].textContent = muted ? 'volume_off' : 'volume_up';
+    d[lane + 'MuteLabel'].textContent = lane === 'kick' ? 'Kick' : VOICE_LABEL[voiceOf(r)];
+    d[lane + 'Fold'].hidden = !foldable(pattern);
+    d[lane + 'FoldIcon'].textContent = shown < pattern.length ? 'unfold_more' : 'unfold_less';
+    if (lane === 'kick' && d.fourBtns) d.fourBtns.forEach((b) => b.classList.toggle('active', (b.dataset.four === '1') === s.four));
   }
+  const paintRow = (r) => { paintLane(r, 'kick'); paintLane(r, 'top'); };
 
-  function buildLane(r, lane, title) {
-    const wrap = el('div', 'lane');
+  function buildLane(r, lane) {
+    const d = dom[r.id], L = cap(lane);
+    const wrap = d[lane + 'Wrap'] = el('div', 'lane');
     const head = el('div', 'lane-head');
-    head.appendChild(el('span', 'lane-title', title));
-    const seg = el('div', 'm3-pill-tabs gm3-connected-dsp');
-    head.appendChild(seg);
-    const d = dom[r.id];
-    if (lane === 'kick') {
+
+    const mute = d[lane + 'Mute'] = el('button', 'lane-toggle'); mute.title = 'Turn this part on or off';
+    mute.appendChild(d[lane + 'MuteIcon'] = icon('volume_up'));
+    mute.appendChild(d[lane + 'MuteLabel'] = el('span', 'lane-toggle-label', ''));
+    mute.addEventListener('click', () => { const s = state.rows[r.id]; s['mute' + L] = !s['mute' + L]; paintLane(r, lane); save(); });
+    head.appendChild(mute);
+
+    if (lane === 'kick' && !nativeFour(r)) {
+      const seg = el('div', 'm3-pill-tabs gm3-connected-dsp');
       d.fourBtns = [['0', 'Pattern'], ['1', '4/4']].map(([v, label]) => {
         const b = el('button', 'm3-pill-tab', label); b.dataset.four = v;
         b.addEventListener('click', () => { state.rows[r.id].four = v === '1'; paintLane(r, 'kick'); save(); });
         seg.appendChild(b); return b;
       });
-    } else {
-      d.soundBtns = SOUNDS.map(([v, label]) => {
-        const b = el('button', 'm3-pill-tab', label); b.dataset.sound = v;
-        b.addEventListener('click', () => { state.rows[r.id].sound = v; paintLane(r, 'top'); save(); if (RX.audio.playing() !== r.id) RX.audio.hit(v); });
-        seg.appendChild(b); return b;
-      });
+      head.appendChild(seg);
     }
-    const dl = el('button', 'icon-btn lane-download'); dl.title = 'Export ' + title.toLowerCase() + ' as MIDI'; dl.setAttribute('aria-label', dl.title);
-    dl.appendChild(icon('download'));
+
+    const fold = d[lane + 'Fold'] = iconBtn('unfold_more', 'Show the whole bar or one half', 'lane-fold');
+    d[lane + 'FoldIcon'] = fold.firstChild;
+    fold.addEventListener('click', () => { const s = state.rows[r.id]; s['open' + L] = !s['open' + L]; paintLane(r, lane); save(); });
+    head.appendChild(fold);
+
+    const dl = iconBtn('download', 'Export this part as MIDI', 'lane-download');
     dl.addEventListener('click', () => {
-      const s = state.rows[r.id];
-      RX.exportMidi({ rhythmName: r.name, partName: lane === 'kick' ? 'kick' : s.sound, steps: r.steps, bpm: state.bpm,
-        pattern: lane === 'kick' ? kickOf(r) : s.top, voice: lane === 'kick' ? 'kick' : s.sound,
+      const s = state.rows[r.id], voice = lane === 'kick' ? 'kick' : voiceOf(r);
+      RX.exportMidi({ rhythmName: r.name, partName: voice, steps: r.steps, bpm: bpmOf(r), pattern: patternOf(r, lane), voice,
         groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent });
     });
     head.appendChild(dl);
-    const grid = el('div', 'steps steps-' + r.steps);
-    d[lane + 'Grid'] = grid;
+
+    const grid = d[lane + 'Grid'] = el('div', 'steps');
     d[lane + 'Steps'] = Array.from({ length: r.steps }, (_, i) => {
-      const b = el('button'); b.setAttribute('aria-label', title + ' step ' + (i + 1));
+      const b = el('button'); b.setAttribute('aria-label', (lane === 'kick' ? 'Kick' : 'Top') + ' step ' + (i + 1));
       b.addEventListener('click', () => {
         const s = state.rows[r.id];
         if (lane === 'kick' && s.four) return;
-        const cur = s[lane];
-        s[lane] = cur.slice(0, i) + CYCLE[cur[i]] + cur.slice(i + 1);
+        const cur = s[lane], half = r.steps / 2, folded = shownSteps(r, lane) < r.steps;
+        // One tap turns a step on or off; turning it back on restores the rhythm's own accent level.
+        const next = cur[i] !== '.' ? '.' : (r[lane][i] !== '.' ? r[lane][i] : 'x');
+        const arr = cur.split('');
+        arr[i] = next;
+        if (folded) arr[i + half] = next;
+        s[lane] = arr.join('');
         paintLane(r, lane); save();
       });
       grid.appendChild(b); return b;
@@ -140,34 +169,42 @@
     sel.addEventListener('change', () => { state.rows[r.id].groove = sel.value; save(); });
     head.appendChild(sel);
 
-    const info = el('button', 'icon-btn'); info.title = 'About this rhythm'; info.setAttribute('aria-label', info.title); info.appendChild(icon('info'));
-    const reset = el('button', 'icon-btn'); reset.title = 'Reset this row'; reset.setAttribute('aria-label', reset.title); reset.appendChild(icon('restart_alt'));
+    const info = iconBtn('info', 'About this rhythm');
+    const reset = iconBtn('restart_alt', 'Reset this row');
     head.appendChild(info); head.appendChild(reset);
     root.appendChild(head);
 
     const note = el('p', 'row-note', r.note); note.hidden = true;
     info.addEventListener('click', () => { note.hidden = !note.hidden; info.classList.toggle('active', !note.hidden); });
-    reset.addEventListener('click', () => { state.rows[r.id] = defaults(r); sel.value = r.groove; paintLane(r, 'kick'); paintLane(r, 'top'); save(); });
+    reset.addEventListener('click', () => { state.rows[r.id] = defaults(r); sel.value = r.groove; paintRow(r); save(); });
     root.appendChild(note);
 
     const lanes = el('div', 'lanes');
-    lanes.appendChild(buildLane(r, 'kick', 'Kick'));
-    lanes.appendChild(buildLane(r, 'top', 'Snare'));
+    lanes.appendChild(buildLane(r, 'kick'));
+    lanes.appendChild(buildLane(r, 'top'));
     root.appendChild(lanes);
-    paintLane(r, 'kick'); paintLane(r, 'top');
+    paintRow(r);
     return root;
   }
 
   // ── Transport ──
-  let nowRow = null, nowStep = -1;
+  let nowRow = null;
   function clearPlayhead() {
-    if (nowRow && dom[nowRow]) ['kickSteps', 'topSteps'].forEach((k) => dom[nowRow][k][nowStep] && dom[nowRow][k][nowStep].classList.remove('step-now'));
-    nowRow = null; nowStep = -1;
+    if (nowRow && dom[nowRow]) ['kickSteps', 'topSteps'].forEach((k) => dom[nowRow][k].forEach((b) => b.classList.remove('step-now')));
+    nowRow = null;
   }
   function onStep(id, i) {
     clearPlayhead();
-    nowRow = id; nowStep = i;
-    ['kickSteps', 'topSteps'].forEach((k) => dom[id][k][i].classList.add('step-now'));
+    nowRow = id;
+    const r = byId[id];
+    ['kick', 'top'].forEach((lane) => { const b = dom[id][lane + 'Steps'][i % shownSteps(r, lane)]; if (b) b.classList.add('step-now'); });
+  }
+  function paintTempo() {
+    const cur = RX.audio.playing(), native = state.tempoMode === 'native';
+    $('bpm-value').textContent = native ? (cur ? byId[cur].bpm : '') : state.bpm;
+    $('bpm-unit').hidden = native && !cur;
+    $('bpm-slider').value = state.bpm; $('bpm-set-value').textContent = state.bpm;
+    document.querySelectorAll('#tempo-mode .m3-pill-tab').forEach((b) => b.classList.toggle('active', b.dataset.mode === state.tempoMode));
   }
   function paintPlaying() {
     const cur = RX.audio.playing();
@@ -175,6 +212,7 @@
       d.root.classList.toggle('row-playing', id === cur);
       d.playIcon.textContent = id === cur ? 'stop' : 'play_arrow';
     });
+    paintTempo();
   }
   function togglePlay(id) {
     clearPlayhead();
@@ -182,10 +220,11 @@
     paintPlaying();
   }
 
+  // Choosing a tempo by hand always means "use this tempo".
   function setBpm(v) {
     state.bpm = Math.max(60, Math.min(300, Math.round(v)));
-    $('bpm-value').textContent = state.bpm; $('bpm-slider').value = state.bpm;
-    save();
+    state.tempoMode = 'set';
+    paintTempo(); save();
   }
 
   function setRegion(region) {
@@ -202,6 +241,17 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 4000);
   }
 
+  function segmented(hostId, options, key, attr, onChange) {
+    const host = $(hostId);
+    const btns = options.map(([v, label]) => {
+      const b = el('button', 'm3-pill-tab', label); b.dataset[attr] = v;
+      b.addEventListener('click', () => { state[key] = v; paint(); save(); onChange(); });
+      host.appendChild(b); return b;
+    });
+    const paint = () => btns.forEach((b) => b.classList.toggle('active', b.dataset[attr] === state[key]));
+    paint();
+  }
+
   function init() {
     load();
     const rows = $('rows'), tabs = $('region-tabs');
@@ -211,7 +261,21 @@
       tabs.appendChild(b);
     });
     RX.RHYTHMS.forEach((r) => rows.appendChild(buildRow(r, RX.REGIONS.indexOf(r.region))));
-    setRegion('All'); setBpm(state.bpm);
+    setRegion('All');
+
+    segmented('tempo-mode', [['native', 'Native'], ['set', 'Set bpm']], 'tempoMode', 'mode', paintTempo);
+    segmented('top-voice', TOP_VOICES, 'topVoice', 'voice', () => {
+      RX.RHYTHMS.forEach((r) => paintLane(r, 'top'));
+      if (!RX.audio.playing() && state.topVoice !== 'typical') RX.audio.hit(state.topVoice);
+    });
+    paintTempo();
+
+    const settings = $('settings'), toggle = $('settings-toggle');
+    toggle.addEventListener('click', () => {
+      settings.hidden = !settings.hidden;
+      toggle.setAttribute('aria-expanded', String(!settings.hidden));
+      toggle.classList.toggle('active', !settings.hidden);
+    });
 
     $('bpm-slider').addEventListener('input', (e) => setBpm(+e.target.value));
     $('bpm-down').addEventListener('click', () => setBpm(state.bpm - 1));
@@ -225,10 +289,10 @@
     amount('accent', 'accent-slider', 'accent-value');
 
     $('export-als').addEventListener('click', () => {
-      if (!('CompressionStream' in window)) { toast('Ableton set export needs a newer browser (Safari 16.4+)'); return; }
+      if (!('CompressionStream' in window)) { toast('Ableton set export needs a newer browser'); return; }
       const out = RX.RHYTHMS.map((r) => {
         const s = state.rows[r.id];
-        return { name: r.name, bpm: r.bpm, steps: r.steps, kick: s.kick, top: s.top, voice: s.sound,
+        return { name: r.name, bpm: r.bpm, steps: r.steps, kick: s.kick, top: s.top, voice: voiceOf(r),
           groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent };
       });
       RX.exportAls(out, state.bpm).catch((e) => toast('Export failed: ' + e.message));

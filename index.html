@@ -9,7 +9,7 @@
   <title>Groove explorer</title>
   <script>
     // Error overlay: paint failures on screen instead of a blank page.
-    window.APP_BUILD = '2026-11-13c';
+    window.APP_BUILD = '2026-11-13d';
     (function () {
       function show(msg) {
         var el = document.getElementById('error-overlay');
@@ -41,22 +41,33 @@
   <header class="app-bar">
     <div class="app-bar-row">
       <h1 class="app-title">Groove explorer</h1>
-      <div class="tempo">
-        <button class="icon-btn" id="bpm-down" title="Slower" aria-label="Slower"><span class="material-symbols-outlined">remove</span></button>
-        <div class="tempo-readout"><span id="bpm-value">120</span><span class="tempo-unit">bpm</span></div>
-        <button class="icon-btn" id="bpm-up" title="Faster" aria-label="Faster"><span class="material-symbols-outlined">add</span></button>
-        <input type="range" id="bpm-slider" class="slider tempo-slider" min="60" max="300" step="1" value="120" aria-label="Tempo">
+      <button class="settings-btn" id="settings-toggle" aria-expanded="false" aria-controls="settings"><span class="material-symbols-outlined">tune</span><span>Settings</span></button>
+      <div class="m3-pill-tabs gm3-connected-dsp" id="tempo-mode" role="group" aria-label="Tempo mode"></div>
+      <div class="tempo-readout"><span id="bpm-value"></span><span class="tempo-unit" id="bpm-unit">bpm</span></div>
+    </div>
+    <div class="settings" id="settings" hidden>
+      <div class="settings-group">
+        <span class="amount-label">Set bpm <span id="bpm-set-value">120</span></span>
+        <div class="tempo">
+          <button class="icon-btn" id="bpm-down" title="Slower" aria-label="Slower"><span class="material-symbols-outlined">remove</span></button>
+          <input type="range" id="bpm-slider" class="slider tempo-slider" min="60" max="300" step="1" value="120" aria-label="Tempo">
+          <button class="icon-btn" id="bpm-up" title="Faster" aria-label="Faster"><span class="material-symbols-outlined">add</span></button>
+        </div>
       </div>
-      <label class="amount" title="How far hits are pulled onto the groove">
+      <label class="settings-group" title="How far hits are pulled onto the groove">
         <span class="amount-label">Groove <span id="timing-value">100%</span></span>
         <input type="range" id="timing-slider" class="slider" min="0" max="130" step="5" value="100" aria-label="Groove timing amount">
       </label>
-      <label class="amount" title="How much the groove's accents shape velocity">
+      <label class="settings-group" title="How much the groove's accents shape velocity">
         <span class="amount-label">Accent <span id="accent-value">50%</span></span>
         <input type="range" id="accent-slider" class="slider" min="0" max="100" step="5" value="50" aria-label="Groove accent amount">
       </label>
-      <div class="app-actions">
-        <button class="btn-tonal" id="export-als" title="One scene per rhythm, groove baked in"><span class="material-symbols-outlined">download</span><span class="btn-label-text">Ableton set</span></button>
+      <div class="settings-group">
+        <span class="amount-label">Top line</span>
+        <div class="m3-pill-tabs gm3-connected-dsp" id="top-voice" role="group" aria-label="Top line sound"></div>
+      </div>
+      <div class="settings-actions">
+        <button class="btn-tonal" id="export-als" title="One scene per rhythm, groove baked in"><span class="material-symbols-outlined">download</span><span>Ableton set</span></button>
         <button class="icon-btn" id="theme-toggle" title="Switch theme" aria-label="Switch theme"><span class="material-symbols-outlined" id="theme-icon">dark_mode</span></button>
       </div>
     </div>
