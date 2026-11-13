@@ -182,10 +182,38 @@
     meta.appendChild(badges);
     head.appendChild(meta);
 
-    const bpm = el('button', 'bpm-chip'); bpm.title = 'Set tempo to ' + r.bpm + ' bpm (usual range ' + r.range + ')';
+    const bpm = el('button', 'bpm-chip'); bpm.title = 'Tap to adjust tempo';
     bpm.appendChild(icon('speed')); bpm.appendChild(el('span', 'bpm-chip-value', r.bpm + ' bpm')); bpm.appendChild(el('span', 'bpm-chip-range', r.range));
-    bpm.addEventListener('click', () => setBpm(r.bpm));
+    const sliderWrap = el('div', 'bpm-slider-wrap');
+    const slider = el('input', 'bpm-inline-slider');
+    slider.type = 'range'; slider.min = '60'; slider.max = '300'; slider.step = '1'; slider.value = r.bpm;
+    sliderWrap.appendChild(slider);
     head.appendChild(bpm);
+    head.appendChild(sliderWrap);
+
+    let sliderActive = false;
+    bpm.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sliderWrap.hidden = false;
+      slider.focus();
+      sliderActive = true;
+    });
+    slider.addEventListener('input', (e) => {
+      const v = +e.target.value;
+      state.bpm = v; state.tempoMode = 'set';
+      bpm.querySelector('.bpm-chip-value').textContent = v + ' bpm';
+      paintTempo(); save();
+    });
+    slider.addEventListener('change', () => {
+      sliderWrap.hidden = true;
+      sliderActive = false;
+    });
+    slider.addEventListener('blur', () => {
+      if (!sliderActive) sliderWrap.hidden = true;
+    });
+    document.addEventListener('click', (e) => {
+      if (!bpm.contains(e.target) && !sliderWrap.contains(e.target)) sliderWrap.hidden = true;
+    });
 
     const sel = d.groove = el('select', 'field-select'); sel.setAttribute('aria-label', 'Groove for ' + r.name);
     const groups = {};
