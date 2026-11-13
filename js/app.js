@@ -269,7 +269,7 @@
 
     const bpm = el('button', 'bpm-chip'); bpm.title = 'Tap to adjust tempo';
     bpm.appendChild(icon('speed')); bpm.appendChild(el('span', 'bpm-chip-value', r.bpm + ' bpm')); bpm.appendChild(el('span', 'bpm-chip-range', r.range));
-    const sliderWrap = el('div', 'bpm-slider-wrap');
+    const sliderWrap = el('div', 'bpm-slider-wrap'); sliderWrap.hidden = true;
     const slider = el('input', 'bpm-inline-slider');
     slider.type = 'range'; slider.min = '60'; slider.max = '300'; slider.step = '1'; slider.value = r.bpm;
     sliderWrap.appendChild(slider);
@@ -560,19 +560,16 @@
     const card = el('div', 'family-card');
     card.dataset.id = r.id;
     card.dataset.region = r.region;
-    // Header with name + region badge
+    // Title on its own line; badges wrap beneath it so nothing overlaps in a narrow card.
     const head = el('div', 'card-head');
     head.appendChild(el('h4', 'card-title', r.name));
-    const badge = el('span', 'badge ' + REGION_CLASS[RX.REGIONS.indexOf(r.region) % REGION_CLASS.length], r.region);
-    head.appendChild(badge);
-    if (r.steps === 12) head.appendChild(el('span', 'badge', '12/8'));
-    if (r.etymology) head.appendChild(el('span', 'badge badge-amber', '📖 Etymology'));
+    const badges = el('div', 'badge-row');
+    badges.appendChild(el('span', 'badge ' + REGION_CLASS[RX.REGIONS.indexOf(r.region) % REGION_CLASS.length], r.region));
+    if (r.steps === 12) badges.appendChild(el('span', 'badge', '12/8'));
+    if (r.etymology) badges.appendChild(el('span', 'badge badge-amber', 'Etymology'));
+    head.appendChild(badges);
     card.appendChild(head);
-    // Etymology tooltip
-    if (r.etymology) {
-      const ety = el('div', 'card-etymology', r.etymology);
-      card.appendChild(ety);
-    }
+    if (r.etymology) card.appendChild(el('div', 'card-etymology', r.etymology));
     // Mini step grid (read-only preview)
     const preview = el('div', 'card-preview');
     const kickGrid = el('div', 'steps steps-' + r.steps + ' mini');
@@ -593,7 +590,9 @@
     preview.appendChild(topGrid);
     // Show instrument count for multi-instrument patterns
     if (r.topLines && r.topLines.length > 1) {
-      const instCount = el('div', 'card-instruments', '🎵 ' + r.topLines.length + ' parts');
+      const instCount = el('div', 'card-instruments');
+      instCount.appendChild(icon('queue_music'));
+      instCount.appendChild(el('span', null, r.topLines.length + ' parts'));
       preview.appendChild(instCount);
     }
     card.appendChild(preview);
@@ -645,7 +644,9 @@
       b.addEventListener('click', () => setViewMode(v));
       viewTabs.appendChild(b);
     });
-    tabs.parentNode.insertBefore(viewTabs, tabs.nextSibling);
+    // The view switcher sits above the region tabs, padded to match them.
+    const viewBar = el('div', 'view-bar'); viewBar.appendChild(viewTabs);
+    tabs.parentNode.insertBefore(viewBar, tabs);
     // Build all rows (hidden initially, shown by view mode)
     RX.RHYTHMS.forEach((r) => rows.appendChild(buildRow(r, RX.REGIONS.indexOf(r.region))));
     setRegion('All');
