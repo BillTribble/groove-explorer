@@ -119,12 +119,18 @@
     const off = '.'.repeat(r.steps);
     const lanes = [{ pattern: s.muteKick ? off : patternOf(r, 'kick'), voice: 'kick' }];
 
-    // Support multi-instrument topLines (e.g., djembe ensemble, Gnawa, mbira)
+    // Multi-instrument rows: "Typical" plays the full ensemble; any chosen top
+    // sound (global or per-row) collapses the row to a simple kick + top combo.
     if (r.topLines && r.topLines.length) {
-      r.topLines.forEach((tl, idx) => {
-        const muted = s['muteTop' + idx] || false;
-        lanes.push({ pattern: muted ? off : tl.pattern, voice: tl.sound });
-      });
+      const chosen = (s.topVoice && s.topVoice !== 'typical') ? s.topVoice : (state.topVoice !== 'typical' ? state.topVoice : null);
+      if (chosen) {
+        lanes.push({ pattern: s.muteTop ? off : (s.top || r.top), voice: chosen });
+      } else {
+        r.topLines.forEach((tl, idx) => {
+          const muted = s['muteTop' + idx] || false;
+          lanes.push({ pattern: muted ? off : tl.pattern, voice: s['topVoice' + idx] || tl.sound });
+        });
+      }
     } else {
       lanes.push({ pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
     }
@@ -171,7 +177,21 @@
     d[lane + 'FoldIcon'].textContent = shown < pattern.length ? 'unfold_more' : 'unfold_less';
     if (lane === 'kick' && d.fourBtns) d.fourBtns.forEach((b) => b.classList.toggle('active', (b.dataset.four === '1') === s.four));
   }
-  const paintRow = (r) => { paintLane(r, 'kick'); if (r.topLines && r.topLines.length) { r.topLines.forEach((_, idx) => paintLane(r, 'top' + idx)); } else { paintLane(r, 'top'); } };
+  // Multi-instrument rows collapse to kick+top when a top sound is chosen.
+  const collapsed = (r) => {
+    const s = state.rows[r.id];
+    return !!(r.topLines && r.topLines.length && ((s.topVoice && s.topVoice !== 'typical') || state.topVoice !== 'typical'));
+  };
+  const paintRow = (r) => {
+    const col = collapsed(r);
+    paintLane(r, 'kick');
+    if (r.topLines && r.topLines.length) {
+      r.topLines.forEach((_, idx) => {
+        paintLane(r, 'top' + idx);
+        dom[r.id]['top' + idx + 'Wrap']?.classList.toggle('lane-collapsed', col);
+      });
+    } else { paintLane(r, 'top'); }
+  };
 
   function buildLane(r, lane, topLine) {
     const d = dom[r.id], L = cap(lane);
@@ -633,7 +653,7 @@
 
     segmented('tempo-mode', [['native', 'Native'], ['set', 'Set bpm']], 'tempoMode', 'mode', paintTempo);
     segmented('top-voice', TOP_VOICES, 'topVoice', 'voice', () => {
-      RX.RHYTHMS.forEach((r) => paintLane(r, 'top'));
+      RX.RHYTHMS.forEach((r) => paintRow(r));
       if (!RX.audio.playing() && state.topVoice !== 'typical') RX.audio.hit(state.topVoice);
     });
     paintTempo();

@@ -296,3 +296,7 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
   .steps-16 { grid-template-columns: repeat(8, 1fr); }
   .step { height: 44px; }
 }
+
+/* Multi-instrument lanes are hidden while the row is collapsed to
+   kick+top by a chosen top sound (global or per-row). */
+.lane-collapsed { display: none; }
