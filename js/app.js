@@ -79,7 +79,7 @@
   function load() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
-    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
+    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
     RX.RHYTHMS.forEach((r) => {
       const s = saved && saved.rows && saved.rows[r.id];
       const ok = s && s.kick && s.kick.length === r.steps && s.top && s.top.length === r.steps && RX.GROOVE_BY_ID[s.groove];
@@ -455,13 +455,6 @@
         d.play.title = isPlaying ? 'Stop ' + byId[id].name : (isPending ? 'Queued: ' + byId[id].name : 'Play ' + byId[id].name);
         d.play.setAttribute('aria-label', d.play.title);
       }
-      if (d.card) {
-        d.card.classList.toggle('card-playing', isPlaying);
-        d.card.classList.toggle('card-pending', isPending);
-      }
-      if (d.cardPlay) {
-        d.cardPlay.innerHTML = isPlaying ? '<span class="material-symbols-outlined">stop</span>' : (isPending ? '<span class="material-symbols-outlined">schedule</span>' : '<span class="material-symbols-outlined">play_arrow</span>');
-      }
     });
     paintTempo();
   }
@@ -490,133 +483,80 @@
   function setRegion(region) {
     state.region = region;
     document.querySelectorAll('#region-tabs .m3-pill-tab').forEach((b) => b.classList.toggle('active', b.dataset.region === region));
-    applyViewFilter();
+    if (state.viewMode === 'region') applyView();
   }
 
-  function setViewMode(mode) {
-    state.viewMode = mode;
-    document.querySelectorAll('#view-tabs .m3-pill-tab').forEach((b) => b.classList.toggle('active', b.dataset.view === mode));
-    document.querySelectorAll('#region-tabs .m3-pill-tab').forEach((b) => b.style.display = mode === 'region' ? '' : 'none');
-    applyViewFilter();
-  }
+  // ── Views ──
+  // Region view: one vertical list, filtered by the region tabs.
+  // Family view: the same rows, moved into one swipeable track per family.
+  const familyOf = (r) => r.family || 'other';
+  const familyOrder = () => {
+    const present = new Set(RX.RHYTHMS.map(familyOf));
+    return FAMILY_ORDER.filter((f) => present.has(f)).concat([...present].filter((f) => !FAMILY_ORDER.includes(f)));
+  };
+  const familyDom = {}; // famId -> { section, track, counter, ids, index }
 
-  function applyViewFilter() {
-    if (state.viewMode === 'region') {
-      // Show/hide by region
-      Object.values(dom).forEach((d) => { d.root.hidden = state.region !== 'All' && d.root.dataset.region !== state.region; });
-      // Ensure rows container is flat list
-      const rows = $('rows');
-      rows.style.display = 'flex';
-      rows.style.flexDirection = 'column';
-      rows.style.gap = '8px';
-    } else {
-      // Family carousel view: rearrange into family carousels
-      renderFamilyCarousels();
-    }
-  }
-
-  function renderFamilyCarousels() {
+  function applyView() {
     const rows = $('rows');
-    rows.style.display = 'flex';
-    rows.style.flexDirection = 'column';
-    rows.style.gap = '24px';
-    rows.innerHTML = '';
-    // Group rhythms by family
-    const byFamily = {};
-    RX.RHYTHMS.forEach((r) => {
-      const fam = r.family || 'other';
-      if (!byFamily[fam]) byFamily[fam] = [];
-      byFamily[fam].push(r);
+    const family = state.viewMode === 'family';
+    rows.classList.toggle('rows-family', family);
+    $('region-tabs').hidden = family;
+    $('family-tabs').hidden = !family;
+    if (!family) {
+      Object.keys(familyDom).forEach((k) => { familyDom[k].ro?.disconnect(); delete familyDom[k]; });
+      rows.replaceChildren(...RX.RHYTHMS.map((r) => dom[r.id].root));
+      RX.RHYTHMS.forEach((r) => { dom[r.id].root.hidden = state.region !== 'All' && r.region !== state.region; });
+      return;
+    }
+    const sections = familyOrder().map((famId) => {
+      const ids = RX.RHYTHMS.filter((r) => familyOf(r) === famId).map((r) => r.id);
+      const section = el('section', 'family-section'); section.id = 'family-' + famId;
+      const head = el('div', 'family-header');
+      head.appendChild(el('h2', 'family-title', FAMILY_LABEL[famId] || famId));
+      const counter = el('span', 'family-counter', '1 / ' + ids.length);
+      head.appendChild(counter);
+      const prev = iconBtn('chevron_left', 'Previous rhythm', 'family-nav');
+      const next = iconBtn('chevron_right', 'Next rhythm', 'family-nav');
+      head.appendChild(prev); head.appendChild(next);
+      const track = el('div', 'family-track');
+      ids.forEach((id) => { dom[id].root.hidden = false; track.appendChild(dom[id].root); });
+      section.appendChild(head); section.appendChild(track);
+      const f = familyDom[famId] = { section, track, counter, ids, index: 0, prev, next };
+      const step = (dir) => track.scrollTo({ left: (f.index + dir) * pageWidth(track), behavior: 'smooth' });
+      prev.addEventListener('click', () => step(-1));
+      next.addEventListener('click', () => step(1));
+      let settle = null;
+      track.addEventListener('scroll', () => { clearTimeout(settle); settle = setTimeout(() => onSwiped(famId), 120); }, { passive: true });
+      if (window.ResizeObserver) { f.ro = new ResizeObserver(() => paintFamilyNav(f)); f.ro.observe(dom[ids[0]].root); }
+      paintFamilyNav(f);
+      return section;
     });
-    // Render families in order
-    FAMILY_ORDER.forEach((famId) => {
-      const rhythms = byFamily[famId];
-      if (!rhythms || !rhythms.length) return;
-      const section = el('section', 'family-carousel');
-      section.dataset.family = famId;
-      const header = el('div', 'family-header');
-      header.appendChild(el('h3', 'family-title', FAMILY_LABEL[famId] || famId));
-      section.appendChild(header);
-      const carousel = el('div', 'carousel');
-      rhythms.forEach((r, idx) => {
-        const card = buildFamilyCard(r, idx);
-        carousel.appendChild(card);
-      });
-      section.appendChild(carousel);
-      rows.appendChild(section);
-    });
-    // Any remaining families not in FAMILY_ORDER
-    Object.keys(byFamily).forEach((famId) => {
-      if (FAMILY_ORDER.includes(famId)) return;
-      const rhythms = byFamily[famId];
-      const section = el('section', 'family-carousel');
-      section.dataset.family = famId;
-      const header = el('div', 'family-header');
-      header.appendChild(el('h3', 'family-title', FAMILY_LABEL[famId] || famId));
-      section.appendChild(header);
-      const carousel = el('div', 'carousel');
-      rhythms.forEach((r, idx) => {
-        const card = buildFamilyCard(r, idx);
-        carousel.appendChild(card);
-      });
-      section.appendChild(carousel);
-      rows.appendChild(section);
-    });
+    rows.replaceChildren(...sections);
   }
 
-  function buildFamilyCard(r, idx) {
-    const card = el('div', 'family-card');
-    card.dataset.id = r.id;
-    card.dataset.region = r.region;
-    // Title on its own line; badges wrap beneath it so nothing overlaps in a narrow card.
-    const head = el('div', 'card-head');
-    head.appendChild(el('h4', 'card-title', r.name));
-    const badges = el('div', 'badge-row');
-    badges.appendChild(el('span', 'badge ' + REGION_CLASS[RX.REGIONS.indexOf(r.region) % REGION_CLASS.length], r.region));
-    if (r.steps === 12) badges.appendChild(el('span', 'badge', '12/8'));
-    if (r.etymology) badges.appendChild(el('span', 'badge badge-amber', 'Etymology'));
-    head.appendChild(badges);
-    card.appendChild(head);
-    if (r.etymology) card.appendChild(el('div', 'card-etymology', r.etymology));
-    // Mini step grid (read-only preview)
-    const preview = el('div', 'card-preview');
-    const kickGrid = el('div', 'steps steps-' + r.steps + ' mini');
-    const topGrid = el('div', 'steps steps-' + r.steps + ' mini');
-    r.kick.split('').forEach((ch, i) => {
-      const b = el('div', 'step' + (i % (r.steps / 4) === 0 ? ' step-beat' : '') +
-        (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : ''));
-      kickGrid.appendChild(b);
-    });
-    // For multi-instrument topLines, show first top line or combined
-    const topPattern = r.topLines && r.topLines.length ? r.topLines[0].pattern : r.top;
-    topPattern.split('').forEach((ch, i) => {
-      const b = el('div', 'step' + (i % (r.steps / 4) === 0 ? ' step-beat' : '') +
-        (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : ''));
-      topGrid.appendChild(b);
-    });
-    kickGrid.style.setProperty('--cols', kickGrid.children.length);
-    topGrid.style.setProperty('--cols', topGrid.children.length);
-    preview.appendChild(kickGrid);
-    preview.appendChild(topGrid);
-    // Show instrument count for multi-instrument patterns
-    if (r.topLines && r.topLines.length > 1) {
-      const instCount = el('div', 'card-instruments');
-      instCount.appendChild(icon('queue_music'));
-      instCount.appendChild(el('span', null, r.topLines.length + ' parts'));
-      preview.appendChild(instCount);
-    }
-    card.appendChild(preview);
-    // Play button
-    const playBtn = el('button', 'card-play');
-    playBtn.setAttribute('aria-label', 'Play ' + r.name);
-    playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
-    playBtn.addEventListener('click', () => togglePlay(r.id));
-    card.appendChild(playBtn);
-    // Store ref for paintPlaying
-    if (!dom[r.id]) dom[r.id] = {};
-    dom[r.id].card = card;
-    dom[r.id].cardPlay = playBtn;
-    return card;
+  const pageWidth = (track) => track.clientWidth + parseFloat(getComputedStyle(track).columnGap || 0);
+  function paintFamilyNav(f) {
+    // The track follows the height of the rhythm in view, so short rows leave no gap.
+    const shown = dom[f.ids[f.index]]?.root;
+    if (shown) f.track.style.height = shown.offsetHeight + 'px';
+    f.counter.textContent = (f.index + 1) + ' / ' + f.ids.length;
+    f.prev.disabled = f.index === 0;
+    f.next.disabled = f.index === f.ids.length - 1;
+    f.prev.hidden = f.next.hidden = f.ids.length < 2;
+  }
+
+  // A swipe selects the rhythm that is now in view. If something is playing,
+  // the new rhythm is queued and takes over at the end of the current bar.
+  function onSwiped(famId) {
+    const f = familyDom[famId];
+    if (!f) return;
+    const index = Math.max(0, Math.min(f.ids.length - 1, Math.round(f.track.scrollLeft / pageWidth(f.track))));
+    if (index === f.index) return;
+    f.index = index;
+    if (window.ResizeObserver) { f.ro?.disconnect(); f.ro = new ResizeObserver(() => paintFamilyNav(f)); f.ro.observe(dom[f.ids[index]].root); }
+    paintFamilyNav(f);
+    const id = f.ids[index], cur = RX.audio.playing();
+    if (cur && cur !== id && pendingSwitchTarget !== id) togglePlay(id);
   }
 
   let toastTimer = null;
@@ -647,20 +587,21 @@
       b.addEventListener('click', () => setRegion(region));
       tabs.appendChild(b);
     });
-    // View mode tabs (Region / Family)
-    const viewTabs = el('div', 'm3-pill-tabs gm3-connected-dsp', ''); viewTabs.id = 'view-tabs'; viewTabs.setAttribute('role', 'tablist');
-    [['region', 'By Region'], ['family', 'By Family']].forEach(([v, label]) => {
-      const b = el('button', 'm3-pill-tab', label); b.dataset.view = v; b.setAttribute('role', 'tab');
-      b.addEventListener('click', () => setViewMode(v));
-      viewTabs.appendChild(b);
+    // Family jump tabs (family view): tap to scroll that family into view.
+    const famTabs = el('div', 'm3-pill-tabs region-tabs'); famTabs.id = 'family-tabs'; famTabs.hidden = true;
+    familyOrder().forEach((famId) => {
+      const b = el('button', 'm3-pill-tab', FAMILY_LABEL[famId] || famId);
+      b.addEventListener('click', () => {
+        famTabs.querySelectorAll('.m3-pill-tab').forEach((x) => x.classList.toggle('active', x === b));
+        $('family-' + famId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      famTabs.appendChild(b);
     });
-    // The view switcher sits above the region tabs, padded to match them.
-    const viewBar = el('div', 'view-bar'); viewBar.appendChild(viewTabs);
-    tabs.parentNode.insertBefore(viewBar, tabs);
-    // Build all rows (hidden initially, shown by view mode)
+    tabs.parentNode.insertBefore(famTabs, tabs.nextSibling);
     RX.RHYTHMS.forEach((r) => rows.appendChild(buildRow(r, RX.REGIONS.indexOf(r.region))));
     setRegion('All');
-    setViewMode('region');
+    segmented('view-mode', [['region', 'By region'], ['family', 'By family']], 'viewMode', 'view', applyView);
+    applyView();
 
     segmented('tempo-mode', [['native', 'Native'], ['set', 'Set bpm']], 'tempoMode', 'mode', paintTempo);
     segmented('top-voice', TOP_VOICES, 'topVoice', 'voice', () => {
