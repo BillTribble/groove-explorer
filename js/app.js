@@ -146,6 +146,7 @@
 
   function paintLane(r, lane) {
     const d = dom[r.id], s = state.rows[r.id], L = cap(lane);
+    if (!d || !d[lane + 'Grid']) return; // multi-instrument rows have top0..topN, no plain top lane
     const pattern = patternOf(r, lane), shown = shownSteps(r, lane), muted = s['mute' + L];
     d[lane + 'Grid'].className = 'steps steps-' + shown + (lane === 'kick' && s.four ? ' lane-locked' : '');
     d[lane + 'Steps'].forEach((b, i) => {
