@@ -3,14 +3,36 @@
   const $ = (id) => document.getElementById(id);
   const STORE = 'rx-state-v2';
   const FOUR = { 16: 'x...x...x...x...', 12: 'x..x..x..x..' };
-  const SRC_LABEL = { agr: 'Ableton groove data', approx: 'Approximation', audio: 'Measured from audio' };
-  const SRC_CLASS = { agr: 'badge-green', std: 'badge-blue', approx: 'badge-amber', audio: 'badge-violet' };
   const REGION_CLASS = ['badge-fuchsia', 'badge-orange', 'badge-indigo', 'badge-teal', 'badge-lime', 'badge-rose', 'badge-cyan', 'badge-violet', 'badge-yellow'];
   const VOICE_LABEL = { snare: 'Snare', tom: 'Tom', bass: 'Bass' };
   const TOP_VOICES = [['typical', 'Typical'], ['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass']];
 
+  // Family order & labels for carousel view
+  const FAMILIES = [
+    ['tresillo', 'Tresillo / 3-3-2'],
+    ['dembow', 'Dembow'],
+    ['cinquillo', 'Cinquillo'],
+    ['son-clave', 'Son / Rumba / Bossa'],
+    ['samba', 'Samba / Brazilian'],
+    ['afoxe', 'Afoxé / Ijexá'],
+    ['afrobeat', 'Afrobeat / Afrobeats'],
+    ['kuduro', 'Kuduro / Ndombolo / Funaná'],
+    ['gqom', 'Gqom'],
+    ['amapiano', 'Amapiano / 3-step'],
+    ['bacardi', 'Bacardi'],
+    ['afrohouse', 'Afro House'],
+    ['shangaan', 'Shangaan'],
+    ['bell12', '12/8 Bell'],
+    ['maloya', 'Maloya / Gnawa'],
+    ['maqsum', 'Maqsum / Saidi'],
+    ['makossa', 'Makossa'],
+  ];
+  const FAMILY_LABEL = Object.fromEntries(FAMILIES);
+  const FAMILY_ORDER = FAMILIES.map(([id]) => id);
+
   // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
-  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', cutoff: 0.76, straight12: true, region: 'All', rows: {} };
+  // viewMode: 'region' (default) or 'family'
+  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'region', rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
@@ -152,7 +174,6 @@
     meta.appendChild(el('h2', 'row-title', r.name));
     const badges = el('div', 'badge-row');
     badges.appendChild(el('span', 'badge ' + REGION_CLASS[regionIndex % REGION_CLASS.length], r.region));
-    if (SRC_LABEL[r.src]) badges.appendChild(el('span', 'badge ' + SRC_CLASS[r.src], SRC_LABEL[r.src]));
     if (r.steps === 12) badges.appendChild(el('span', 'badge', '12/8'));
     meta.appendChild(badges);
     head.appendChild(meta);
@@ -192,6 +213,7 @@
 
   // ── Transport ──
   let nowRow = null;
+  let pendingSwitchTarget = null; // rowId that is queued to play next
   function clearPlayhead() {
     if (nowRow && dom[nowRow]) ['kickSteps', 'topSteps'].forEach((k) => dom[nowRow][k].forEach((b) => b.classList.remove('step-now')));
     nowRow = null;
@@ -211,15 +233,42 @@
   }
   function paintPlaying() {
     const cur = RX.audio.playing();
+    const sched = RX.audio.getSchedulerState ? RX.audio.getSchedulerState() : null;
+    pendingSwitchTarget = sched && sched.pendingSwitch ? sched.pendingSwitch.rowId : null;
     Object.entries(dom).forEach(([id, d]) => {
-      d.root.classList.toggle('row-playing', id === cur);
-      d.playIcon.textContent = id === cur ? 'stop' : 'play_arrow';
+      const isPlaying = id === cur;
+      const isPending = id === pendingSwitchTarget;
+      if (d.root) {
+        d.root.classList.toggle('row-playing', isPlaying);
+        d.root.classList.toggle('row-pending', isPending);
+      }
+      if (d.playIcon) {
+        d.playIcon.textContent = isPlaying ? 'stop' : (isPending ? 'schedule' : 'play_arrow');
+        d.play.title = isPlaying ? 'Stop ' + byId[id].name : (isPending ? 'Queued: ' + byId[id].name : 'Play ' + byId[id].name);
+        d.play.setAttribute('aria-label', d.play.title);
+      }
+      if (d.card) {
+        d.card.classList.toggle('card-playing', isPlaying);
+        d.card.classList.toggle('card-pending', isPending);
+      }
+      if (d.cardPlay) {
+        d.cardPlay.innerHTML = isPlaying ? '<span class="material-symbols-outlined">stop</span>' : (isPending ? '<span class="material-symbols-outlined">schedule</span>' : '<span class="material-symbols-outlined">play_arrow</span>');
+      }
     });
     paintTempo();
   }
   function togglePlay(id) {
     clearPlayhead();
-    if (RX.audio.playing() === id) RX.audio.stop(); else RX.audio.play(id, playState, onStep);
+    const cur = RX.audio.playing();
+    if (cur === id) {
+      RX.audio.stop();
+      pendingSwitchTarget = null;
+    } else if (cur) {
+      // Another pattern is playing — schedule switch at next bar boundary
+      RX.audio.scheduleSwitch(id, playState, onStep, paintPlaying);
+    } else {
+      RX.audio.play(id, playState, onStep, paintPlaying);
+    }
     paintPlaying();
   }
 
@@ -233,7 +282,119 @@
   function setRegion(region) {
     state.region = region;
     document.querySelectorAll('#region-tabs .m3-pill-tab').forEach((b) => b.classList.toggle('active', b.dataset.region === region));
-    Object.values(dom).forEach((d) => { d.root.hidden = region !== 'All' && d.root.dataset.region !== region; });
+    applyViewFilter();
+  }
+
+  function setViewMode(mode) {
+    state.viewMode = mode;
+    document.querySelectorAll('#view-tabs .m3-pill-tab').forEach((b) => b.classList.toggle('active', b.dataset.view === mode));
+    document.querySelectorAll('#region-tabs .m3-pill-tab').forEach((b) => b.style.display = mode === 'region' ? '' : 'none');
+    applyViewFilter();
+  }
+
+  function applyViewFilter() {
+    if (state.viewMode === 'region') {
+      // Show/hide by region
+      Object.values(dom).forEach((d) => { d.root.hidden = state.region !== 'All' && d.root.dataset.region !== state.region; });
+      // Ensure rows container is flat list
+      const rows = $('rows');
+      rows.style.display = 'flex';
+      rows.style.flexDirection = 'column';
+      rows.style.gap = '8px';
+    } else {
+      // Family carousel view: rearrange into family carousels
+      renderFamilyCarousels();
+    }
+  }
+
+  function renderFamilyCarousels() {
+    const rows = $('rows');
+    rows.style.display = 'flex';
+    rows.style.flexDirection = 'column';
+    rows.style.gap = '24px';
+    rows.innerHTML = '';
+    // Group rhythms by family
+    const byFamily = {};
+    RX.RHYTHMS.forEach((r) => {
+      const fam = r.family || 'other';
+      if (!byFamily[fam]) byFamily[fam] = [];
+      byFamily[fam].push(r);
+    });
+    // Render families in order
+    FAMILY_ORDER.forEach((famId) => {
+      const rhythms = byFamily[famId];
+      if (!rhythms || !rhythms.length) return;
+      const section = el('section', 'family-carousel');
+      section.dataset.family = famId;
+      const header = el('div', 'family-header');
+      header.appendChild(el('h3', 'family-title', FAMILY_LABEL[famId] || famId));
+      section.appendChild(header);
+      const carousel = el('div', 'carousel');
+      rhythms.forEach((r, idx) => {
+        const card = buildFamilyCard(r, idx);
+        carousel.appendChild(card);
+      });
+      section.appendChild(carousel);
+      rows.appendChild(section);
+    });
+    // Any remaining families not in FAMILY_ORDER
+    Object.keys(byFamily).forEach((famId) => {
+      if (FAMILY_ORDER.includes(famId)) return;
+      const rhythms = byFamily[famId];
+      const section = el('section', 'family-carousel');
+      section.dataset.family = famId;
+      const header = el('div', 'family-header');
+      header.appendChild(el('h3', 'family-title', FAMILY_LABEL[famId] || famId));
+      section.appendChild(header);
+      const carousel = el('div', 'carousel');
+      rhythms.forEach((r, idx) => {
+        const card = buildFamilyCard(r, idx);
+        carousel.appendChild(card);
+      });
+      section.appendChild(carousel);
+      rows.appendChild(section);
+    });
+  }
+
+  function buildFamilyCard(r, idx) {
+    const card = el('div', 'family-card');
+    card.dataset.id = r.id;
+    card.dataset.region = r.region;
+    // Header with name + region badge
+    const head = el('div', 'card-head');
+    head.appendChild(el('h4', 'card-title', r.name));
+    const badge = el('span', 'badge ' + REGION_CLASS[RX.REGIONS.indexOf(r.region) % REGION_CLASS.length], r.region);
+    head.appendChild(badge);
+    if (r.steps === 12) head.appendChild(el('span', 'badge', '12/8'));
+    card.appendChild(head);
+    // Mini step grid (read-only preview)
+    const preview = el('div', 'card-preview');
+    const kickGrid = el('div', 'steps steps-' + r.steps + ' mini');
+    const topGrid = el('div', 'steps steps-' + r.steps + ' mini');
+    r.kick.split('').forEach((ch, i) => {
+      const b = el('div', 'step' + (i % (r.steps / 4) === 0 ? ' step-beat' : '') +
+        (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : ''));
+      kickGrid.appendChild(b);
+    });
+    r.top.split('').forEach((ch, i) => {
+      const b = el('div', 'step' + (i % (r.steps / 4) === 0 ? ' step-beat' : '') +
+        (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : ''));
+      topGrid.appendChild(b);
+    });
+    preview.appendChild(kickGrid);
+    preview.appendChild(topGrid);
+    card.appendChild(preview);
+    // Play button
+    const playBtn = el('button', 'card-play');
+    playBtn.setAttribute('aria-label', 'Play ' + r.name);
+    playBtn.innerHTML = '<span class="material-symbols-outlined">play_arrow</span>';
+    playBtn.addEventListener('click', () => togglePlay(r.id));
+    card.appendChild(playBtn);
+    // Store ref for paintPlaying
+    if (!dom[r.id]) dom[r.id] = {};
+    dom[r.id].card = card;
+    dom[r.id].cardPlay = playBtn;
+    return card;
   }
 
   let toastTimer = null;
@@ -258,13 +419,24 @@
   function init() {
     load();
     const rows = $('rows'), tabs = $('region-tabs');
+    // Region tabs
     ['All', ...RX.REGIONS].forEach((region) => {
       const b = el('button', 'm3-pill-tab', region); b.dataset.region = region; b.setAttribute('role', 'tab');
       b.addEventListener('click', () => setRegion(region));
       tabs.appendChild(b);
     });
+    // View mode tabs (Region / Family)
+    const viewTabs = el('div', 'm3-pill-tabs gm3-connected-dsp', ''); viewTabs.id = 'view-tabs'; viewTabs.setAttribute('role', 'tablist');
+    [['region', 'By Region'], ['family', 'By Family']].forEach(([v, label]) => {
+      const b = el('button', 'm3-pill-tab', label); b.dataset.view = v; b.setAttribute('role', 'tab');
+      b.addEventListener('click', () => setViewMode(v));
+      viewTabs.appendChild(b);
+    });
+    tabs.parentNode.insertBefore(viewTabs, tabs.nextSibling);
+    // Build all rows (hidden initially, shown by view mode)
     RX.RHYTHMS.forEach((r) => rows.appendChild(buildRow(r, RX.REGIONS.indexOf(r.region))));
     setRegion('All');
+    setViewMode('region');
 
     segmented('tempo-mode', [['native', 'Native'], ['set', 'Set bpm']], 'tempoMode', 'mode', paintTempo);
     segmented('top-voice', TOP_VOICES, 'topVoice', 'voice', () => {

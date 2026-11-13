@@ -54,7 +54,8 @@ window.RX = window.RX || {};
   // ── Scheduler ──
   const LOOKAHEAD = 0.14;
   let timer = null, row = null, stepIndex = 0, nextTime = 0;
-  let getState = null, onStep = null;
+  let getState = null, onStep = null, onSwitch = null;
+  let pendingSwitch = null; // { rowId, stateFn, stepFn, atStepIndex }
 
   function tick() {
     const st = getState(row);
@@ -77,23 +78,55 @@ window.RX = window.RX || {};
       }
       nextTime += stepBeats * spb;
       stepIndex++;
+
+      // Check for pending pattern switch at bar boundary
+      if (pendingSwitch && stepIndex % st.steps === 0) {
+        const sw = pendingSwitch;
+        pendingSwitch = null;
+        row = sw.rowId;
+        getState = sw.stateFn;
+        onStep = sw.stepFn;
+        if (onSwitch) onSwitch(row);
+        // stepIndex continues from where it was (now at bar boundary)
+        // nextTime is already correct for the next step
+      }
     }
   }
 
-  function play(rowId, stateFn, stepFn) {
+  function play(rowId, stateFn, stepFn, switchFn) {
     ensure();
     stop();
-    row = rowId; getState = stateFn; onStep = stepFn;
+    row = rowId; getState = stateFn; onStep = stepFn; onSwitch = switchFn;
     stepIndex = 0; nextTime = ctx.currentTime + 0.06;
     timer = setInterval(tick, 25);
     tick();
   }
 
-  function stop() {
-    if (timer) clearInterval(timer);
-    timer = null; row = null;
+  function scheduleSwitch(rowId, stateFn, stepFn, switchFn) {
+    if (!row) { play(rowId, stateFn, stepFn, switchFn); return; }
+    if (row === rowId) return;
+    const st = getState(row);
+    if (!st) { play(rowId, stateFn, stepFn, switchFn); return; }
+    // Schedule at next bar boundary
+    const stepsPerBar = st.steps;
+    const stepsUntilBoundary = stepsPerBar - (stepIndex % stepsPerBar);
+    pendingSwitch = { rowId, stateFn, stepFn, atStepIndex: stepIndex + stepsUntilBoundary };
+    onSwitch = switchFn;
   }
 
-  RX.audio = { play, stop, playing: () => row,
+  function stop() {
+    if (timer) clearInterval(timer);
+    timer = null; row = null; pendingSwitch = null; onSwitch = null;
+  }
+
+  // Expose scheduler state for UI feedback
+  function getSchedulerState() {
+    if (!row) return null;
+    const st = getState(row);
+    if (!st) return null;
+    return { row, stepIndex, stepsPerBar: st.steps, bpm: st.bpm, pendingSwitch };
+  }
+
+  RX.audio = { play, stop, playing: () => row, scheduleSwitch, getSchedulerState,
     setTopCutoff(hz) { topCutoff = hz; if (topBus) topBus.frequency.setTargetAtTime(hz, ctx.currentTime, 0.02); }, hit(voice) { ensure(); VOICES[voice](ctx.currentTime + 0.01, 0.8); } };
 })();
