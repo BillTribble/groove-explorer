@@ -132,17 +132,16 @@
       const chosen = (s.topVoice && s.topVoice !== 'typical') ? s.topVoice : (state.topVoice !== 'typical' ? state.topVoice : null);
       if (chosen) {
         const p = s.muteTop ? off : (s.top || fit(r.top, r.steps));
-        lanes.push({ pattern: p, voice: chosen, notes: RX.notesFor(r, r.topLines[0], 0, chosen) });
+        lanes.push({ pattern: p, voice: chosen });
       } else {
         r.topLines.forEach((tl, idx) => {
           const muted = s['muteTop' + idx] || false;
           const voice = s['topVoice' + idx] || tl.sound;
-          lanes.push({ pattern: muted ? off : tl.pattern, voice, notes: RX.notesFor(r, tl, idx, voice) });
+          lanes.push({ pattern: muted ? off : tl.pattern, voice, notes: RX.notesFor(tl) });
         });
       }
     } else {
-      const voice = voiceOf(r);
-      lanes.push({ pattern: s.muteTop ? off : s.top, voice, notes: RX.notesFor(r, null, 0, voice) });
+      lanes.push({ pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
     }
 
     return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent, lanes };

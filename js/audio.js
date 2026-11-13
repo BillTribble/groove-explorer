@@ -45,13 +45,13 @@ window.RX = window.RX || {};
 
   const VOICES = {
     kick(t, v) { tone(master, t, 150, 46, 0.09, 0.32, 0.95 * v); noise(master, t, 0.012, 0.15 * v, 3000); },
-    snare(t, v) { noise(topBus, t, 0.16, 0.55 * v, 1400); tone(topBus, t, 240, 170, 0.05, 0.11, 0.35 * v, 'triangle'); },
-    tom(t, v) { tone(topBus, t, 165, 92, 0.16, 0.42, 0.8 * v); },
+    snare(t, v, r = 1) { noise(topBus, t, 0.16, 0.55 * v, 1400 * r); tone(topBus, t, 240 * r, 170 * r, 0.05, 0.11, 0.35 * v, 'triangle'); },
+    tom(t, v, r = 1) { tone(topBus, t, 165 * r, 92 * r, 0.16, 0.42, 0.8 * v); },
     // Low percussive bass in the log-drum family: fast pitch drop, short body.
     bass(t, v, r = 1) { tone(topBus, t, 190 * r, 55 * r, 0.045, 0.3, 0.9 * v); tone(topBus, t, 110 * r, 55 * r, 0.03, 0.22, 0.25 * v, 'triangle'); },
 
     // Dunun (West African bass drums: kenkeni, sangban, dununba)
-    dunun(t, v) { tone(topBus, t, 110, 65, 0.08, 0.25, 0.85 * v); noise(topBus, t, 0.02, 0.1 * v, 800); },
+    dunun(t, v, r = 1) { tone(topBus, t, 110 * r, 65 * r, 0.08, 0.25, 0.85 * v); noise(topBus, t, 0.02, 0.1 * v, 800 * r); },
 
     // Guembri / Sintir (Gnawa 3-string bass lute)
     guembri(t, v, r = 1) { tone(topBus, t, 80 * r, 40 * r, 0.06, 0.35, 0.7 * v); tone(topBus, t, 160 * r, 80 * r, 0.04, 0.15, 0.2 * v, 'triangle'); },
