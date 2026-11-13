@@ -113,7 +113,7 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
   background: var(--md-sys-color-surface-container-lowest); border-radius: 16px; padding: 16px;
   display: flex; flex-direction: column; gap: 12px;
 }
-.row-playing { background: var(--md-sys-color-green-container); }
+.row-playing { background: var(--md-sys-color-green-container-lowest); }
 .row-pending {
     background: var(--md-sys-color-tertiary-container);
     box-shadow: inset 0 0 0 2px var(--md-sys-color-tertiary);
@@ -215,7 +215,7 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 }
 .family-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-color: var(--md-sys-color-outline); }
 .family-card.card-playing {
-  background: var(--md-sys-color-green-container);
+  background: var(--md-sys-color-green-container-lowest);
   border-color: var(--md-sys-color-green);
 }
 .family-card.card-pending {
