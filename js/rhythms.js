@@ -68,8 +68,8 @@ RX.RHYTHMS = [
     kick: 'x.....x.x.....x.', top: 'x..x..x...x..x..', sound: 'snare', groove: 'straight', src: 'std',
     note: 'Son clave with the last stroke delayed.' },
   { id: 'bell12', name: 'Standard bell (12/8)', region: 'Timelines & claves', bpm: 120, range: '100–160', steps: 12,
-    kick: F12, top: 'x.x.xx.x.x.x', sound: 'snare', groove: 'rs:polak', src: 'std',
-    note: 'The seven-stroke bell of Ewe agbekor, Yoruba and Cuban bembé music. The default groove applies Rainer Polak\'s measured short-medium-long subdivision from Malian jembe playing.' },
+    kick: F12, top: 'x.x.xx.x.x.x', sound: 'snare', groove: 'straight', src: 'std',
+    note: 'The seven-stroke bell of Ewe agbekor, Yoruba and Cuban bembé music, on a true 12-pulse grid with the kick on each dotted quarter. For a played feel try the jembe ternary groove, which applies Rainer Polak\'s measured short-medium-long subdivision from Malian drumming.' },
 
   // ── Ghana & West Africa ──
   { id: 'highlife', name: 'Highlife', region: 'Ghana & West Africa', bpm: 115, range: '100–130', steps: 16,
@@ -162,10 +162,10 @@ RX.RHYTHMS = [
     kick: F, top: '..xx..xx..xx..xx', sound: 'snare', groove: 'straight', src: 'approx',
     note: 'Dar es Salaam. Among the fastest club styles anywhere.' },
   { id: 'salegy', name: 'Salegy', region: 'East Africa & Indian Ocean', bpm: 160, range: '150–180', steps: 12,
-    kick: F12, top: '..x.xx..x.xx', sound: 'snare', groove: 'rs:polak', src: 'approx',
+    kick: F12, top: '..x.xx..x.xx', sound: 'snare', groove: 'straight', src: 'approx',
     note: 'Northern Madagascar. Fast 6/8.' },
   { id: 'maloya', name: 'Maloya', region: 'East Africa & Indian Ocean', bpm: 110, range: '95–125', steps: 12,
-    kick: 'x.....x.....', top: 'x.xx.xx.xx.x', sound: 'tom', groove: 'rs:polak', src: 'approx',
+    kick: 'x.....x.....', top: 'x.xx.xx.xx.x', sound: 'tom', groove: 'straight', src: 'approx',
     note: 'Réunion. Roulèr drum and kayamb shaker in 6/8.' },
 
   // ── North Africa ──
@@ -179,7 +179,7 @@ RX.RHYTHMS = [
     kick: 'x.......x.......', top: DEMBOW, sound: 'snare', groove: 'straight', src: 'std',
     note: 'Egypt. Dum-tek-tek is a tresillo, which is why it sits so easily with dembow.' },
   { id: 'gnawa', name: 'Gnawa', region: 'North Africa', bpm: 110, range: '90–140', steps: 12,
-    kick: F12, top: 'x.xx.xx.xx.x', sound: 'tom', groove: 'rs:polak', src: 'approx',
+    kick: F12, top: 'x.xx.xx.xx.x', sound: 'tom', groove: 'straight', src: 'approx',
     note: 'Morocco. Qraqeb castanets gallop somewhere between triplets and 16ths.' },
 ];
 

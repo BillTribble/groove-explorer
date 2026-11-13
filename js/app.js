@@ -3,14 +3,14 @@
   const $ = (id) => document.getElementById(id);
   const STORE = 'rx-state-v2';
   const FOUR = { 16: 'x...x...x...x...', 12: 'x..x..x..x..' };
-  const SRC_LABEL = { agr: 'Ableton groove data', std: 'Documented timeline', approx: 'Approximation', audio: 'Measured from audio' };
+  const SRC_LABEL = { agr: 'Ableton groove data', approx: 'Approximation', audio: 'Measured from audio' };
   const SRC_CLASS = { agr: 'badge-green', std: 'badge-blue', approx: 'badge-amber', audio: 'badge-violet' };
   const REGION_CLASS = ['badge-fuchsia', 'badge-orange', 'badge-indigo', 'badge-teal', 'badge-lime', 'badge-rose', 'badge-cyan', 'badge-violet', 'badge-yellow'];
   const VOICE_LABEL = { snare: 'Snare', tom: 'Tom', bass: 'Bass' };
   const TOP_VOICES = [['typical', 'Typical'], ['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass']];
 
   // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
-  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', region: 'All', rows: {} };
+  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', cutoff: 0.76, straight12: true, region: 'All', rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
@@ -18,11 +18,13 @@
   function load() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
-    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
+    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
     RX.RHYTHMS.forEach((r) => {
       const s = saved && saved.rows && saved.rows[r.id];
       const ok = s && s.kick && s.kick.length === r.steps && s.top && s.top.length === r.steps && RX.GROOVE_BY_ID[s.groove];
       state.rows[r.id] = ok ? Object.assign(defaults(r), s) : defaults(r);
+      // 12/8 rows used to default to the Polak groove, which bent the triplet grid; move saved rows to straight once.
+      if (r.steps === 12 && !(saved && saved.straight12) && state.rows[r.id].groove === 'rs:polak') state.rows[r.id].groove = 'straight';
     });
   }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
@@ -150,7 +152,8 @@
     meta.appendChild(el('h2', 'row-title', r.name));
     const badges = el('div', 'badge-row');
     badges.appendChild(el('span', 'badge ' + REGION_CLASS[regionIndex % REGION_CLASS.length], r.region));
-    badges.appendChild(el('span', 'badge ' + SRC_CLASS[r.src], SRC_LABEL[r.src]));
+    if (SRC_LABEL[r.src]) badges.appendChild(el('span', 'badge ' + SRC_CLASS[r.src], SRC_LABEL[r.src]));
+    if (r.steps === 12) badges.appendChild(el('span', 'badge', '12/8'));
     meta.appendChild(badges);
     head.appendChild(meta);
 
@@ -287,6 +290,17 @@
     };
     amount('timing', 'timing-slider', 'timing-value');
     amount('accent', 'accent-slider', 'accent-value');
+
+    // Top-line low-pass: slider 0..1 maps logarithmically onto 500 Hz .. 16 kHz.
+    const cutoffHz = () => 500 * Math.pow(32, state.cutoff);
+    const paintCutoff = () => {
+      const hz = cutoffHz();
+      $('cutoff-value').textContent = hz >= 1000 ? (hz / 1000).toFixed(1) + ' kHz' : Math.round(hz) + ' Hz';
+      $('cutoff-slider').value = Math.round(state.cutoff * 100);
+      RX.audio.setTopCutoff(hz);
+    };
+    $('cutoff-slider').addEventListener('input', (e) => { state.cutoff = +e.target.value / 100; paintCutoff(); save(); });
+    paintCutoff();
 
     $('export-als').addEventListener('click', () => {
       if (!('CompressionStream' in window)) { toast('Ableton set export needs a newer browser'); return; }
