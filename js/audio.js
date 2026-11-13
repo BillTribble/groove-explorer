@@ -6,6 +6,8 @@ window.RX = window.RX || {};
 
   function ensure() {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return ctx; }
+    // iOS 17+: play even when the ring/silent switch is on silent.
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
     ctx = new (window.AudioContext || window.webkitAudioContext)();
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -10; comp.ratio.value = 4;

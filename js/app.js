@@ -194,6 +194,14 @@
     Object.values(dom).forEach((d) => { d.root.hidden = region !== 'All' && d.root.dataset.region !== region; });
   }
 
+  let toastTimer = null;
+  function toast(text) {
+    let t = $('toast');
+    if (!t) { t = el('div', 'toast'); t.id = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+    t.textContent = text; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 4000);
+  }
+
   function init() {
     load();
     const rows = $('rows'), tabs = $('region-tabs');
@@ -217,12 +225,13 @@
     amount('accent', 'accent-slider', 'accent-value');
 
     $('export-als').addEventListener('click', () => {
+      if (!('CompressionStream' in window)) { toast('Ableton set export needs a newer browser (Safari 16.4+)'); return; }
       const out = RX.RHYTHMS.map((r) => {
         const s = state.rows[r.id];
         return { name: r.name, bpm: r.bpm, steps: r.steps, kick: s.kick, top: s.top, voice: s.sound,
           groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent };
       });
-      RX.exportAls(out, state.bpm);
+      RX.exportAls(out, state.bpm).catch((e) => toast('Export failed: ' + e.message));
     });
 
     const paintTheme = (t) => { $('theme-icon').textContent = t === 'dark' ? 'light_mode' : 'dark_mode'; };

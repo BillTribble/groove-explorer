@@ -1,5 +1,5 @@
 /* Rhythm explorer — GM3 tokens only (see gm3-color-tokens.css). 8px grid.
-   z-index ladder: sticky app bar 10 → error overlay 1200. */
+   z-index ladder: sticky app bar 10 → toast 1100 → error overlay 1200. */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
@@ -9,6 +9,7 @@ body {
   color: var(--md-sys-color-on-surface);
 }
 button, input, select, textarea { font-family: inherit; font-size: inherit; }
+button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 button { border: none; background: transparent; color: inherit; cursor: pointer; padding: 0; }
 h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500; color: var(--md-sys-color-on-surface); }
 [hidden] { display: none !important; }
@@ -18,6 +19,12 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 }
 :focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
 
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1100; max-width: calc(100% - 32px);
+  padding: 12px 16px; border-radius: 12px; font-size: 14px;
+  background: var(--md-sys-color-on-surface); color: var(--md-sys-color-surface-container-lowest);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
 .error-overlay {
   position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1200; margin: 0; padding: 16px;
   border-radius: 12px; white-space: pre-wrap; font-size: 13px;
@@ -160,7 +167,7 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 .steps { display: grid; gap: 4px; }
 .steps-16 { grid-template-columns: repeat(16, 1fr); }
 .steps-12 { grid-template-columns: repeat(12, 1fr); }
-.step { height: 40px; border-radius: 8px; background: var(--md-sys-color-surface-container); }
+.step { height: 40px; min-width: 0; -webkit-user-select: none; user-select: none; border-radius: 8px; background: var(--md-sys-color-surface-container); }
 .step-beat { background: var(--md-sys-color-surface-container-highest); }
 .step-ghost { background: var(--md-sys-color-primary-container); }
 .step-hit { background: var(--md-sys-color-secondary); }
@@ -169,21 +176,28 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 .lane-locked .step { cursor: default; opacity: 0.7; }
 
 @media (max-width: 840px) {
-  .app-bar { padding: 8px 16px; }
-  .app-bar-row { gap: 4px 16px; }
+  .app-bar { padding: 8px 12px; padding-top: max(8px, env(safe-area-inset-top)); }
+  .app-bar-row { gap: 4px 12px; }
   .app-title { display: none; }
   .tempo { flex: 1 1 100%; min-width: 0; }
   .tempo-slider { flex: 1 1 0; width: auto; min-width: 0; }
-  .amount { flex: 1 1 0; min-width: 0; }
-  .amount .slider { width: 100%; }
-  .region-tabs { padding: 0 16px 8px; }
-  .row { padding: 12px; }
-  .btn-label-text { display: none; }
-  .btn-tonal { padding: 10px 12px; }
   .tempo-readout { min-width: 72px; font-size: 22px; }
-  .rows { padding: 8px 16px 48px; }
+  .icon-btn { width: 44px; height: 44px; flex-basis: 44px; }
+  .amount { flex: 1 1 0; min-width: 0; }
+  .amount .slider { width: 100%; height: 32px; }
+  .btn-label-text { display: none; }
+  .btn-tonal { padding: 10px 12px; height: 44px; }
+  .region-tabs { padding: 0 8px 8px; }
+  .m3-pill-tab { height: 44px; }
+  .rows { padding: 0 8px calc(48px + env(safe-area-inset-bottom)); }
+  .row { padding: 12px 8px; }
+  .row-head { gap: 8px 12px; }
+  .row-meta { flex: 1 1 calc(100% - 64px); }
+  .bpm-chip { height: 44px; margin-right: auto; }
+  .field-select { order: 5; flex: 1 1 100%; width: 100%; height: 48px; font-size: 16px; }
   .lanes { grid-template-columns: 1fr; gap: 16px; }
+  .lane-head { gap: 8px; }
   .steps-16 { grid-template-columns: repeat(8, 1fr); }
   .steps-12 { grid-template-columns: repeat(6, 1fr); }
-  .field-select { width: 100%; flex: 1 1 200px; }
+  .step { height: 44px; }
 }
