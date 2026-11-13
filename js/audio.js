@@ -133,8 +133,9 @@ window.RX = window.RX || {};
 
   // The kick bypasses the top-line filter, as its synth voice does.
   // r: pitch ratio for melodic parts (1 = the voice's own pitch).
-  function playVoice(name, t, v, r = 1) {
-    const buf = kit === 'samples' ? sampleFor(name, v) : null;
+  // synth: force the synth voice for this hit (per-rhythm exceptions in RX.SAMPLE_KIT.keepSynth).
+  function playVoice(name, t, v, r = 1, synth = false) {
+    const buf = kit === 'samples' && !synth ? sampleFor(name, v) : null;
     if (buf) playSample(buf, name === 'kick' ? master : topBus, t, v, r);
     else voiceFor(name)(t, v, r);
   }
@@ -158,7 +159,7 @@ window.RX = window.RX || {};
         if (!lv) continue;
         const g = RX.applyGroove(st.groove, pos, st.timing, st.accent);
         const t = Math.max(ctx.currentTime, nextTime + g.offset * spb);
-        playVoice(lane.voice, t, lv * g.gain, RX.pitchRatio ? RX.pitchRatio(lane, i) : 1);
+        playVoice(lane.voice, t, lv * g.gain, RX.pitchRatio ? RX.pitchRatio(lane, i) : 1, lane.synth);
       }
       if (onStep) {
         const id = row, delay = Math.max(0, (nextTime - ctx.currentTime) * 1000);

@@ -98,7 +98,10 @@
       lanes.push({ pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
     }
 
+    const keep = (RX.SAMPLE_KIT && RX.SAMPLE_KIT.keepSynth && RX.SAMPLE_KIT.keepSynth[r.id]) || [];
+    lanes.forEach((l) => { l.synth = keep.includes(l.voice); });
     return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent, lanes };
+
   }
 
   function el(tag, cls, text) {

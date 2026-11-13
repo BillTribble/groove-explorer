@@ -11,9 +11,11 @@ window.RX = window.RX || {};
 
   RX.SAMPLE_KIT = {
     base: 'samples/',
+    // Per-rhythm exceptions: these sounds keep their synth voice in that rhythm even in Samples mode.
+    keepSynth: { 111: ['tom'] },
     map: {
       kick: 'bdkit',
-      snare: 'snare',
+      // snare: the synth snare is preferred, so it has no sample here.
       caixa: 'ropesnare', caja: 'ropesnare',
       tom: ['tomlo', 'tomhi', 'tomhi'],
 
