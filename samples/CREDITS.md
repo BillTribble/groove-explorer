@@ -35,6 +35,12 @@ No attribution is required; credited here anyway.
 | mbira.wav | Idiophones/Plucked Idiophones/Mbira dzaVadzimu Nyamaropa, Zimbabwe, Low B/MBira4_pluck_Main_B3_16_50_100_rr2.wav |
 | claves.wav | Idiophones/Struck Idiophones/Claves/Claves1_Hit_v2_rr1_Mid.wav |
 | slitdrum.wav | Idiophones/Struck Idiophones/Slit Drum/LogDrumLo_MedM_v2_rr1_Sum.wav |
+| guiro-hit.wav | Idiophones/Struck Idiophones/Guiro/Guiro_Hit_rr1_Mid.wav |
+| guiro-scrape.wav | Idiophones/Struck Idiophones/Guiro/Guiro_Fast_rr1_Mid.wav |
+| vibraslap.wav | Idiophones/Struck Idiophones/Vibraslap/Legacy/vibraslap_rr1.wav |
+| triangle-open.wav | Idiophones/Struck Idiophones/Triangles/Triangle1_Hit_v2_rr1_Mid.wav |
+| triangle-muted.wav | Idiophones/Struck Idiophones/Triangles/Triangle1_HitM_v1_rr2_Mid.wav |
+| cowbell-muted.wav | Idiophones/Struck Idiophones/Cowbells/Cowbell1_Muted_v3_rr1_Mid.wav |
 
 ## Freesound (CC0)
 

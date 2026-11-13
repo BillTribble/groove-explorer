@@ -91,7 +91,7 @@
         r.topLines.forEach((tl, idx) => {
           const muted = s['muteTop' + idx] || false;
           const voice = s['topVoice' + idx] || tl.sound;
-          lanes.push({ pattern: muted ? off : tl.pattern, voice, notes: RX.notesFor(tl) });
+          lanes.push({ pattern: muted ? off : tl.pattern, voice, notes: RX.notesFor(tl), inst: s['topVoice' + idx] ? null : RX.instrumentFor(tl) });
         });
       }
     } else {

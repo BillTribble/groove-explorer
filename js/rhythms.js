@@ -281,7 +281,7 @@ RX.RHYTHMS = [
       { name: 'Congas', pattern: 'x.x.x.x.x.x.x.x.', sound: 'conga' },
       { name: 'Cavaquinho', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
       { name: 'Guitar', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Ferrinho (scraper)', pattern: 'x...x...x...', sound: 'metal' }
+      { name: 'Ferrinho (scraper)', pattern: 'x...x...x...', sound: 'scraper' }
     ] },
 
   { id: 'batuque', name: 'Batuque', region: 'Cape Verde (Santiago)', bpm: 130, range: '120–140', steps: 16, family: 'batuque',
@@ -291,7 +291,7 @@ RX.RHYTHMS = [
     topLines: [
       { name: 'Tambor (lead drum)', pattern: 'xx.xx.xx.xx.xx', sound: 'dunun' },
       { name: 'Cimboa (fiddle)', pattern: 'x.x.x.x.x.x.x.', sound: 'bow' },
-      { name: 'Ferrinho (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'metal' },
+      { name: 'Ferrinho (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'scraper' },
       { name: 'Handclaps', pattern: 'x.x.x.x.x.x.x.x.', sound: 'clap' }
     ] },
 
@@ -1160,7 +1160,7 @@ RX.RHYTHMS = [
       { name: 'Pandereta (requinto lead)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
       { name: 'Pandereta (segundo)', pattern: 'x...x...x...x...', sound: 'snare' },
       { name: 'Pandereta (seguidor)', pattern: 'x.......x.......', sound: 'dunun' },
-      { name: 'Güiro', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' }
+      { name: 'Güiro', pattern: 'xxxxxxxxxxxxxxxx', sound: 'scraper' }
     ] },
 
   { id: 'bomba-sica', name: 'Bomba Sicá (6/8)', region: 'Puerto Rico', bpm: 100, range: '90–110', steps: 12, family: 'bomba',
@@ -1190,7 +1190,7 @@ RX.RHYTHMS = [
     note: 'Fast 4/4. Tambora (double-headed drum) + güira + accordion. "Merengue típico" = perico ripiao. 140+ bpm.',
     topLines: [
       { name: 'Tambora', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Güira (scraper)', pattern: 'xxxxxxxxxxxxxxxx', sound: 'metal' },
+      { name: 'Güira (scraper)', pattern: 'xxxxxxxxxxxxxxxx', sound: 'scraper' },
       { name: 'Accordion', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' }
     ] },
 
@@ -1200,7 +1200,7 @@ RX.RHYTHMS = [
     note: 'Bolero-based. Bongo (macho/hembra) + güira + bass + guitar (requinto). "Pop bachata" = electric. Sensual partner dance.',
     topLines: [
       { name: 'Bongo (macho/hembra)', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Güira', pattern: 'xxxxxxxxxxxxxxxx', sound: 'metal' },
+      { name: 'Güira', pattern: 'xxxxxxxxxxxxxxxx', sound: 'scraper' },
       { name: 'Bass', pattern: 'x...x...x...x...', sound: 'bass' },
       { name: 'Requinto (lead guitar)', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' }
     ] },
@@ -1222,7 +1222,7 @@ RX.RHYTHMS = [
     note: 'Caja (box drum) + guacharaca (scraper) + accordion. 4 rhythmic airs. Storytelling. UNESCO heritage.',
     topLines: [
       { name: 'Caja (box drum)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Guacharaca (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'metal' },
+      { name: 'Guacharaca (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'scraper' },
       { name: 'Accordion', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
       { name: 'Bass', pattern: 'x...x...x...x...', sound: 'bass' }
     ] },
@@ -1310,7 +1310,7 @@ RX.RHYTHMS = [
     topLines: [
       { name: 'Kbandu (bass)', pattern: 'x...x...x...x...', sound: 'dunun' },
       { name: 'Playing cast (lead)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Shakka (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'metal' }
+      { name: 'Shakka (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'scraper' }
     ] },
 
   // ── Maghreb / Andalusian (North Africa classical) ──
@@ -1379,7 +1379,7 @@ RX.RHYTHMS = [
     topLines: [
       { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
       { name: 'Cajita (box)', pattern: 'x...x...x...x...', sound: 'metal' },
-      { name: 'Quijada (jawbone)', pattern: 'xxxxxxxxxxxx', sound: 'metal' },
+      { name: 'Quijada (jawbone)', pattern: 'xxxxxxxxxxxx', sound: 'quijada' },
       { name: 'Guitar', pattern: 'x...x...x...x...', sound: 'pluck' }
     ] },
 

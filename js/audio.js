@@ -77,6 +77,11 @@ window.RX = window.RX || {};
     // Metal (qraqeb, gankogui, bell, krakeb)
     metal(t, v) { tone(topBus, t, 2000, 1500, 0.02, 0.06, 0.7 * v); tone(topBus, t, 4000, 3000, 0.015, 0.03, 0.2 * v); },
 
+    // Scraper (güira, güiro, ferrinho): a quick train of filtered clicks, like ridges under a stick.
+    scraper(t, v) { for (let k = 0; k < 5; k++) noise(topBus, t + k * 0.012, 0.01, (0.28 - k * 0.03) * v, 3500); },
+    // Quijada (jawbone): one strike that leaves a buzzing rattle of loose teeth.
+    quijada(t, v) { for (let k = 0; k < 9; k++) noise(topBus, t + k * 0.022, 0.015, 0.3 * v * Math.pow(0.8, k), 2500); },
+
     // Handclaps
     clap(t, v) { noise(topBus, t, 0.03, 0.5 * v, 2000); tone(topBus, t, 300, 200, 0.02, 0.04, 0.1 * v); },
 
@@ -134,8 +139,9 @@ window.RX = window.RX || {};
   // The kick bypasses the top-line filter, as its synth voice does.
   // r: pitch ratio for melodic parts (1 = the voice's own pitch).
   // synth: force the synth voice for this hit (per-rhythm exceptions in RX.SAMPLE_KIT.keepSynth).
-  function playVoice(name, t, v, r = 1, synth = false) {
-    const buf = kit === 'samples' && !synth ? sampleFor(name, v) : null;
+  // inst: kit key picked from the part's name (RX.instrumentFor), used for samples only.
+  function playVoice(name, t, v, r = 1, synth = false, inst = null) {
+    const buf = kit === 'samples' && !synth ? (inst && sampleFor(inst, v)) || sampleFor(name, v) : null;
     if (buf) playSample(buf, name === 'kick' ? master : topBus, t, v, r);
     else voiceFor(name)(t, v, r);
   }
@@ -159,7 +165,7 @@ window.RX = window.RX || {};
         if (!lv) continue;
         const g = RX.applyGroove(st.groove, pos, st.timing, st.accent);
         const t = Math.max(ctx.currentTime, nextTime + g.offset * spb);
-        playVoice(lane.voice, t, lv * g.gain, RX.pitchRatio ? RX.pitchRatio(lane, i) : 1, lane.synth);
+        playVoice(lane.voice, t, lv * g.gain, RX.pitchRatio ? RX.pitchRatio(lane, i) : 1, lane.synth, lane.inst);
       }
       if (onStep) {
         const id = row, delay = Math.max(0, (nextTime - ctx.currentTime) * 1000);
