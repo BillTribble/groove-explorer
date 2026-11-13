@@ -48,28 +48,28 @@ window.RX = window.RX || {};
     snare(t, v) { noise(topBus, t, 0.16, 0.55 * v, 1400); tone(topBus, t, 240, 170, 0.05, 0.11, 0.35 * v, 'triangle'); },
     tom(t, v) { tone(topBus, t, 165, 92, 0.16, 0.42, 0.8 * v); },
     // Low percussive bass in the log-drum family: fast pitch drop, short body.
-    bass(t, v) { tone(topBus, t, 190, 55, 0.045, 0.3, 0.9 * v); tone(topBus, t, 110, 55, 0.03, 0.22, 0.25 * v, 'triangle'); },
+    bass(t, v, r = 1) { tone(topBus, t, 190 * r, 55 * r, 0.045, 0.3, 0.9 * v); tone(topBus, t, 110 * r, 55 * r, 0.03, 0.22, 0.25 * v, 'triangle'); },
 
     // Dunun (West African bass drums: kenkeni, sangban, dununba)
     dunun(t, v) { tone(topBus, t, 110, 65, 0.08, 0.25, 0.85 * v); noise(topBus, t, 0.02, 0.1 * v, 800); },
 
     // Guembri / Sintir (Gnawa 3-string bass lute)
-    guembri(t, v) { tone(topBus, t, 80, 40, 0.06, 0.35, 0.7 * v); tone(topBus, t, 160, 80, 0.04, 0.15, 0.2 * v, 'triangle'); },
+    guembri(t, v, r = 1) { tone(topBus, t, 80 * r, 40 * r, 0.06, 0.35, 0.7 * v); tone(topBus, t, 160 * r, 80 * r, 0.04, 0.15, 0.2 * v, 'triangle'); },
 
     // Mbira / Kalimba (thumb piano)
-    mbira(t, v) { tone(topBus, t, 800, 600, 0.03, 0.18, 0.6 * v); tone(topBus, t, 1200, 800, 0.02, 0.08, 0.15 * v, 'sine'); },
+    mbira(t, v, r = 1) { tone(topBus, t, 800 * r, 600 * r, 0.03, 0.18, 0.6 * v); tone(topBus, t, 1200 * r, 800 * r, 0.02, 0.08, 0.15 * v, 'sine'); },
 
     // Plucked string (krar, oud, guitar, kora)
-    pluck(t, v) { tone(topBus, t, 300, 150, 0.04, 0.2, 0.5 * v); tone(topBus, t, 600, 300, 0.02, 0.08, 0.1 * v, 'triangle'); },
+    pluck(t, v, r = 1) { tone(topBus, t, 300 * r, 150 * r, 0.04, 0.2, 0.5 * v); tone(topBus, t, 600 * r, 300 * r, 0.02, 0.08, 0.1 * v, 'triangle'); },
 
     // Bowed string (masinko, goje, violin, rebab)
-    bow(t, v) { tone(topBus, t, 200, 180, 0.12, 0.4, 0.55 * v); tone(topBus, t, 400, 350, 0.08, 0.15, 0.15 * v, 'sawtooth'); },
+    bow(t, v, r = 1) { tone(topBus, t, 200 * r, 180 * r, 0.12, 0.4, 0.55 * v); tone(topBus, t, 400 * r, 350 * r, 0.08, 0.15, 0.15 * v, 'sawtooth'); },
 
     // Wind (washint, flute, mizmar)
-    wind(t, v) { tone(topBus, t, 400, 350, 0.08, 0.35, 0.5 * v); noise(topBus, t, 0.08, 0.08 * v, 2000); },
+    wind(t, v, r = 1) { tone(topBus, t, 400 * r, 350 * r, 0.08, 0.35, 0.5 * v); noise(topBus, t, 0.08, 0.08 * v, 2000); },
 
     // Voice (vocal)
-    voice(t, v) { tone(topBus, t, 220, 180, 0.1, 0.3, 0.6 * v); tone(topBus, t, 440, 350, 0.06, 0.12, 0.15 * v, 'triangle'); },
+    voice(t, v, r = 1) { tone(topBus, t, 220 * r, 180 * r, 0.1, 0.3, 0.6 * v); tone(topBus, t, 440 * r, 350 * r, 0.06, 0.12, 0.15 * v, 'triangle'); },
 
     // Shaker / Hosho / Cherewa
     shaker(t, v) { noise(topBus, t, 0.05, 0.3 * v, 4000); },
@@ -87,12 +87,57 @@ window.RX = window.RX || {};
     conga(t, v) { tone(topBus, t, 200, 150, 0.05, 0.3, 0.7 * v); noise(topBus, t, 0.02, 0.12 * v, 1800); },
 
     // Xylophone / marimba / gyil / balafon: woody pitched bar with overtone.
-    xylophone(t, v) { tone(topBus, t, 620, 600, 0.02, 0.22, 0.6 * v); tone(topBus, t, 1240, 1200, 0.01, 0.08, 0.15 * v, 'sine'); },
+    xylophone(t, v, r = 1) { tone(topBus, t, 620 * r, 600 * r, 0.02, 0.22, 0.6 * v); tone(topBus, t, 1240 * r, 1200 * r, 0.01, 0.08, 0.15 * v, 'sine'); },
   };
+  // Melodic names without a voice of their own.
+  VOICES.guitar = VOICES.pluck; VOICES.oud = VOICES.pluck; VOICES.kora = VOICES.pluck; VOICES.piano = VOICES.pluck;
+  VOICES.ghaita = VOICES.wind;
 
   // Rhythms name their native instruments (surdo, caixa, darbuka…) — an unknown
   // name must never crash the scheduler, so fall back to a generic drum.
   const voiceFor = (name) => VOICES[name] || VOICES.tom;
+
+  // ── Sample kit ──
+  // 'synth' plays the voices above; 'samples' plays recorded one-shots from RX.SAMPLE_KIT
+  // where one exists, falling back to the synth voice until its buffer has loaded.
+  let kit = 'synth';
+  const buffers = {};   // file -> AudioBuffer
+  const loading = {};   // file -> Promise
+  const kitMap = () => (RX.SAMPLE_KIT && RX.SAMPLE_KIT.map) || {};
+  const kitFiles = () => [...new Set(Object.values(kitMap()).flat())];
+
+  function loadSample(file) {
+    if (buffers[file] || loading[file]) return loading[file];
+    const url = RX.SAMPLE_KIT.base + file + '.wav?v=' + (window.APP_BUILD || '');
+    loading[file] = fetch(url)
+      .then((r) => { if (!r.ok) throw new Error(r.status + ' ' + url); return r.arrayBuffer(); })
+      .then((ab) => new Promise((res, rej) => ctx.decodeAudioData(ab, res, rej)))
+      .then((buf) => { buffers[file] = buf; })
+      .catch((e) => { console.warn('sample load failed', file, e); delete loading[file]; });
+    return loading[file];
+  }
+  const loadKit = () => Promise.all(kitFiles().map(loadSample));
+
+  function sampleFor(name, v) {
+    const entry = kitMap()[name];
+    if (!entry) return null;
+    const file = Array.isArray(entry) ? entry[v > 0.9 ? 0 : v > 0.55 ? 1 : 2] : entry;
+    return buffers[file] || null;
+  }
+
+  function playSample(buf, out, t, v, r = 1) {
+    const s = ctx.createBufferSource(), g = ctx.createGain();
+    s.buffer = buf; s.playbackRate.value = r; g.gain.value = Math.max(0.05, v);
+    s.connect(g); g.connect(out); s.start(t);
+  }
+
+  // The kick bypasses the top-line filter, as its synth voice does.
+  // r: pitch ratio for melodic parts (1 = the voice's own pitch).
+  function playVoice(name, t, v, r = 1) {
+    const buf = kit === 'samples' ? sampleFor(name, v) : null;
+    if (buf) playSample(buf, name === 'kick' ? master : topBus, t, v, r);
+    else voiceFor(name)(t, v, r);
+  }
 
   // ── Scheduler ──
   const LOOKAHEAD = 0.14;
@@ -113,7 +158,7 @@ window.RX = window.RX || {};
         if (!lv) continue;
         const g = RX.applyGroove(st.groove, pos, st.timing, st.accent);
         const t = Math.max(ctx.currentTime, nextTime + g.offset * spb);
-        voiceFor(lane.voice)(t, lv * g.gain);
+        playVoice(lane.voice, t, lv * g.gain, RX.pitchRatio ? RX.pitchRatio(lane, i) : 1);
       }
       if (onStep) {
         const id = row, delay = Math.max(0, (nextTime - ctx.currentTime) * 1000);
@@ -172,5 +217,8 @@ window.RX = window.RX || {};
 
   RX.audio = { play, stop, playing: () => row, scheduleSwitch, getSchedulerState,
     setTopCutoff(hz) { topCutoff = hz; if (topBus) topBus.frequency.setTargetAtTime(hz, ctx.currentTime, 0.02); },
-    hit(voice) { ensure(); voiceFor(voice)(ctx.currentTime + 0.01, 0.8); } };
+    hit(voice) { ensure(); playVoice(voice, ctx.currentTime + 0.01, 0.8); },
+    // kit: 'synth' | 'samples'. Switching to samples starts loading them (needs a user gesture first for the AudioContext).
+    setKit(k) { kit = k; if (k === 'samples') { ensure(); return loadKit(); } return Promise.resolve(); },
+    kitReady: () => kitFiles().every((f) => buffers[f]) };
 })();

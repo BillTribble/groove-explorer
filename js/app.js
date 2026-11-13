@@ -63,7 +63,7 @@
 
   // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
   // viewMode: 'region' (default) or 'family'
-  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'region', rows: {} };
+  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'synth', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'region', rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
@@ -79,7 +79,7 @@
   function load() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
-    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
+    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode', 'kit'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
     RX.RHYTHMS.forEach((r) => {
       const s = saved && saved.rows && saved.rows[r.id];
       const ok = s && s.kick && s.kick.length === r.steps && s.top && s.top.length === r.steps && RX.GROOVE_BY_ID[s.groove];
@@ -126,15 +126,18 @@
     if (r.topLines && r.topLines.length) {
       const chosen = (s.topVoice && s.topVoice !== 'typical') ? s.topVoice : (state.topVoice !== 'typical' ? state.topVoice : null);
       if (chosen) {
-        lanes.push({ pattern: s.muteTop ? off : (s.top || fit(r.top, r.steps)), voice: chosen });
+        const p = s.muteTop ? off : (s.top || fit(r.top, r.steps));
+        lanes.push({ pattern: p, voice: chosen, notes: RX.notesFor(r, r.topLines[0], 0, chosen) });
       } else {
         r.topLines.forEach((tl, idx) => {
           const muted = s['muteTop' + idx] || false;
-          lanes.push({ pattern: muted ? off : tl.pattern, voice: s['topVoice' + idx] || tl.sound });
+          const voice = s['topVoice' + idx] || tl.sound;
+          lanes.push({ pattern: muted ? off : tl.pattern, voice, notes: RX.notesFor(r, tl, idx, voice) });
         });
       }
     } else {
-      lanes.push({ pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
+      const voice = voiceOf(r);
+      lanes.push({ pattern: s.muteTop ? off : s.top, voice, notes: RX.notesFor(r, null, 0, voice) });
     }
 
     return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent, lanes };
@@ -573,6 +576,12 @@
     tabs.parentNode.insertBefore(famTabs, tabs.nextSibling);
     RX.RHYTHMS.forEach((r) => rows.appendChild(buildRow(r, RX.REGIONS.indexOf(r.region))));
     setRegion('All');
+    // Drum sounds: synth voices or recorded samples. The AudioContext needs a tap first,
+    // so a saved 'samples' choice loads on the first play instead of at startup.
+    segmented('kit', [['synth', 'Synth'], ['samples', 'Samples']], 'kit', 'kit', () => {
+      RX.audio.setKit(state.kit).then(() => { if (state.kit === 'samples' && !RX.audio.playing()) RX.audio.hit('darbuka'); });
+    });
+    document.addEventListener('pointerdown', () => { if (state.kit === 'samples') RX.audio.setKit('samples'); }, { once: true });
     segmented('view-mode', [['region', 'By region'], ['family', 'By family']], 'viewMode', 'view', applyView);
     applyView();
 
