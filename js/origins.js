@@ -54,8 +54,8 @@ window.RX = window.RX || {};
     'nawari-dabke': 'beirut', 'samai-thaqil': 'istanbul', 'samai-darij': 'istanbul', 'dawr-hindi': 'aleppo', jurjina: 'baghdad',
     chiftetelli: 'izmir', karsilama: 'edirne', laz: 'trabzon', kalamatianos: 'kalamata',
     kopanitsa: 'sofia', rachenitsa: 'plovdiv', 'sedi-donka': 'plovdiv', paidushko: 'kyustendil', gankino: 'pleven', lesno: 'skopje', daychovo: 'starazagora',
-    'misra-chapu': 'chennai', 'khanda-chapu': 'chennai', 'rupak-tala': 'lucknow', ektal: 'lucknow', jhaptal: 'lucknow',
-    solea: 'seville', 'tangos-flamenco': 'seville', 'rumba-flamenca': 'seville', bulerias: 'jerez', alegrias: 'cadiz',
+    'misra-chapu': 'chennai', 'rupak-tala': 'lucknow', ektal: 'lucknow', jhaptal: 'lucknow',
+    solea: 'seville', 'tangos-flamenco': 'seville', bulerias: 'jerez', alegrias: 'cadiz',
     cumbia: 'cartagena',
   };
   RX.ORIGIN = Object.fromEntries(Object.entries(ORIGIN_OF).map(([id, p]) => [id, P[p]]));

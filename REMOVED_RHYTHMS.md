@@ -50,3 +50,13 @@ Mongombi, Intore, Chakacha and Coco were restored once parts could loop on their
 no published pattern for any of the four, nor for Nyamaropa.
 
 Nyabinghi (Rastafari) was removed on 2026-11-14 at the owner's request: a plain heartbeat pattern that was not interesting enough to keep (id `nyabinghi`).
+
+Removed 2026-11-14 at the owner's request as too basic (nothing beyond the kick and a meter count), with no richer
+reference found:
+
+| Rhythm | Region | Id |
+|:--|:--|:--|
+| Khanda Chapu (10/8) | South India (Carnatic) | `khanda-chapu` |
+| Rumba Flamenca (4/4) | Andalusia (Flamenco) | `rumba-flamenca` |
+
+Khanda Chapu: sources give only the cycle (5 beats, "ta ka | ta ki ta", 2+3); no mridangam stroke pattern was found in text.

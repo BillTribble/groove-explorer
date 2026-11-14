@@ -105,7 +105,10 @@ RX.nodeMap = (function () {
     groups.forEach((g) => {
       if (g.length === 1) { nodes[g[0]].sx = P[g[0]][0]; nodes[g[0]].sy = P[g[0]][1]; nodes[g[0]].dir = null; return; }
       const cx = g.reduce((a, i) => a + P[i][0], 0) / g.length, cy = g.reduce((a, i) => a + P[i][1], 0) / g.length;
-      const r = Math.max(11, (g.length * (2 * NODE_R + 4)) / (2 * Math.PI));
+      // Compact when zoomed out; as you zoom in the ring opens up (neighbours up to 56 px apart) so each member is an
+      // easy tap even when they share one exact point (Soleá / Tangos in Seville never separate on their own).
+      const gap = Math.min(56, Math.max(2 * NODE_R + 4, 20 * Math.sqrt(Math.max(1, view.k / fitK))));
+      const r = Math.max(11, (g.length * (2 * NODE_R + 4)) / (2 * Math.PI), g.length === 2 ? gap / 2 : gap / (2 * Math.sin(Math.PI / g.length)));
       rings.push({ cx, cy, r });
       const dir = (i) => (Math.hypot(P[i][0] - cx, P[i][1] - cy) < 0.5 ? -Math.PI / 2 + i * 1e-3 : Math.atan2(P[i][1] - cy, P[i][0] - cx));
       const order = g.slice().sort((a, c) => dir(a) - dir(c)), a0 = dir(order[0]);
@@ -151,7 +154,11 @@ RX.nodeMap = (function () {
     cancelAnimationFrame(anim);
     const to = nodes.map((n) => ({ wx: n.at[layout][0], wy: n.at[layout][1] }));
     if (!w) { nodes.forEach((n, i) => Object.assign(n, to[i])); return; } // not laid out yet: resize() fits
-    const target = fitView(layout); fitK = target.k;
+    // With a rhythm selected (the one in the picture panel), keep the zoom level (relative to each layout's fitted
+    // view) and centre that rhythm in the new layout, so switching keeps context. Otherwise show the whole layout.
+    const sel = panelId && nodes.find((n) => n.id === panelId), ratio = fitK ? view.k / fitK : 1;
+    const fit = fitView(layout); fitK = fit.k;
+    const target = sel && w ? (() => { const k = fit.k * ratio; return { k, x: w / 2 - sel.at[layout][0] * k, y: h / 2 - sel.at[layout][1] * k }; })() : fit;
     if (!animate) { nodes.forEach((n, i) => Object.assign(n, to[i])); view = target; render(); return; }
     const from = nodes.map((n) => ({ wx: n.wx, wy: n.wy })), v0 = { ...view }, t0 = performance.now();
     const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);

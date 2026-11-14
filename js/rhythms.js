@@ -768,16 +768,6 @@ RX.RHYTHMS = [
       { name: 'Kanjira (frame drum)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' }
     ] },
 
-  { id: 'khanda-chapu', name: 'Khanda Chapu (10/8)', region: 'South India (Carnatic)', bpm: 100, range: '90–110', steps: 20, family: 'tala-10',
-    core: 'X...o...X...X...o...', coreName: '2+1+2',
-    kick: 'x.......x...x.......', top: 'X...o...X...X...o...', sound: 'mridangam', groove: 'straight', src: 'std',
-    etymology: 'Sanskrit "khanda" = 5 + "chapu" = beat. 10 beats = 5+5 (2+3 | 2+3). Two 5-beat halves. Asymmetric within symmetry.',
-    note: '10 beats = 5+5, each 2+3. Clap on 1, wave on 4, clap on 6, wave on 9. Rare but beautiful.',
-    topLines: [
-      { name: 'Mridangam', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Ghatam', pattern: 'x.......x...x.......', sound: 'metal' },
-      { name: 'Morsing (jaw harp)', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'pluck' }
-    ] },
 
   { id: 'rupak-tala', name: 'Rupak Tala (7/8)', region: 'North India (Hindustani)', bpm: 80, range: '70–90', steps: 14, family: 'tala-7',
     core: 'X.o.o.X.o.X.o.', coreName: '3+2+2',
@@ -858,16 +848,6 @@ RX.RHYTHMS = [
       { name: 'Guitar', pattern: 'x...x...x...x...', sound: 'pluck' }
     ] },
 
-  { id: 'rumba-flamenca', name: 'Rumba Flamenca (4/4)', region: 'Andalusia (Flamenco)', bpm: 130, range: '120–140', steps: 16, family: 'rumba-flamenca',
-    core: 'X..x..x.X..x..x.', coreName: '3-3-2 strum',
-    kick: F, top: 'X..x..x.X..x..x.', sound: 'cajon', groove: 'sw16:52', src: 'std',
-    etymology: 'Cuban "rumba" → flamenco via return migration (ida y vuelta). 4/4 with Cuban clave feel. Gipsy Kings style.',
-    note: 'Cuban rumba → flamenco. 4/4 with tresillo feel. "Rumba catalana" (Peret, Gipsy Kings). Party rhythm.',
-    topLines: [
-      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Palmas', pattern: 'x.x.x.x.x.x.x.x.', sound: 'clap' },
-      { name: 'Guitar (strum)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
-    ] },
 
   // ── Caribbean / Latin Additions ──
   { id: 'bomba-sica', name: 'Bomba Sicá (6/8)', region: 'Puerto Rico', bpm: 100, range: '90–110', steps: 12, family: 'bomba',
