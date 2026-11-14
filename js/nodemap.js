@@ -87,7 +87,7 @@ RX.nodeMap = (function () {
     setLayout(hooks.layout ? hooks.layout() : 'pattern', false);
     bindGestures();
     // Work is deferred a frame so a resize that changes another observed element does not loop within one frame.
-    if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(() => { if (!host.hidden) resize(); })).observe(host);
+    if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(() => { if (!host.hidden && !gesturing) resize(); })).observe(host);
   }
 
   // Identical patterns fill each other's link slots, so some clusters (Soli / Makru / Mendiani) form islands. Join
@@ -224,6 +224,18 @@ RX.nodeMap = (function () {
     render();
   }
 
+  let gesturing = false; // fingers down: resize() must not refit mid-pinch (iOS fires viewport resizes during gestures)
+
+  // One render per animation frame at most: pointermove fires far faster than the screen
+  // paints, and a full render (ring grouping + every node and link attribute) per event
+  // saturates the main thread on a phone — the map jitters and flickers while pinching.
+  let renderQueued = false;
+  function queueRender() {
+    if (renderQueued) return;
+    renderQueued = true;
+    requestAnimationFrame(() => { renderQueued = false; render(); });
+  }
+
   function render() {
     const zoomed = view.k / fitK >= 1.8;
     gLand.setAttribute('transform', `matrix(${view.k} 0 0 ${view.k} ${view.x.toFixed(1)} ${view.y.toFixed(1)})`);
@@ -236,7 +248,10 @@ RX.nodeMap = (function () {
       n.label.setAttribute('x', (c * (NODE_R + 5)).toFixed(1));
       n.label.setAttribute('y', (s * (NODE_R + 5) + (s > 0.3 ? 9 : s < -0.3 ? 0 : 4)).toFixed(1));
       n.label.setAttribute('text-anchor', c > 0.35 ? 'start' : c < -0.35 ? 'end' : 'middle');
-      n.label.classList.toggle('map-label-on', zoomed || n.g.classList.contains('map-node-playing') || n.g.classList.contains('map-node-pending'));
+      // Toggle the class only when it changes: mid-pinch class churn restarts label fades
+      // every event and reads as flicker.
+      const on = zoomed || n.g.classList.contains('map-node-playing') || n.g.classList.contains('map-node-pending');
+      if (n._on !== on) { n._on = on; n.label.classList.toggle('map-label-on', on); }
     });
     links.forEach((l) => {
       l.line.setAttribute('x1', sx(l.a).toFixed(1)); l.line.setAttribute('y1', sy(l.a).toFixed(1));
@@ -253,7 +268,7 @@ RX.nodeMap = (function () {
     view.x = px - ((px - view.x) / view.k) * k;
     view.y = py - ((py - view.y) / view.k) * k;
     view.k = k;
-    render();
+    queueRender();
   }
 
   // ── Gestures: one pointer pans, two pinch-zoom, wheel zooms, a short still press on a node plays it ──
@@ -265,6 +280,7 @@ RX.nodeMap = (function () {
 
     svg.addEventListener('pointerdown', (e) => {
       try { svg.setPointerCapture(e.pointerId); } catch (err) { /* capture only keeps a drag going off the map */ }
+      gesturing = true;
       const p = local(e); pts.set(e.pointerId, p);
       // The nearest centre wins, not whichever dot happens to be drawn on top.
       const node = pts.size === 1 && nodeAt(p.x, p.y);
@@ -276,7 +292,7 @@ RX.nodeMap = (function () {
       const p = local(e); pts.set(e.pointerId, p);
       if (pts.size === 1) {
         if (tap && Math.hypot(p.x - tap.x, p.y - tap.y) > TAP_MOVE) tap = null;
-        view.x += p.x - last.x; view.y += p.y - last.y; last = p; render();
+        view.x += p.x - last.x; view.y += p.y - last.y; last = p; queueRender();
       } else if (pts.size === 2) {
         const q = pair(); tap = null;
         if (last && last.d) { view.x += q.cx - last.cx; view.y += q.cy - last.cy; zoomAt(q.cx, q.cy, q.d / last.d); }
@@ -289,6 +305,7 @@ RX.nodeMap = (function () {
       if (tap && pts.size === 0 && e.type === 'pointerup') hooks.onTap(tap.id);
       tap = null;
       last = pts.size === 1 ? [...pts.values()][0] : null;
+      if (pts.size === 0) { gesturing = false; resize(); } // pick up any viewport change the pinch hid
     };
     svg.addEventListener('pointerup', end);
     svg.addEventListener('pointercancel', end);
