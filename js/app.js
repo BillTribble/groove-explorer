@@ -12,20 +12,29 @@
   const VOICE_LABEL = { snare: 'Snare', tom: 'Tom', bass: 'Bass' };
   const TOP_VOICES = [['typical', 'Typical'], ['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass']];
 
-  // Families come from js/families.js (RX.FAMILIES: [id, label, member ids]).
-  const FAMILY_LABEL = Object.fromEntries(RX.FAMILIES.map(([id, label]) => [id, label]));
-  const FAMILY_ORDER = RX.FAMILIES.map(([id]) => id);
+  // The grouped view groups rhythms by the kind of pattern they are: js/pattern-groups.js
+  // (RX.PATTERN_GROUPS: [id, label, member ids], clustered by py/rhythm_ml.py). Without that
+  // file it falls back to the hand-made lineage families in js/families.js.
+  const GROUPS = RX.PATTERN_GROUPS || RX.FAMILIES;
+  const GROUP_OF = {};
+  GROUPS.forEach(([g, , ids]) => ids.forEach((id) => { GROUP_OF[id] = g; }));
+  const FAMILY_LABEL = Object.assign({ other: 'Not grouped yet' }, Object.fromEntries(GROUPS.map(([id, label]) => [id, label])));
+  const FAMILY_ORDER = GROUPS.map(([id]) => id);
 
   // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
   // viewMode: 'family' (default) or 'region'
-  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, groovesV2: true, rows: {} };
+  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, groovesV2: true, coreTop: true, pulseParts: 'off', rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
   // Some multi-instrument data has a top pattern longer or shorter than the row; fit it to the step count.
   const fit = (p, n) => (p || '').slice(0, n).padEnd(n, '.');
+  // Multi-instrument rows: the single top line of the simple version is the rhythm's core line
+  // (the part or skeleton that best shows its structure, see js/shape.js), not just the lead part.
+  const multi = (r) => !!(r.topLines && r.topLines.length);
+  const simpleTop = (r) => (multi(r) ? RX.coreTop(r).pattern : fit(r.top, r.steps)); // may be a free-looping part, shorter than the row
   const defaults = (r) => {
-    const base = { kick: r.kick, top: fit(r.top, r.steps), groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false, topVoice: 'typical' };
+    const base = { kick: r.kick, top: simpleTop(r), groove: r.groove, four: false, muteKick: false, muteTop: false, openKick: false, openTop: false, topVoice: 'typical' };
     if (r.topLines && r.topLines.length) {
       r.topLines.forEach((_, idx) => { base['muteTop' + idx] = false; });
     }
@@ -34,32 +43,57 @@
   function load() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
-    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode', 'kit'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
+    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode', 'kit', 'pulseParts'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
     // By family became the default view; saves from before that start there once.
     if (saved && !saved.familyDefault) state.viewMode = 'family';
     // Recorded samples became the default kit; saves from before that switch to it once.
     if (saved && !saved.samplesDefault) state.kit = 'samples';
     RX.RHYTHMS.forEach((r) => {
       const s = saved && saved.rows && saved.rows[r.id];
-      const ok = s && s.kick && s.kick.length === r.steps && s.top && s.top.length === r.steps && RX.GROOVE_BY_ID[s.groove];
+      const ok = s && s.kick && s.kick.length === r.steps && s.top && s.top.length === simpleTop(r).length && RX.GROOVE_BY_ID[s.groove];
       state.rows[r.id] = ok ? Object.assign(defaults(r), s) : defaults(r);
       // 12/8 rows used to default to the Polak groove, which bent the triplet grid; move saved rows to straight once.
       if (r.steps === 12 && !(saved && saved.straight12) && state.rows[r.id].groove === 'rs:polak') state.rows[r.id].groove = 'straight';
+      // The simple version now plays the core line; saved multi-instrument rows pick it up once.
+      if (saved && !saved.coreTop && multi(r)) state.rows[r.id].top = simpleTop(r);
       // Grooves were re-researched for every rhythm; saved rows pick up the new default once.
       if (saved && !saved.groovesV2) state.rows[r.id].groove = r.groove;
     });
   }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
+  // The 4/4 kick is four steady beats on its own clock: 16 steps per bar whatever the row's step count, so it
+  // stays exact in odd meters and never follows the cycle of the polyrhythmic parts.
+  const FOUR = 'x...x...x...x...', FOUR_GRID = 16;
   const nativeFour = (r) => r.kick === fourFor(r.steps);
+  const gridOf = (r, lane) => (lane === 'kick' && state.rows[r.id].four ? FOUR_GRID : r.steps);
+  // Parts of an ensemble row that share a pattern (identical apart from the instrument) share one lane:
+  // the first of them leads, edits and mutes go to the leader, every instrument still plays and keeps its own sound.
+  const groupCache = {};
+  const groupsOf = (r) => groupCache[r.id] || (groupCache[r.id] = (() => {
+    const lines = r.topLines || [], leader = [], members = {};
+    lines.forEach((tl, i) => {
+      const L = lines.findIndex((o) => o.pattern === tl.pattern && !!o.loop === !!tl.loop);
+      leader[i] = L; (members[L] = members[L] || []).push(i);
+    });
+    const leaders = Object.keys(members).map(Number).sort((a, b) => a - b);
+    return { leader, members, number: Object.fromEntries(leaders.map((L, n) => [L, n + 1])), grouped: leaders.length < lines.length };
+  })());
+  const laneIdx = (lane) => (lane !== 'top' && lane.startsWith('top') ? parseInt(lane.replace('top', ''), 10) : null);
+  const muteOf = (r, lane) => {
+    const idx = r.topLines && laneIdx(lane);
+    return !!state.rows[r.id]['mute' + cap(idx == null ? lane : 'top' + groupsOf(r).leader[idx])];
+  };
   const patternOf = (r, lane) => {
-    if (lane === 'kick') return state.rows[r.id].four ? fourFor(r.steps) : state.rows[r.id].kick;
+    if (lane === 'kick') return state.rows[r.id].four ? FOUR : state.rows[r.id].kick;
     if (lane !== 'top' && lane.startsWith('top') && r.topLines) {
-      const idx = parseInt(lane.replace('top', ''), 10);
+      const idx = groupsOf(r).leader[laneIdx(lane)];
       return state.rows[r.id]['top' + idx] || r.topLines[idx]?.pattern || '';
     }
     return state.rows[r.id].top;
   };
+  // Pulse parts setting: with it off, a top part that is a steady stream of 8ths or 16ths is muted and hidden.
+  const fillerOff = (r, lane) => state.pulseParts !== 'on' && lane !== 'kick' && RX.shape.isFiller(patternOf(r, lane), r.steps);
   const voiceOf = (r) => {
     const rowVoice = state.rows[r.id]?.topVoice;
     if (rowVoice && rowVoice !== 'typical') return rowVoice;
@@ -68,7 +102,7 @@
   const bpmOf = (r) => (state.tempoMode === 'native' ? r.bpm : state.bpm);
   const cap = (lane) => (lane === 'kick' ? 'Kick' : lane.charAt(0).toUpperCase() + lane.slice(1));
   // A lane whose two halves match is shown as one half unless the user opens it.
-  const foldable = (p) => p.slice(0, p.length / 2) === p.slice(p.length / 2);
+  const foldable = (p) => p.length % 2 === 0 && p.slice(0, p.length / 2) === p.slice(p.length / 2);
   const shownSteps = (r, lane) => {
     const p = patternOf(r, lane);
     return foldable(p) && !state.rows[r.id]['open' + cap(lane)] ? p.length / 2 : p.length;
@@ -80,26 +114,27 @@
     if (!r) return null;
     const s = state.rows[id];
     const off = '.'.repeat(r.steps);
-    const lanes = [{ id: 'kick', pattern: s.muteKick ? off : patternOf(r, 'kick'), voice: 'kick' }];
+    const lanes = [{ id: 'kick', pattern: s.muteKick ? off : patternOf(r, 'kick'), voice: 'kick', grid: s.four ? FOUR_GRID : undefined }];
 
     // Multi-instrument rows: "Typical" plays the full ensemble; any chosen top
     // sound (global or per-row) collapses the row to a simple kick + top combo.
     if (r.topLines && r.topLines.length) {
       const chosen = (s.topVoice && s.topVoice !== 'typical') ? s.topVoice : (state.topVoice !== 'typical' ? state.topVoice : null);
       if (chosen) {
-        const p = s.muteTop ? off : (s.top || fit(r.top, r.steps));
+        const p = s.muteTop ? off : (s.top || simpleTop(r));
         lanes.push({ id: 'top', pattern: p, voice: chosen });
       } else {
         r.topLines.forEach((tl, idx) => {
-          const muted = s['muteTop' + idx] || false;
+          const muted = muteOf(r, 'top' + idx);
           const voice = s['topVoice' + idx] || tl.sound;
-          lanes.push({ id: 'top' + idx, label: tl.name, pattern: muted ? off : tl.pattern, voice, notes: RX.notesFor(tl), inst: s['topVoice' + idx] ? null : RX.instrumentFor(tl) });
+          lanes.push({ id: 'top' + idx, label: tl.name, pattern: muted ? off : patternOf(r, 'top' + idx), voice, notes: RX.notesFor(tl), inst: s['topVoice' + idx] ? null : RX.instrumentFor(tl) });
         });
       }
     } else {
       lanes.push({ id: 'top', pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
     }
 
+    lanes.forEach((l) => { if (fillerOff(r, l.id)) l.pattern = off; });
     const keep = (RX.SAMPLE_KIT && RX.SAMPLE_KIT.keepSynth && RX.SAMPLE_KIT.keepSynth[r.id]) || [];
     lanes.forEach((l) => { l.synth = keep.includes(l.voice); });
     return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent, lanes };
@@ -116,10 +151,10 @@
       const part = (lane, track, label, id) => {
         const full = patternOf(r, lane.id);
         return { id: id || lane.id, label, track, voice: lane.voice, notes: lane.notes, inst: lane.inst, synth: lane.synth,
-          fullPattern: full, pattern: s['mute' + cap(lane.id)] ? off : full };
+          fullPattern: full, pattern: muteOf(r, lane.id) || fillerOff(r, lane.id) ? off : full, grid: lane.grid };
       };
       const kick = p.lanes[0], parts = [];
-      const four = { id: 'kick4', label: 'kick 4x4', track: 0, voice: 'kick', synth: kick.synth, fullPattern: fourFor(r.steps), pattern: fourFor(r.steps) };
+      const four = { id: 'kick4', label: 'kick 4x4', track: 0, voice: 'kick', synth: kick.synth, fullPattern: FOUR, pattern: FOUR, grid: FOUR_GRID };
       parts.push(four, part(kick, 1, 'kick'));
       p.lanes.slice(1).forEach((l) => parts.push(part(l, 2, l.label || l.voice)));
       return { id: r.id, name: r.name, bpm: r.bpm, steps: r.steps, groove: p.groove, timing: p.timing, accent: p.accent, parts };
@@ -148,7 +183,7 @@
     d[lane + 'Steps'].forEach((b, i) => {
       const ch = pattern[i];
       b.hidden = i >= shown;
-      b.className = 'step' + (i % (r.steps / 4) === 0 ? ' step-beat' : '') +
+      b.className = 'step' + (i % (gridOf(r, lane) / 4) === 0 ? ' step-beat' : '') +
         (ch === 'X' ? ' step-accent' : ch === 'x' ? ' step-hit' : ch === 'o' ? ' step-ghost' : '');
     });
     d[lane + 'Wrap'].classList.toggle('lane-muted', muted);
@@ -159,8 +194,22 @@
     if (lane !== 'top' && lane.startsWith('top') && r.topLines) {
       const idx = parseInt(lane.replace('top', ''), 10);
       if (r.topLines[idx]) label = r.topLines[idx].name;
+      // Identical parts share a lane; titled by pattern, with the instruments that play it.
+      const G = groupsOf(r);
+      if (G.grouped) {
+        // Numbered among the lanes shown, so a hidden pulse part does not leave a gap.
+        const n = Object.keys(G.number).map(Number).filter((L) => L <= idx && !fillerOff(r, 'top' + L)).length;
+        label = 'Pattern ' + n + ' · ' + G.members[idx].map((m) => r.topLines[m].name).join(' + ');
+        if (pattern === r.kick) label += ' = kick';
+      }
+      // A part that loops on its own length, not the row's.
+      if (pattern.length !== r.steps) label += ' · loops every ' + pattern.length;
     } else if (lane === 'top') {
       label = VOICE_LABEL[voiceOf(r)];
+      // In the simple version of an ensemble row, say which part or skeleton the line is.
+      const core = multi(r) ? RX.coreTop(r) : null;
+      if (core && core.name && s.top === core.pattern) label += ' · ' + core.name;
+      if (pattern.length !== r.steps) label += ' · loops every ' + pattern.length;
     }
     d[lane + 'MuteLabel'].textContent = label;
     d[lane + 'Fold'].hidden = !foldable(pattern);
@@ -178,11 +227,11 @@
     if (r.topLines && r.topLines.length) {
       r.topLines.forEach((_, idx) => {
         paintLane(r, 'top' + idx);
-        dom[r.id]['top' + idx + 'Wrap']?.classList.toggle('lane-collapsed', col);
+        dom[r.id]['top' + idx + 'Wrap']?.classList.toggle('lane-collapsed', col || fillerOff(r, 'top' + idx));
       });
       paintLane(r, 'top');
-      dom[r.id].topWrap?.classList.toggle('lane-collapsed', !col);
-    } else { paintLane(r, 'top'); }
+      dom[r.id].topWrap?.classList.toggle('lane-collapsed', !col || fillerOff(r, 'top'));
+    } else { paintLane(r, 'top'); dom[r.id].topWrap?.classList.toggle('lane-collapsed', fillerOff(r, 'top')); }
   };
 
   function buildLane(r, lane, topLine) {
@@ -200,6 +249,7 @@
       const seg = el('div', 'm3-pill-tabs gm3-connected-dsp');
       d.fourBtns = [['0', 'Pattern'], ['1', '4/4']].map(([v, label]) => {
         const b = el('button', 'm3-pill-tab', label); b.dataset.four = v;
+        b.title = v === '1' ? 'Four steady beats on their own clock, independent of the rhythm\'s polyrhythms' : 'The rhythm\'s own kick pattern';
         b.addEventListener('click', () => { state.rows[r.id].four = v === '1'; paintLane(r, 'kick'); save(); });
         seg.appendChild(b); return b;
       });
@@ -218,12 +268,15 @@
     head.appendChild(dl);
 
     const grid = d[lane + 'Grid'] = el('div', 'steps');
-    d[lane + 'Steps'] = Array.from({ length: r.steps }, (_, i) => {
+    // A lane has as many steps as its own pattern: a free-looping part can be shorter than the row.
+    // The kick lane also needs room for the 16-step 4/4, which can be wider than a short row.
+    const laneLen = Math.max(patternOf(r, lane).length || r.steps, lane === 'kick' ? FOUR_GRID : 0);
+    d[lane + 'Steps'] = Array.from({ length: laneLen }, (_, i) => {
       const b = el('button'); b.setAttribute('aria-label', (lane === 'kick' ? 'Kick' : 'Top') + ' step ' + (i + 1));
       b.addEventListener('click', () => {
         const s = state.rows[r.id];
         if (lane === 'kick' && s.four) return;
-        const cur = patternOf(r, lane), half = r.steps / 2, folded = shownSteps(r, lane) < r.steps;
+        const cur = patternOf(r, lane), half = cur.length / 2, folded = shownSteps(r, lane) < cur.length;
         // One tap turns a step on or off; turning it back on restores the rhythm's own accent level.
         const next = cur[i] !== '.' ? '.' : (topLine ? topLine.pattern[i] : (r[lane][i] !== '.' ? r[lane][i] : 'x'));
         const arr = cur.split('');
@@ -349,7 +402,8 @@
     const lanes = el('div', 'lanes');
     lanes.appendChild(buildLane(r, 'kick'));
     if (r.topLines && r.topLines.length) {
-      r.topLines.forEach((tl, idx) => lanes.appendChild(buildLane(r, 'top' + idx, tl)));
+      // Parts that repeat an earlier part's pattern play on that part's lane instead of getting their own.
+      r.topLines.forEach((tl, idx) => { if (groupsOf(r).leader[idx] === idx) lanes.appendChild(buildLane(r, 'top' + idx, tl)); });
       // Combined top lane, shown in place of the ensemble when a top sound is chosen.
       lanes.appendChild(buildLane(r, 'top'));
     } else {
@@ -375,17 +429,21 @@
     }
     nowRow = null;
   }
-  function onStep(id, i) {
+  // i: step within the row's bar; abs: steps since play started, so a free-looping lane shows its own position.
+  function onStep(id, i, abs, beats) {
+    const at = abs == null ? i : abs;
     clearPlayhead();
     nowRow = id;
     const r = byId[id];
     // Highlight kick
     const kickSteps = dom[id].kickSteps;
-    if (kickSteps) kickSteps[i % shownSteps(r, 'kick')]?.classList.add('step-now');
+    // The 4/4 kick has its own clock: its step is the sixteenth of the bar, not the row's step.
+    const kAt = state.rows[id].four && beats != null ? Math.floor(beats * (FOUR_GRID / 4) + 1e-6) : at;
+    if (kickSteps) kickSteps[kAt % shownSteps(r, 'kick')]?.classList.add('step-now');
     // Highlight all top lanes
     ['top'].concat(r.topLines ? r.topLines.map((_, idx) => 'top' + idx) : []).forEach((lane) => {
       const steps = dom[id][lane + 'Steps'];
-      if (steps) steps[i % shownSteps(r, lane)]?.classList.add('step-now');
+      if (steps) steps[at % shownSteps(r, lane)]?.classList.add('step-now');
     });
   }
   function paintTempo() {
@@ -445,7 +503,7 @@
   // ── Views ──
   // Region view: one vertical list, filtered by the region tabs.
   // Family view: the same rows, moved into one swipeable track per family.
-  const familyOf = (r) => RX.FAMILY_OF[r.id] || r.family || 'other';
+  const familyOf = (r) => GROUP_OF[r.id] || (RX.PATTERN_GROUPS ? 'other' : r.family || 'other');
   const familyOrder = () => {
     const present = new Set(RX.RHYTHMS.map(familyOf));
     return FAMILY_ORDER.filter((f) => present.has(f)).concat([...present].filter((f) => !FAMILY_ORDER.includes(f)));
@@ -465,8 +523,8 @@
       return;
     }
     const sections = familyOrder().map((famId) => {
-      // Order follows the family's member list in families.js; unlisted members go last.
-      const listed = (RX.FAMILIES.find(([id]) => id === famId) || [, , []])[2];
+      // Order follows the group's member list (nearest its centre first); unlisted members go last.
+      const listed = (GROUPS.find(([id]) => id === famId) || [, , []])[2];
       const rank = (id) => { const k = listed.indexOf(id); return k < 0 ? listed.length : k; };
       const ids = RX.RHYTHMS.filter((r) => familyOf(r) === famId).map((r) => r.id).sort((a, b) => rank(a) - rank(b));
       const section = el('section', 'family-section'); section.id = 'family-' + famId;
@@ -566,7 +624,9 @@
       RX.audio.setKit(state.kit).then(() => { if (state.kit === 'samples' && !RX.audio.playing()) RX.audio.hit('darbuka'); });
     });
     document.addEventListener('pointerdown', () => { if (state.kit === 'samples') RX.audio.setKit('samples'); }, { once: true });
-    segmented('view-mode', [['region', 'By region'], ['family', 'By family']], 'viewMode', 'view', applyView);
+    segmented('view-mode', [['region', 'By region'], ['family', 'By pattern']], 'viewMode', 'view', applyView);
+    // Steady 8th / 16th parts (shakers, ride bells, strummed pulses): off mutes and hides them.
+    segmented('pulse-parts', [['off', 'Off'], ['on', 'On']], 'pulseParts', 'pulse', () => RX.RHYTHMS.forEach(paintRow));
     applyView();
 
     segmented('tempo-mode', [['native', 'Native'], ['set', 'Set bpm']], 'tempoMode', 'mode', paintTempo);

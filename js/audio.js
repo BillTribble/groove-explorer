@@ -199,15 +199,25 @@ window.RX = window.RX || {};
       const i = stepIndex % st.steps;
       const pos = stepIndex * stepBeats;
       for (const lane of st.lanes) {
-        const lv = RX.LEVEL[lane.pattern[i]];
-        if (!lv) continue;
-        const g = RX.applyGroove(st.groove, pos, st.timing, st.accent);
-        const t = Math.max(ctx.currentTime, nextTime + g.offset * spb);
-        playVoice(lane.voice, t, lv * g.gain, RX.pitchRatio ? RX.pitchRatio(lane, i) : 1, lane.synth, lane.inst);
+        // Each lane runs on its own clock. It loops on its own length (a 3-step gallop cycles against a
+        // 16-step kick) and may have its own grid (`lane.grid` steps per 4-beat bar, default the row's):
+        // the 4/4 kick is 16 on a fixed pulse whatever the row's step count. Lane steps are placed by
+        // beat position, so every lane step that starts inside this row step is played, exactly once.
+        const lb = 4 / (lane.grid || st.steps), len = lane.pattern.length;
+        const first = Math.ceil(pos / lb - 1e-6), end = Math.ceil((pos + stepBeats) / lb - 1e-6);
+        for (let k = first; k < end; k++) {
+          const li = k % len;
+          const lv = RX.LEVEL[lane.pattern[li]];
+          if (!lv) continue;
+          const lpos = k * lb;
+          const g = RX.applyGroove(st.groove, lpos, st.timing, st.accent);
+          const t = Math.max(ctx.currentTime, nextTime + ((lpos - pos) + g.offset) * spb);
+          playVoice(lane.voice, t, lv * g.gain, RX.pitchRatio ? RX.pitchRatio(lane, li) : 1, lane.synth, lane.inst);
+        }
       }
       if (onStep) {
-        const id = row, delay = Math.max(0, (nextTime - ctx.currentTime) * 1000);
-        setTimeout(() => { if (row === id) onStep(id, i); }, delay);
+        const id = row, abs = stepIndex, at = pos, delay = Math.max(0, (nextTime - ctx.currentTime) * 1000);
+        setTimeout(() => { if (row === id) onStep(id, i, abs, at); }, delay);
       }
       nextTime += stepBeats * spb;
       stepIndex++;

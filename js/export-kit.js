@@ -83,7 +83,10 @@ window.RX = window.RX || {};
 
   /** Renders a part's pattern and resolves each hit to the sound the app plays for it. */
   function resolvePart(part, pattern, row) {
-    const lane = RX.renderLane(pattern, row.steps, row.groove, row.timing, row.accent);
+    // A part with its own grid (the 4/4 kick) runs on its own clock: it is rendered over its own loop only.
+    const lane = part.grid
+      ? RX.renderLane(pattern, part.grid, row.groove, row.timing, row.accent, pattern.length)
+      : RX.renderLane(pattern, row.steps, row.groove, row.timing, row.accent, row.loop);
     return { length: lane.length, events: lane.events.map((e) => {
       const shift = part.notes ? semis(RX.pitchRatio(part, e.step)) : 0;
       const snd = RX.audio.resolveSound(part.voice, e.vel / 127, part.synth, part.inst);
@@ -92,13 +95,17 @@ window.RX = window.RX || {};
   }
 
   /**
-   * rows: [{ name, steps, groove, timing, accent, parts: [{ id, voice, pattern, fullPattern, notes, inst, synth, track }] }]
+   * rows: [{ name, steps, groove, timing, accent, parts: [{ id, voice, pattern, fullPattern, notes, inst, synth, track, grid? }] }]
+   * `grid` = steps per 4-beat bar when a part has its own clock (default: the row's steps).
    * `fullPattern` is the part ignoring mutes; the pad table is built from it so notes never depend on what is muted.
    * Fills part.length / part.events ([{ t, vel, pad }]) from `pattern` and returns the pads (kick first, then
    * samples A-Z, then synth voices; pitched copies follow their source), each with a MIDI `note`.
    */
   RX.collectPads = function (rows) {
     const byKey = new Map();
+    // Parts may loop on their own length; every part of a row is rendered to the point where they all realign.
+    // Parts on their own grid (the 4/4 kick) loop independently and do not stretch the row's cycle.
+    rows.forEach((row) => { row.loop = RX.loopSteps(row.steps, row.parts.map((p) => (p.grid ? null : p.fullPattern || p.pattern))); });
     rows.forEach((row) => row.parts.forEach((part) => {
       resolvePart(part, part.fullPattern || part.pattern, row).events.forEach((e) => {
         if (byKey.has(e.key)) return;

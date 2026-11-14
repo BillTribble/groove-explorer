@@ -71,20 +71,30 @@ window.RX = window.RX || {};
   /**
    * Render one lane to timed events over a whole number of bars, long enough to
    * cover the groove's own loop. Used by both exporters.
+   * A pattern loops on its own length, which need not be the row's `steps`. `loopSteps` is the
+   * number of steps after which every part of the row lines up again (RX.loopSteps); the render
+   * is stretched to cover it so parts of different lengths share one clip length.
    * @returns { length (beats), events: [{ t, step (index in the pattern), vel (1-127) }] }
    */
-  RX.renderLane = function (pattern, steps, groove, timing, accent) {
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  const lcm = (a, b) => (a / gcd(a, b)) * b;
+  /** Steps until a row's parts realign: lcm of the row length and every pattern length. */
+  RX.loopSteps = (steps, patterns) => patterns.reduce((n, p) => (p && p.length ? lcm(n, p.length) : n), steps);
+  const MAX_BEATS = 64;
+  RX.renderLane = function (pattern, steps, groove, timing, accent, loopSteps) {
     const stepBeats = 4 / steps;
-    const length = Math.min(16, Math.max(4, Math.ceil((groove ? groove.len : 4) / 4) * 4));
+    let length = Math.min(16, Math.max(4, Math.ceil((groove ? groove.len : 4) / 4) * 4));
+    const cycle = lcm(Math.round(length / stepBeats), loopSteps || lcm(steps, pattern.length || steps));
+    length = Math.min(MAX_BEATS, cycle * stepBeats);
     const events = [];
     for (let i = 0; i < length / stepBeats; i++) {
-      const lv = LEVEL[pattern[i % steps]];
+      const lv = LEVEL[pattern[i % pattern.length]];
       if (!lv) continue;
       const pos = i * stepBeats;
       const g = RX.applyGroove(groove, pos, timing, accent);
       let t = pos + g.offset;
       if (t < 0) t += length;
-      events.push({ t, step: i % steps, vel: Math.max(1, Math.min(127, Math.round(lv * g.gain * 127))) });
+      events.push({ t, step: i % pattern.length, vel: Math.max(1, Math.min(127, Math.round(lv * g.gain * 127))) });
     }
     events.sort((a, b) => a.t - b.t);
     return { length, events };

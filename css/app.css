@@ -197,10 +197,12 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 .lane { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
 .lane-head { display: flex; align-items: center; gap: 12px; }
 .lane-toggle {
-  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 10px; border-radius: 9999px;
-  white-space: nowrap; font-size: 14px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 14px 4px 10px; border-radius: 20px;
+  min-width: 0; text-align: left; font-size: 14px; font-weight: 600; line-height: 1.2;
   background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);
 }
+.lane-toggle-label { min-width: 0; overflow-wrap: anywhere; }
+.lane-head > .icon-btn, .lane-head > .m3-pill-tabs { flex: none; }
 .lane-muted .lane-toggle { background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
 .lane-muted .steps { opacity: 0.35; }
 .lane-fold { margin-left: auto; }
@@ -276,7 +278,7 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
   .field-select { order: 5; flex: 1 1 100%; width: 100%; height: 48px; font-size: 16px; }
   .lanes { grid-template-columns: 1fr; gap: 16px; }
   .lane-head { gap: 8px; }
-  .lane-toggle { height: 44px; }
+  .lane-toggle { min-height: 44px; border-radius: 22px; }
   /* Long lanes wrap into two rows on phones (--cols-m). */
   .lane .steps { grid-template-columns: repeat(var(--cols-m, var(--cols, 8)), minmax(0, 1fr)); }
   .step { height: 44px; }

@@ -33,6 +33,8 @@ No attribution is required; credited here anyway.
 | tambourine.wav | Idiophones/Struck Idiophones/Tambourine 1/Tamb1_Hit_v2_rr1_Mid.wav |
 | balafon.wav | Idiophones/Struck Idiophones/Balafon/Traditional Mallet/EthnicXylo_tradM_F4_vl2_rr1_Mid.wav |
 | mbira.wav | Idiophones/Plucked Idiophones/Mbira dzaVadzimu Nyamaropa, Zimbabwe, Low B/MBira4_pluck_Main_B3_16_50_100_rr2.wav |
+| mbira-e4.wav | Idiophones/Plucked Idiophones/Mbira dzaVadzimu Nyamaropa, Zimbabwe, Low B/MBira4_pluck_Main_E4_19_50_100_rr2.wav |
+| mbira-e3.wav | Idiophones/Plucked Idiophones/Mbira dzaVadzimu Nyamaropa, Zimbabwe, Low B/MBira4_pluck_Main_E3_9_50_100_rr4.wav |
 | claves.wav | Idiophones/Struck Idiophones/Claves/Claves1_Hit_v2_rr1_Mid.wav |
 | slitdrum.wav | Idiophones/Struck Idiophones/Slit Drum/LogDrumLo_MedM_v2_rr1_Sum.wav |
 | guiro-hit.wav | Idiophones/Struck Idiophones/Guiro/Guiro_Hit_rr1_Mid.wav |

@@ -6,6 +6,11 @@
 // "audio" = measured from a recording.
 // family: groups rhythmically-similar variants (same cell/timeline, different embellishments)
 // topLines: array of {name, pattern, sound} for multi-instrument top parts (optional)
+//   Every pattern is exactly `steps` long, except a part marked `loop: true`: that part loops on its
+//   own length at the row's step size (a 3-step gallop turning against a 16-step bar). A row's `top`
+//   may equal such a part.
+// core / coreName: the structural skeleton (meter grouping, iqa', compás, tala claps) for rhythms whose
+//   parts are even pulses, so the simple one-voice version shows the shape. See js/shape.js (RX.coreTop).
 window.RX = window.RX || {};
 
 const F  = 'x...x...x...x...';   // four on the floor (16)
@@ -113,19 +118,9 @@ RX.RHYTHMS = [
     note: 'Core Gnawa trio: guembri (3-string bass lute), qraqeb (iron castanets), ganga/tbel (large drum). 6/8 feel with 3:2 hemiola. All-night lila ceremony.',
     topLines: [
       { name: 'Guembri (bass lute)', pattern: 'x.xx.xx.xx.x', sound: 'bass' },
-      { name: 'Qraqeb (castanets)', pattern: 'xx.xx.xx.xx.xx', sound: 'metal' },
+      { name: 'Qraqeb (castanets)', pattern: 'xx.xx.xx.xx.', sound: 'metal' },
       { name: 'Handclaps', pattern: 'x...x...x...', sound: 'clap' },
-      { name: 'Ganga (large drum)', pattern: 'x.......x....', sound: 'dunun' }
-    ] },
-
-  { id: 'gnawa-hadra', name: 'Gnawa Hadra (Trance)', region: 'North Africa (Morocco)', bpm: 130, range: '120–140', steps: 12, family: 'gnawa',
-    kick: 'x..x..x..x..', top: 'x.x.x.x.x.x.x.', sound: 'guembri', groove: 'tri:even', src: 'std',
-    etymology: '"Hadra" = Arabic "presence" (divine presence). The trance-inducing section of the lila.',
-    note: 'Faster trance section. Qraqeb play continuous 16th-note interlock. Guembri locks to 3-pulse. Claps on 2&4.',
-    topLines: [
-      { name: 'Guembri', pattern: 'x.x.x.x.x.x.x.', sound: 'bass' },
-      { name: 'Qraqeb', pattern: 'xxxxxxxxxxxx', sound: 'metal' },
-      { name: 'Claps', pattern: '..x...x...x...', sound: 'clap' }
+      { name: 'Ganga (large drum)', pattern: 'x.......x...', sound: 'dunun' }
     ] },
 
   // ── Ethiopian / Eritrean ──
@@ -135,19 +130,9 @@ RX.RHYTHMS = [
     note: 'Slow 6/8 (12/8) ballad feel. Kebero drum with swing. Krar/lyre arpeggios. "Ethiopian blues". Pentatonic tizita mode.',
     topLines: [
       { name: 'Kebero (drum)', pattern: 'x.x..x.x..x.', sound: 'dunun' },
-      { name: 'Krar (lyre)', pattern: 'x...x.x...x.x.', sound: 'pluck' },
-      { name: 'Masinko (fiddle)', pattern: '.x..x...x..x..', sound: 'bow' },
-      { name: 'Handclaps', pattern: '..x...x...x...', sound: 'clap' }
-    ] },
-
-  { id: 'ethio-bati', name: 'Bati', region: 'Ethiopia / Eritrea', bpm: 100, range: '90–110', steps: 12, family: 'ethio',
-    kick: 'x..x..x..x..', top: 'x.x.x.x.x.x.', sound: 'kebero', groove: 'tri:even', src: 'std',
-    etymology: 'Amharic "ባቲ" (bati) — named for the Bati region/market. One of the four main qenet (modes).',
-    note: 'Upbeat 6/8 dance feel. Kebero drives. Masinko doubles vocal melody. Used for praise and celebration songs.',
-    topLines: [
-      { name: 'Kebero', pattern: 'x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Krar', pattern: 'x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Masinko', pattern: '.x.x.x.x.x.x', sound: 'bow' }
+      { name: 'Krar (lyre)', pattern: 'x...x.x...x.', sound: 'pluck' },
+      { name: 'Masinko (fiddle)', pattern: '.x..x...x..x', sound: 'bow' },
+      { name: 'Handclaps', pattern: '..x...x...x.', sound: 'clap' }
     ] },
 
   { id: 'ethio-ambassel', name: 'Ambassel', region: 'Ethiopia / Eritrea', bpm: 120, range: '110–130', steps: 12, family: 'ethio',
@@ -171,84 +156,22 @@ RX.RHYTHMS = [
     ] },
 
   // ── Aka Pygmy (Central African Republic) ──
-  { id: 'aka-bondo', name: 'Bondo (Aka Pygmy)', region: 'Central Africa (CAR)', bpm: 140, range: '130–150', steps: 16, family: 'pygmy',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'enzeko', groove: 'straight', src: 'std',
-    etymology: 'Aka "bondo" = diviner-healer\'s dance. Performed by the nganga (healer) for hunting success, funerals.',
-    note: 'Diviner-healer\'s rhythm. Vocal polyphony (4 voices) + enzeko drum + geedale-bagongo harp + mbela bow. Hocketing.',
-    topLines: [
-      { name: 'Enzeko (drum)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Geedale-bagongo (harp)', pattern: '.x.x.x.x.x.x.x.x', sound: 'pluck' },
-      { name: 'Mbela (musical bow)', pattern: 'x...x...x...x...', sound: 'bow' },
-      { name: 'Handclaps', pattern: '..x...x...x...x.', sound: 'clap' }
-    ] },
-
-  { id: 'aka-mongombi', name: 'Mongombi (Aka Hunt)', region: 'Central Africa (CAR)', bpm: 160, range: '150–170', steps: 16, family: 'pygmy',
-    kick: 'x...x...x...x...', top: 'xx.xx.xx.xx.xx', sound: 'enzeko', groove: 'straight', src: 'std',
-    etymology: 'Aka "mongombi" = net hunt. Shouts and rhythms during collective net hunting.',
-    note: 'Fast hunt rhythm. Vocal counterpoint with yodeling. Drum mimics footsteps. Geedale-bagongo plays ostinato.',
-    topLines: [
-      { name: 'Enzeko', pattern: 'xx.xx.xx.xx.xx', sound: 'dunun' },
-      { name: 'Geedale-bagongo', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Vocal yodel', pattern: 'x...x...x...x...', sound: 'voice' }
-    ] },
-
   // ── Burundi / Rwanda (Ingoma) ──
-  { id: 'ingoma-burundi', name: 'Ingoma (Burundi Royal Drums)', region: 'Great Lakes (Burundi)', bpm: 130, range: '120–140', steps: 16, family: 'ingoma',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'amashako', groove: 'sw16:60', src: 'std',
-    etymology: 'Kirundi "ingoma" = both "drum" and "dance". From Proto-Bantu *ngoma. National symbol on Burundi\'s coat of arms.',
-    note: 'Royal karyenda ensemble: 12–24 drums. Amashako (lead) directs; ibishikiso/inkiranya (support) interlock. UNESCO heritage.',
-    topLines: [
-      { name: 'Amashako (lead drum)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Ibishikiso (support 1)', pattern: '.x.x.x.x.x.x.x.x', sound: 'dunun' },
-      { name: 'Inkiranya (support 2)', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Karyenda (sacred drum)', pattern: '..x...x...x...x.', sound: 'dunun' },
-      { name: 'Bell/Iron', pattern: 'x...x...x...x...', sound: 'metal' }
-    ] },
-
-  { id: 'ingoma-intore', name: 'Intore (Rwanda Heroic Dance)', region: 'Great Lakes (Rwanda)', bpm: 140, range: '130–150', steps: 16, family: 'ingoma',
-    kick: 'x...x...x...x...', top: 'xx.xx.xx.xx.xx', sound: 'amashako', groove: 'sw16:60', src: 'std',
-    etymology: 'Kinyarwanda "intore" = "the chosen ones" / elite warriors. Heroic dance of the royal court.',
-    note: 'Warrior dance. High leaps, spear movements. Drums mimic battle rhythms. Post-genocide reconciliation symbol.',
-    topLines: [
-      { name: 'Lead drum', pattern: 'xx.xx.xx.xx.xx', sound: 'dunun' },
-      { name: 'Support drums', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Shakers', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' },
-      { name: 'Horn/Whistle', pattern: 'x...x...x...x...', sound: 'wind' }
-    ] },
-
   // ── Zimbabwe (Mbira / Shona) ──
-  { id: 'mbira-nyamaropa', name: 'Nhemamusasa / Nyamaropa', region: 'Zimbabwe (Shona)', bpm: 120, range: '110–130', steps: 12, family: 'mbira',
-    kick: 'x..x..x..x..', top: 'x.x.x.x.x.x.x.', sound: 'mbira', groove: 'tri:even', src: 'std',
-    etymology: '"Nhemamusasa" = "cutting branches for shelter" (ancestral spirit). "Nyamaropa" = "meat and blood" (war spirit). Mbira = thumb piano (Shona).',
-    note: 'Classic mbira piece. Two interlocking parts (kushaura/kutsinhira) create 3:2 polymeter. Hosho (shakers) drive 12/8 pulse. For bira ceremony.',
-    topLines: [
-      { name: 'Kushaura (lead mbira)', pattern: 'x.x.x.x.x.x.x.', sound: 'mbira' },
-      { name: 'Kutsinhira (response)', pattern: '.x.x.x.x.x.x.x', sound: 'mbira' },
-      { name: 'Hosho (shakers)', pattern: 'x...x...x...', sound: 'shaker' },
-      { name: 'Ngoma (drum)', pattern: 'x.......x.......', sound: 'dunun' }
-    ] },
 
   { id: 'mbira-karigamombe', name: 'Karigamombe', region: 'Zimbabwe (Shona)', bpm: 110, range: '100–120', steps: 12, family: 'mbira',
     kick: 'x..x..x..x..', top: 'xx.xx.xx.xx.', sound: 'mbira', groove: 'tri:even', src: 'std',
     etymology: 'Shona "kariga mombe" = "undefeated by cattle" / "strong as a bull". Spirit of strength and resilience.',
     note: 'Powerful mbira piece for chiefs. Denser interlocking. Often played at kurova guva (bringing back spirit) ceremonies.',
     topLines: [
-      { name: 'Kushaura', pattern: 'xx.xx.xx.xx.', sound: 'mbira' },
-      { name: 'Kutsinhira', pattern: 'x.x.x.x.x.x.', sound: 'mbira' },
+      // Pitch cells (`notes`, semitones above the part's key, in the instrument's E major tuning) are an
+      // arrangement so the two interlocking players are audibly two voices, not a transcription.
+      { name: 'Kushaura', pattern: 'xx.xx.xx.xx.', sound: 'mbira', notes: [0, 4, 7, 4, 2, 4, 9, 7] },
+      { name: 'Kutsinhira', pattern: 'x.x.x.x.x.x.', sound: 'mbira', notes: [0, 7, 5, 7, 4, 7] },
       { name: 'Hosho', pattern: 'x...x...x...', sound: 'shaker' }
     ] },
 
   // ── Uganda / Baganda ──
-  { id: 'baganda-amadinda', name: 'Amadinda (Log Xylophone)', region: 'Uganda (Baganda)', bpm: 180, range: '170–200', steps: 12, family: 'amandinda',
-    kick: 'x..x..x..x..', top: 'xxxxxxxxxxxx', sound: 'xylophone', groove: 'tri:even', src: 'std',
-    etymology: 'Luganda "amadinda" = large log xylophone (22 keys). Played by 3 players interlocking. Royal court instrument.',
-    note: '3 players, 22 keys. Strict hocket: each player plays every 3rd note. Creates 12-note cycle at high speed. No drum — xylophones are the rhythm.',
-    topLines: [
-      { name: 'Player 1 (low)', pattern: 'x..x..x..x..', sound: 'xylophone' },
-      { name: 'Player 2 (mid)', pattern: '.x..x..x..x.', sound: 'xylophone' },
-      { name: 'Player 3 (high)', pattern: '..x..x..x..x', sound: 'xylophone' }
-    ] },
-
   { id: 'baganda-akisoma', name: 'Akasiba / Baakisimba', region: 'Uganda (Baganda)', bpm: 120, range: '110–130', steps: 16, family: 'baganda',
     kick: 'x...x...x...x...', top: 'x.x..x.x.x..x.x.', sound: 'engalabi', groove: 'sw16:58', src: 'std',
     etymology: '"Baakisimba" = "the ones who dance" (aba + kisimba). "Akasiba" = small drum. Waist dance of the Baganda.',
@@ -257,44 +180,11 @@ RX.RHYTHMS = [
       { name: 'Engalabi (lead drum)', pattern: 'x.x..x.x.x..x.x.', sound: 'dunun' },
       { name: 'Namunjoloba (pulse)', pattern: 'x...x...x...x...', sound: 'dunun' },
       { name: 'Empunya (bass)', pattern: 'x.......x.......', sound: 'dunun' },
-      { name: 'Endingidi (fiddle)', pattern: '.x.x.x.x.x.x.x.', sound: 'bow' }
+      { name: 'Endingidi (fiddle)', pattern: '.x.x.x.x.x.x.x.x', sound: 'bow' }
     ] },
 
   // ── Tanzania / Taarab ──
-  { id: 'taarab-kidumbak', name: 'Kidumbak (Taarab Street)', region: 'Tanzania (Zanzibar)', bpm: 100, range: '90–110', steps: 16, family: 'taarab',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'dumbak', groove: 'sw16:58', src: 'std',
-    etymology: 'Swahili "kidumbak" = small drum ensemble (ki- diminutive + dumbak). Street version of orchestral taarab.',
-    note: 'Street taarab. Dumbak (goblet drum) + sanduku (tea-chest bass) + violin + cherewa (shakers). Call-response vocals. Indian/Arabic/African fusion.',
-    topLines: [
-      { name: 'Dumbak (lead)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Sanduku (bass)', pattern: 'x.......x.......', sound: 'bass' },
-      { name: 'Violin', pattern: '.x.x.x.x.x.x.x.', sound: 'bow' },
-      { name: 'Cherewa (shakers)', pattern: 'x...x...x...', sound: 'shaker' }
-    ] },
-
   // ── Cape Verde ──
-  { id: 'coladeira', name: 'Coladeira', region: 'Cape Verde', bpm: 100, range: '90–110', steps: 16, family: 'coladeira',
-    kick: F, top: 'x.x.x.x.x.x.x.x.', sound: 'conga', groove: 'sw16:54', src: 'std',
-    etymology: 'Portuguese "colar" = to glue/stick. "Coladeira" = that which sticks (the dance partners). From "koladera" Kriolu.',
-    note: 'Faster, lighter cousin of morna. 2/4 or 4/4 feel. Conga + cavaquinho + guitar. Social dance, partners close.',
-    topLines: [
-      { name: 'Congas', pattern: 'x.x.x.x.x.x.x.x.', sound: 'conga' },
-      { name: 'Cavaquinho', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Guitar', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Ferrinho (scraper)', pattern: 'x...x...x...', sound: 'scraper' }
-    ] },
-
-  { id: 'batuque', name: 'Batuque', region: 'Cape Verde (Santiago)', bpm: 130, range: '120–140', steps: 16, family: 'batuque',
-    kick: F, top: 'xx.xx.xx.xx.xx', sound: 'djembe', groove: 'sw16:60', src: 'std',
-    etymology: 'Portuguese "batuque" = drumming/beat. From "bater" = to beat. African-derived Santiago tradition.',
-    note: 'Women\'s circle dance. Call-response vocals. Three drums (tambor, cimboa, ferrinho). Polyrhythmic clapping. Pre-colonial roots.',
-    topLines: [
-      { name: 'Tambor (lead drum)', pattern: 'xx.xx.xx.xx.xx', sound: 'dunun' },
-      { name: 'Cimboa (fiddle)', pattern: 'x.x.x.x.x.x.x.', sound: 'bow' },
-      { name: 'Ferrinho (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'scraper' },
-      { name: 'Handclaps', pattern: 'x.x.x.x.x.x.x.x.', sound: 'clap' }
-    ] },
-
   // ── Additional West African ──
   { id: 'agbadza', name: 'Agbadza (Ewe)', region: 'Ghana / Togo (Ewe)', bpm: 120, range: '110–130', steps: 12, family: 'ewe',
     kick: 'x..x..x..x..', top: 'x.x.x.x.x.x.', sound: 'kagan', groove: 'tri:even', src: 'std',
@@ -313,9 +203,8 @@ RX.RHYTHMS = [
     etymology: 'Akan "kete" = the royal drum ensemble. Originally for Asantehene\'s court. Each drum has a spoken name.',
     note: 'Royal court ensemble. Dawuro (bell) timeline. 3-4 drums speak proverbs. Played for chiefs\' durbar. Each pattern = spoken phrase.',
     topLines: [
-      { name: 'Dawuro (bell)', pattern: 'x.x.xx.x.x.x', sound: 'metal' },
       { name: 'Kwadum (lead drum)', pattern: 'x.x..x.x.x..x.x.', sound: 'dunun' },
-      { name: 'Apentemma (support)', pattern: '.x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Apentemma (support)', pattern: '.x.x.x.x.x.x.x.x', sound: 'dunun' },
       { name: 'Petia (high drum)', pattern: 'x...x...x...x...', sound: 'dunun' }
     ] },
 
@@ -326,67 +215,11 @@ RX.RHYTHMS = [
     topLines: [
       { name: 'Atumpan (male - low)', pattern: 'x..x.x..x..x.x..', sound: 'dunun' },
       { name: 'Atumpan (female - high)', pattern: '.x.x.x.x.x.x.x.x', sound: 'dunun' },
-      { name: 'Dawuro (bell)', pattern: 'x.x.xx.x.x.x', sound: 'metal' },
       { name: 'Apentemma', pattern: 'x...x...x...x...', sound: 'dunun' }
     ] },
 
   // ── Nigeria (Yoruba / Bata) ──
-  { id: 'bata-yoruba', name: 'Bata (Yoruba Sacred)', region: 'Nigeria (Yoruba)', bpm: 120, range: '110–130', steps: 12, family: 'bata',
-    kick: 'x..x..x..x..', top: 'x.x.x.x.x.x.', sound: 'iya-ilu', groove: 'tri:even', src: 'std',
-    etymology: 'Yoruba "bàtá" = the three-drum ensemble sacred to Shango (thunder deity). Iya-ilu = "mother drum".',
-    note: 'Sacred trio for Shango. Iya-ilu (mother/lead) talks; omele ako (male) + omele abo (female) answer. Only initiates play.',
-    topLines: [
-      { name: 'Iya-ilu (mother/lead)', pattern: 'x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Omele ako (male)', pattern: '.x.x.x.x.x.x', sound: 'dunun' },
-      { name: 'Omele abo (female)', pattern: 'x...x...x...', sound: 'dunun' },
-      { name: 'Shaker (sekere)', pattern: 'x...x...x...', sound: 'shaker' }
-    ] },
-
-  { id: 'sakara', name: 'Sakara (Yoruba Islamic)', region: 'Nigeria (Yoruba)', bpm: 100, range: '90–110', steps: 16, family: 'yoruba',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'sakara', groove: 'sw16:58', src: 'std',
-    etymology: 'Yoruba "sàkárà" — from Arabic "ṣaqr" = falcon (swift). Islamic-influenced Yoruba praise music.',
-    note: 'Goatskin drum + goje (fiddle) + agidigbo (thumb piano). Muslim Yoruba praise. Precursor to Fuji/Apala.',
-    topLines: [
-      { name: 'Sakara drum', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Goje (fiddle)', pattern: '.x.x.x.x.x.x.x.', sound: 'bow' },
-      { name: 'Agidigbo (thumb piano)', pattern: 'x...x...x...x...', sound: 'pluck' },
-      { name: 'Sekere (shaker)', pattern: 'x...x...x...', sound: 'shaker' }
-    ] },
-
   // ── South Africa (Additional) ──
-  { id: 'maskandi', name: 'Maskandi (Zulu Guitar)', region: 'South Africa (Zulu)', bpm: 140, range: '130–150', steps: 16, family: 'maskandi',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'guitar', groove: 'sw16:60', src: 'std',
-    etymology: 'Zulu "maskandi" from Afrikaans "musiekant" = musician. Migrant workers\' guitar style. "Music of the man walking far."',
-    note: 'Zulu migrant guitar. Izikhono (thumb-picking) + izihlabo (intro runs). Concertina + bass. Stories of rural life, love, politics.',
-    topLines: [
-      { name: 'Lead guitar (izikhono)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Bass guitar', pattern: 'x.......x.......', sound: 'bass' },
-      { name: 'Concertina', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Drum kit', pattern: 'x...x...x...x...', sound: 'dunun' }
-    ] },
-
-  { id: 'isicathamiya', name: 'Isicathamiya (Zulu A Cappella)', region: 'South Africa (Zulu)', bpm: 90, range: '80–100', steps: 16, family: 'isicathamiya',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'voice', groove: 'sw8:60', src: 'std',
-    etymology: 'Zulu "isicathamiya" from "cathama" = walk softly, stealthily. "Tip-toe" style — miners dancing quietly in hostels.',
-    note: 'A cappella male choir. Soft footwork (cathama). Call-response. Ladysmith Black Mambazo style. Competitive choir tradition.',
-    topLines: [
-      { name: 'Lead voice', pattern: 'x.x.x.x.x.x.x.x.', sound: 'voice' },
-      { name: 'Tenor harmony', pattern: '.x.x.x.x.x.x.x.', sound: 'voice' },
-      { name: 'Bass harmony', pattern: 'x...x...x...x...', sound: 'voice' },
-      { name: 'Foot stomps', pattern: 'x...x...x...x...', sound: 'dunun' }
-    ] },
-
-  { id: 'marabi', name: 'Marabi (Township Piano)', region: 'South Africa (Township)', bpm: 110, range: '100–120', steps: 16, family: 'marabi',
-    kick: F, top: 'x.x.x.x.x.x.x.x.', sound: 'piano', groove: 'sw8:62', src: 'std',
-    etymology: 'From Marabastad (Pretoria township) + "marabi" = Sotho "to play" / "to enjoy". 1930s shebeen piano style.',
-    note: '4-chord cycle (I-IV-V-I) over 4/4 swing. Pedal organ / piano. Precursor to mbaqanga, kwela, kwaito. Cyclic, hypnotic.',
-    topLines: [
-      { name: 'Piano (right hand)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Piano (left hand)', pattern: 'x.......x.......', sound: 'bass' },
-      { name: 'Guitar', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Drums', pattern: 'x...x...x...x...', sound: 'dunun' }
-    ] },
-
   { id: 'mbaqanga', name: 'Mbaqanga', region: 'South Africa', bpm: 115, range: '105–125', steps: 16, family: 'mbaqanga',
     kick: F, top: 'x.x..x.x.x.x..x.', sound: 'guitar', groove: 'sw16:58', src: 'std',
     etymology: 'Zulu "mbaqanga" = steamed corn bread (dumpling). "Township jive" — everyday food, everyday music.',
@@ -399,98 +232,8 @@ RX.RHYTHMS = [
     ] },
 
   // ── East Africa (Additional) ──
-  { id: 'taarab-orchestral', name: 'Taarab (Orchestral)', region: 'Tanzania / Kenya (Swahili Coast)', bpm: 80, range: '70–90', steps: 16, family: 'taarab',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'oud', groove: 'sw16:56', src: 'std',
-    etymology: 'Arabic "ṭarab" = ecstasy, enchantment, musical rapture. From "tariba" = to be moved by music. Swahili coast synthesis.',
-    note: 'Orchestral: oud + qanun + violin + cello + accordion + dumbak + riq + tabla. Arabic maqam + Indian raga + Swahili poetry. Wedding staple.',
-    topLines: [
-      { name: 'Oud (lute)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Qanun (zither)', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Violin', pattern: 'x...x...x...x...', sound: 'bow' },
-      { name: 'Dumbak (goblet drum)', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Riq (tambourine)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'metal' }
-    ] },
-
-  { id: 'chakacha', name: 'Chakacha (Swahili Women)', region: 'Kenya / Tanzania (Swahili)', bpm: 120, range: '110–130', steps: 16, family: 'chakacha',
-    kick: 'x...x...x...x...', top: 'xx.xx.xx.xx.xx', sound: 'dumbak', groove: 'sw16:58', src: 'std',
-    etymology: 'Swahili "chakacha" = onomatopoeic for hip-shaking sound. Women\'s wedding dance. Coastal Mijikenda roots.',
-    note: 'Women\'s hip dance. Fast dumbak + cherewa (shakers) + msondo (bass drum). Call-response vocals. Often at kuchenga (henna night).',
-    topLines: [
-      { name: 'Dumbak', pattern: 'xx.xx.xx.xx.xx', sound: 'dunun' },
-      { name: 'Msondo (bass drum)', pattern: 'x.......x.......', sound: 'dunun' },
-      { name: 'Cherewa (shakers)', pattern: 'xxxxxxxxxxxx', sound: 'shaker' },
-      { name: 'Vocals (call-response)', pattern: 'x...x...x...x...', sound: 'voice' }
-    ] },
-
-  { id: 'benga', name: 'Benga (Luo Guitar)', region: 'Kenya (Luo)', bpm: 130, range: '120–140', steps: 16, family: 'benga',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'guitar', groove: 'straight', src: 'std',
-    etymology: 'Luo "benga" = "beautiful" / "to make beautiful". From "obenga" = beauty. Named after Ochieng\' Nelly\'s "Benga" beat.',
-    note: 'Fast guitar lines (nyatiti style) + bass + drums. Nyatiti (lyre) patterns transferred to guitar. 1970s–90s dominant Kenyan pop.',
-    topLines: [
-      { name: 'Lead guitar (nyatiti style)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Bass guitar', pattern: 'x.x.x.x.x.x.x.x.', sound: 'bass' },
-      { name: 'Rhythm guitar', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Drums', pattern: 'x...x...x...x...', sound: 'dunun' }
-    ] },
-
   // ── Central Africa (Additional) ──
-  { id: 'soukous', name: 'Soukous (Congolese Rumba)', region: 'DRC / Congo (Congolese)', bpm: 130, range: '120–140', steps: 16, family: 'soukous',
-    kick: F, top: 'x.x.x.x.x.x.x.x.', sound: 'guitar', groove: 'straight', src: 'std',
-    etymology: 'French "secouer" = to shake. "Soukous" = the shake dance. Evolved from Cuban rumba via Radio Kinshasa.',
-    note: 'Cuban rumba → Congolese rumba → soukous. 3 guitars (lead, rhythm, mi-solo) + bass + drums. Sebene (guitar solo section) is the climax.',
-    topLines: [
-      { name: 'Lead guitar (sebene)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Mi-solo (mid guitar)', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Rhythm guitar', pattern: 'x...x...x...x...', sound: 'pluck' },
-      { name: 'Bass', pattern: 'x.x.x.x.x.x.x.x.', sound: 'bass' },
-      { name: 'Drums', pattern: 'x...x...x...x...', sound: 'dunun' }
-    ] },
-
-  { id: 'ndombolo-detailed', name: 'Ndombolo (Soukous Dance)', region: 'DRC / Congo', bpm: 140, range: '130–150', steps: 16, family: 'soukous',
-    kick: F, top: 'xx.xx.xx.xx.xx', sound: 'drums', groove: 'straight', src: 'std',
-    etymology: 'Lingala "ndombolo" = sensual hip-shaking dance. From "kombola" = to twist/wriggle. 1990s Kinshasa phenomenon.',
-    note: 'Fast soukous dance. Cavacha drum pattern drives. Hip isolation. Koffi Olomidé, Werrason. Controversial for "immoral" dancing.',
-    topLines: [
-      { name: 'Drums (cavacha)', pattern: 'xx.xx.xx.xx.xx', sound: 'dunun' },
-      { name: 'Bass', pattern: 'x.x.x.x.x.x.x.x.', sound: 'bass' },
-      { name: 'Guitars (3)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Atalaku (animateur)', pattern: 'x...x...x...x...', sound: 'voice' }
-    ] },
-
   // ── North Africa (Additional) ──
-  { id: 'chaabi-morocco', name: 'Chaabi (Moroccan Popular)', region: 'Morocco', bpm: 110, range: '100–120', steps: 16, family: 'chaabi',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'bendir', groove: 'sw16:56', src: 'std',
-    etymology: 'Arabic "shaabi" = popular, of the people. Moroccan urban folk. From rural traditions to city cafés.',
-    note: 'Bendir (frame drum) + oud + violin + voice. Call-response. Wedding and festival staple. Najat Aatabou style.',
-    topLines: [
-      { name: 'Bendir (frame drum)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Oud', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Violin', pattern: 'x...x...x...x...', sound: 'bow' },
-      { name: 'Vocals', pattern: 'x.x.x.x.x.x.x.x.', sound: 'voice' }
-    ] },
-
-  { id: 'rai-algeria', name: 'Raï (Algerian)', region: 'Algeria', bpm: 120, range: '110–130', steps: 16, family: 'rai',
-    kick: F, top: 'x.x.x.x.x.x.x.x.', sound: 'derbouka', groove: 'straight', src: 'std',
-    etymology: 'Arabic "raï" = opinion, view, advice. Originally Bedouin poets\' counsel. Became protest/pop. "Voice of the voiceless."',
-    note: 'Derbouka (goblet drum) + synthesizer + accordion + guitar. Cheb Khaled, Cheb Mami. 1980s–90s global pop. Oran origin.',
-    topLines: [
-      { name: 'Derbouka', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Accordion', pattern: '.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Synthesizer', pattern: 'x...x...x...x...', sound: 'pluck' },
-      { name: 'Guitar', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
-    ] },
-
-  { id: 'malhun', name: 'Malhun (Moroccan Sung Poetry)', region: 'Morocco', bpm: 80, range: '70–90', steps: 16, family: 'malhun',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'oud', groove: 'sw16:55', src: 'std',
-    etymology: 'Arabic "malhun" = melodic/poetic. From "lahana" = to sing. Classical Andalusi poetry in Darija. Guild tradition.',
-    note: 'Sung poetry. Oud + violin + rebab + tar (frame drum) + voice. Each poem = qasidah. Artisan guilds preserve repertoire.',
-    topLines: [
-      { name: 'Oud', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Violin/Rebab', pattern: '.x.x.x.x.x.x.x.', sound: 'bow' },
-      { name: 'Tar (frame drum)', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Voice (rawi)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'voice' }
-    ] },
-
   // ── Existing Caribbean & Latin (enhanced with etymology) ──
   { id: 'dembow', name: 'Dembow', region: 'Caribbean & diaspora', bpm: 95, range: '88–110', steps: 16, family: 'dembow',
     kick: F, top: DEMBOW, sound: 'snare', groove: 'ab:Reggaeton Loose Accent 16th', src: 'std',
@@ -636,11 +379,6 @@ RX.RHYTHMS = [
     etymology: 'Lingala "ndombolo" = sensual hip-shaking dance. From "kombola" = to twist/wriggle. Cavacha = the driving snare gallop.',
     note: 'Kinshasa. The cavacha snare gallop that drives the sebene of soukous and ndombolo.' },
 
-  { id: 'makossa', name: 'Makossa', region: 'Central Africa & Lusophone', bpm: 120, range: '110–130', steps: 16, family: 'makossa',
-    kick: F, top: '..x...x...x...x.', sound: 'snare', groove: 'sw16:56', src: 'approx',
-    etymology: 'Duala (Cameroon) "makossa" = dance (from "kossa" = to dance). Manu Dibango "Soul Makossa" 1972. Precursor to disco.',
-    note: 'Douala, Cameroon.' },
-
   { id: 'bikutsi', name: 'Bikutsi', region: 'Central Africa & Lusophone', bpm: 150, range: '140–170', steps: 12, family: 'bell12',
     kick: F12, top: '.xx.xx.xx.xx', sound: 'snare', groove: 'tri:even', src: 'approx',
     etymology: 'Beti (Cameroon) "bikutsi" = "beat the ground" / "stomp the earth". Women\'s dance. 1980s+ pop (Tala Andre Marie).',
@@ -746,23 +484,23 @@ RX.RHYTHMS = [
   // ── Brazilian (Northeast & Afro-Brazilian) ──
   // Merged into samba/tresillo families where they share cells
   { id: 'baiao', name: 'Baião', region: 'Brazil (Northeast)', bpm: 100, range: '90–110', steps: 16, family: 'samba',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'zabumba', groove: 'straight', src: 'std',
+    kick: 'x...x...x...x...', top: 'x..x..x.x..x..x.', sound: 'zabumba', groove: 'straight', src: 'std',
     etymology: 'From "baiano" = from Bahia. Or Tupi "mbaião" = shaman\'s rattle. Luiz Gonzaga "King of Baião". Accordion + zabumba + triangle.',
     note: 'Sertão rhythm. Accordion-led. Zabumba (bass drum) plays tresillo-based pattern. Triangle keeps 16ths. Precursor to forró.',
     topLines: [
-      { name: 'Zabumba (bass drum)', pattern: 'x...x...x...x...', sound: 'dunun' },
+      { name: 'Zabumba (bass drum)', pattern: 'x..x..x.x..x..x.', sound: 'dunun' },
       { name: 'Triangle', pattern: 'xxxxxxxxxxxxxxxx', sound: 'metal' },
-      { name: 'Accordion (bass)', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' }
+      { name: 'Accordion (bass)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
     ] },
 
   { id: 'forro', name: 'Forró (Pe-de-serra)', region: 'Brazil (Northeast)', bpm: 110, range: '100–120', steps: 16, family: 'samba',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'zabumba', groove: 'sw16:52', src: 'std',
+    kick: 'x...x...x...x...', top: 'x..x..x.x..x..x.', sound: 'zabumba', groove: 'sw16:52', src: 'std',
     etymology: 'From English "for all" → "forró" (balls for all). Or "forrobodó" = confusion/party. Baião sped up for dance halls.',
     note: 'Baião sped up. Accordion + zabumba + triangle. Close partner dance. Dominguinhos, Luiz Gonzaga.',
     topLines: [
-      { name: 'Zabumba', pattern: 'x...x...x...x...', sound: 'dunun' },
+      { name: 'Zabumba', pattern: 'x..x..x.x..x..x.', sound: 'dunun' },
       { name: 'Triangle', pattern: 'xxxxxxxxxxxxxxxx', sound: 'metal' },
-      { name: 'Accordion', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' }
+      { name: 'Accordion', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
     ] },
 
   { id: 'maracatu', name: 'Maracatu Nação', region: 'Brazil (Pernambuco)', bpm: 90, range: '80–100', steps: 16, family: 'samba',
@@ -771,82 +509,21 @@ RX.RHYTHMS = [
     note: 'Recife/Olinda carnival. Alfaia (large rope-tuned bass drum) + gonguê (bell) + caixa (snare) + abê (shaker). Slow, majestic, royal.',
     topLines: [
       { name: 'Alfaia (bass drum)', pattern: 'x..x.x..x..x.x..', sound: 'dunun' },
-      { name: 'Gonguê (bell)', pattern: 'x.x.xx.x.x.x', sound: 'metal' },
-      { name: 'Caixa (snare)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
+      { name: 'Caixa (snare)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'snare' },
       { name: 'Abê (shaker)', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' }
     ] },
 
-  { id: 'maracatu-rural', name: 'Maracatu Rural (Baque Solto)', region: 'Brazil (Pernambuco)', bpm: 120, range: '110–130', steps: 16, family: 'samba',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'alfaia', groove: 'straight', src: 'std',
-    etymology: '"Baque solto" = loose beat. Faster, looser than Nação. Triangles instead of gonguês. Rural workers\' carnival.',
-    note: 'Faster, lighter. Triangle-heavy. "Caboclinho" indigenous dance influence. Improvisatory.',
-    topLines: [
-      { name: 'Alfaia', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Triangle', pattern: 'xxxxxxxxxxxxxxxx', sound: 'metal' },
-      { name: 'Caixa', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' }
-    ] },
-
   { id: 'partido-alto', name: 'Partido Alto', region: 'Brazil (Rio)', bpm: 110, range: '100–120', steps: 16, family: 'samba',
-    kick: 'x..xx..xx..xx..x', top: 'x.x.x..x.x.x.x.', sound: 'pandeiro', groove: 'rs:samba', src: 'std',
+    kick: 'x..xx..xx..xx..x', top: 'x.x.x..x.x.x.x..', sound: 'pandeiro', groove: 'rs:samba', src: 'std',
     etymology: 'Portuguese "partido" = broken/divided + "alto" = high. "Broken high" — syncopated samba closest to Angolan umbigada roots.',
     note: 'Samba variant with distinctive pandeiro pattern. Call-response vocals. "Samba de partido alto" = improvised verses.',
     topLines: [
-      { name: 'Pandeiro', pattern: 'x.x.x..x.x.x.x.', sound: 'shaker' },
+      { name: 'Pandeiro', pattern: 'x.x.x..x.x.x.x..', sound: 'shaker' },
       { name: 'Surdo (bass)', pattern: 'x..xx..xx..xx..x', sound: 'dunun' },
-      { name: 'Repinique', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' }
+      { name: 'Repinique', pattern: 'x.x.x.x.x.x.x.x.', sound: 'snare' }
     ] },
 
-  { id: 'coco', name: 'Coco (Zabumba)', region: 'Brazil (Northeast)', bpm: 100, range: '90–110', steps: 16, family: 'samba',
-    kick: 'x...x...x...x...', top: 'xx.xx.xx.xx.xx', sound: 'zabumba', groove: 'sw16:54', src: 'std',
-    etymology: 'Tupi "coco" = coconut (head). Or "co-co" = call-response. Circular dance with improvisation. Quilombola roots.',
-    note: 'Call-response circle dance. Zabumba + pandeiro + ganzá. Women lead verses. Jackson do Pandeiro.',
-    topLines: [
-      { name: 'Zabumba', pattern: 'xx.xx.xx.xx.xx', sound: 'dunun' },
-      { name: 'Pandeiro', pattern: 'x.x.x.x.x.x.x.', sound: 'shaker' },
-      { name: 'Ganzá (shaker)', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' }
-    ] },
 
-  { id: 'ciranda', name: 'Ciranda', region: 'Brazil (Pernambuco)', bpm: 80, range: '70–90', steps: 16, family: 'samba',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'pandeiro', groove: 'sw16:58', src: 'std',
-    etymology: 'Tupi "ciranda" = circle dance. Or Portuguese "ciranda" = children\'s ring game. Coastal fishing communities. Lia de Itamaracá.',
-    note: 'Slow circle dance. Women sing, men play. Pandeiro + ganzá + viola. Sea/work themes. UNESCO heritage.',
-    topLines: [
-      { name: 'Pandeiro', pattern: 'x.x.x.x.x.x.x.', sound: 'shaker' },
-      { name: 'Ganzá', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' },
-      { name: 'Viola (guitar)', pattern: 'x...x...x...x...', sound: 'pluck' }
-    ] },
-
-  { id: 'frevo', name: 'Frevo', region: 'Brazil (Recife)', bpm: 140, range: '130–150', steps: 16, family: 'samba',
-    kick: F, top: 'xx.xx.xx.xx.xx', sound: 'caixa', groove: 'straight', src: 'std',
-    etymology: 'Portuguese "ferver" = to boil. "Frevo" = boiling over. Carnival street music. Capoeira-influenced acrobatic dance.',
-    note: 'Fast, furious carnival. Brass + caixa + surdo. "Passo" = acrobatic dance moves. 140+ bpm. UNESCO heritage.',
-    topLines: [
-      { name: 'Caixa (snare)', pattern: 'xx.xx.xx.xx.xx', sound: 'snare' },
-      { name: 'Surdo (bass)', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Brass section', pattern: 'x.x.x.x.x.x.x.', sound: 'wind' }
-    ] },
-
-  { id: 'samba-reggae', name: 'Samba Reggae', region: 'Brazil (Bahia)', bpm: 100, range: '90–110', steps: 16, family: 'samba',
-    kick: 'x..xx..xx..xx..x', top: 'x.x.x.x.x.x.x.', sound: 'surdo', groove: 'rs:samba', src: 'approx',
-    etymology: 'Bahian "samba reggae" = Jamaican reggae offbeat + samba. Olodum, Ilê Aiyê. Black consciousness movement. 1980s+.',
-    note: 'Reggae offbeat (and-of-2, and-of-4) over samba surdo. Surdo 1-2-3 + repinique. Carnival blocos afro.',
-    topLines: [
-      { name: 'Surdo 1 (low)', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Surdo 2 (mid)', pattern: 'x..xx..xx..xx..x', sound: 'dunun' },
-      { name: 'Surdo 3 (high)', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Repinique', pattern: '.x.x.x.x.x.x.x', sound: 'snare' }
-    ] },
-
-  { id: 'pagode', name: 'Pagode', region: 'Brazil (Rio)', bpm: 105, range: '95–115', steps: 16, family: 'samba',
-    kick: 'x..xx..xx..xx..x', top: 'x.x.x.x.x.x.x.', sound: 'pandeiro', groove: 'rs:samba', src: 'approx',
-    etymology: 'Portuguese "pagode" = party/fun. Originally backyard samba party. 1980s+ commercial style (Fundo de Quintal).',
-    note: 'Lighter samba. Pandeiro + tantã + repique de mão + cavaquinho. Round-robin singing. "Pagode romântico" = 1990s pop.',
-    topLines: [
-      { name: 'Pandeiro', pattern: 'x.x.x.x.x.x.x.', sound: 'shaker' },
-      { name: 'Tantã (bass hand drum)', pattern: 'x..xx..xx..xx..x', sound: 'dunun' },
-      { name: 'Repique de mão', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Cavaquinho', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' }
-    ] },
 
   // ── Middle Eastern / Arab / Turkish ──
   // Merged into maqsum/dembow families where they share tresillo cells
@@ -856,17 +533,18 @@ RX.RHYTHMS = [
     note: 'The "little masmoudi" squeezed into 4/4. Dum on 1&3, tek-tak on 2&4. Earthy, grounded. Belly dance staple.',
     topLines: [
       { name: 'Darbuka', pattern: '..x.x...x...x...', sound: 'snare' },
-      { name: 'Riq (tambourine)', pattern: 'x.x.x.x.x.x.x.', sound: 'metal' },
+      { name: 'Riq (tambourine)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'metal' },
       { name: 'Daf (frame drum)', pattern: 'x...x...x...x...', sound: 'dunun' }
     ] },
 
   { id: 'masmoudi-kabir', name: 'Masmoudi Kabir (Big Masmoudi)', region: 'Egypt / Levant', bpm: 60, range: '50–70', steps: 16, family: 'maqsum',
-    kick: 'x.......x.......', top: 'x.x.x...x.x.x.', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X.X...x.X...x...', coreName: 'Dum dum tek, dum tek',
+    kick: 'x.......x.......', top: 'X.X...x.X...x...', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: '"Masmoudi" = from Masmud (Berber tribe). "Kabir" = big/large. 8/4 time (16 8ths). Tarab (classical) repertoire.',
     note: 'Slow 8/4. Two dum clusters. Used in muwashshah (classical vocal). "Walking masmoudi" fills gaps.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x...x.x.x.', sound: 'snare' },
-      { name: 'Riq', pattern: 'x.x.x.x.x.x.x.x', sound: 'metal' },
+      { name: 'Darbuka', pattern: 'X.X...x.X...x...', sound: 'snare' },
+      { name: 'Riq', pattern: 'x.x.x.x.x.x.x.x.', sound: 'metal' },
       { name: 'Daf', pattern: 'x.......x.......', sound: 'dunun' }
     ] },
 
@@ -877,292 +555,308 @@ RX.RHYTHMS = [
     topLines: [
       { name: 'Darbuka', pattern: '..x...x.....x...', sound: 'snare' },
       { name: 'Daf', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Mijwiz (reed)', pattern: 'x.x.x.x.x.x.x.', sound: 'wind' }
+      { name: 'Mijwiz (reed)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'wind' }
     ] },
 
   { id: 'ayyub', name: 'Ayyub', region: 'Egypt / Levant', bpm: 120, range: '110–130', steps: 8, family: 'dembow',
-    kick: 'x.x.', top: '.x.x', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X..xX.x.', coreName: 'Dum tek dum tek',
+    kick: 'x...x...', top: 'X..xX.x.', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: '"Ayyub" = Job (biblical). 2/4 fast rhythm. Trance/zār healing. Also called "zaar" rhythm.',
     note: 'Fast 2/4. Minimal: dum-tek-tek. Used in zār (spirit possession healing) and belly dance entrances.',
     topLines: [
-      { name: 'Darbuka', pattern: '.x.x', sound: 'snare' },
-      { name: 'Riq', pattern: 'x.x.', sound: 'metal' }
+      { name: 'Darbuka', pattern: 'X..xX.x.', sound: 'snare' },
+      { name: 'Riq', pattern: 'x...x...', sound: 'metal' }
     ] },
 
   { id: 'samai-thaqil', name: 'Samai Thaqil (Heavy Samai)', region: 'Turkey / Arab Classical', bpm: 80, range: '70–90', steps: 10, family: 'samai',
-    kick: 'x...x...x.', top: 'x.x.x.x.x.x.', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X..x.XXx..', coreName: 'Dum tek, dum dum tek (10/8)',
+    kick: 'x....xx...', top: 'X..x.XXx..', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: 'Arabic "samai" = from Turkish "saz semai" = instrumental form. "Thaqil" = heavy/slow. 10/8 = 3+2+2+3. Muwashshah repertoire.',
     note: '10/8 classical form. 3+2+2+3 grouping. Slow, dignified. Instrumental overture for vocal muwashshah.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Riq', pattern: 'x.x.x.x.x.x.x', sound: 'metal' },
-      { name: 'Keman (violin)', pattern: 'x...x...x.', sound: 'bow' }
+      { name: 'Darbuka', pattern: 'X..x.XXx..', sound: 'snare' },
+      { name: 'Riq', pattern: 'x.x.x.x.x.', sound: 'metal' },
+      { name: 'Keman (violin)', pattern: 'x....xx...', sound: 'bow' }
     ] },
 
   { id: 'samai-darij', name: 'Samai Darij (Light Samai)', region: 'Turkey / Arab Classical', bpm: 120, range: '110–130', steps: 12, family: 'samai',
-    kick: 'x..x..x.', top: 'x.x.x.x.x.', sound: 'darbuka', groove: 'tri:even', src: 'std',
+    core: 'X.x.x.X.x...', coreName: 'Dum tek tek, dum tek',
+    kick: 'x.....x.....', top: 'X.x.x.X.x...', sound: 'darbuka', groove: 'tri:even', src: 'std',
     etymology: '"Darij" = light/fast. 3/4 or 6/8 feel. Faster vocal samai. Lighter character.',
     note: '3/4 or 6/8 feel. Faster than thaqil. Vocal and instrumental repertoire.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.', sound: 'snare' },
-      { name: 'Riq', pattern: 'x.x.x.x.x.x', sound: 'metal' }
+      { name: 'Darbuka', pattern: 'X.x.x.X.x...', sound: 'snare' },
+      { name: 'Riq', pattern: 'x.x.x.x.x.x.', sound: 'metal' }
     ] },
 
   { id: 'jurjina', name: 'Jurjina (Curcuna)', region: 'Iraq / Iran / Turkey', bpm: 100, range: '90–110', steps: 10, family: 'jurjina',
-    kick: 'x...x...x.', top: 'x.x.x.x.x.', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X..x.X.x..', coreName: '3+2+2+3',
+    kick: 'x....x....', top: 'X..x.X.x..', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: 'From "Gurj" = Georgia. Or "Jurjina" = Georgian woman. 10/8 = 2+2+2+2+2 or 3+3+2+2. Kurdish/Iraqi folk.',
     note: '10/8 driving rhythm. 5 groups of 2 or 3+3+2+2. Wedding dance. Chobi/Chopi line dance.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.', sound: 'snare' },
-      { name: 'Zurna (oboe)', pattern: 'x...x...x.', sound: 'wind' },
-      { name: 'Daf', pattern: 'x...x...x.', sound: 'dunun' }
+      { name: 'Darbuka', pattern: 'X..x.X.x..', sound: 'snare' },
+      { name: 'Zurna (oboe)', pattern: 'x....x....', sound: 'wind' },
+      { name: 'Daf', pattern: 'x....x....', sound: 'dunun' }
     ] },
 
   { id: 'kalamatianos', name: 'Kalamatianos', region: 'Greece', bpm: 100, range: '90–110', steps: 14, family: 'kalamatianos',
-    kick: 'x...x...x...x.', top: 'x.x.x.x.x.x.x', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X.o.o.X.o.X.o.', coreName: '3+2+2',
+    kick: 'x.....x...x...', top: 'X.o.o.X.o.X.o.', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: 'Greek "Kalamatianos" = from Kalamata (Peloponnese). 7/8 = 3+2+2 (SQQ). Pan-Hellenic circle dance. Syrtos family.',
     note: '7/8 = 3+2+2. "Slow-quick-quick". Most popular Greek circle dance. 12-step pattern. Right foot leads.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x', sound: 'snare' },
-      { name: 'Laouto (lute)', pattern: 'x...x...x...x.', sound: 'pluck' },
-      { name: 'Lyra', pattern: 'x.x.x.x.x.x.x', sound: 'bow' }
+      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
+      { name: 'Laouto (lute)', pattern: 'x.....x...x...', sound: 'pluck' },
+      { name: 'Lyra', pattern: 'x.x.x.x.x.x.x.', sound: 'bow' }
     ] },
 
   { id: 'karsilama', name: 'Karsilama (9/8)', region: 'Turkey / Greece / Balkans', bpm: 110, range: '100–120', steps: 18, family: 'karsilama',
-    kick: 'x...x...x...x...x.', top: 'x.x.x.x.x.x.x.x.', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X.o.X.o.X.o.X.o.o.', coreName: '2+2+2+3',
+    kick: 'x...x...x...x.....', top: 'X.o.X.o.X.o.X.o.o.', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: 'Turkish "karsilama" = face-to-face / greeting. 9/8 = 2+2+2+3. Couple dance. "Aksak" = limping.',
     note: '9/8 = 2+2+2+3 (QQQS). Face-to-face couple dance. Greek "karsilamas". Rom wedding music.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Clarinet/Zurna', pattern: 'x...x...x...x...x.', sound: 'wind' },
-      { name: 'Daf', pattern: 'x...x...x...x...x.', sound: 'dunun' }
+      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x.x.x.', sound: 'snare' },
+      { name: 'Clarinet/Zurna', pattern: 'x...x...x...x.....', sound: 'wind' },
+      { name: 'Daf', pattern: 'x...x...x...x.....', sound: 'dunun' }
     ] },
 
   { id: 'laz', name: 'Laz / Mantilatos (7/8)', region: 'Black Sea (Turkey/Georgia)', bpm: 120, range: '110–130', steps: 14, family: 'laz',
-    kick: 'x...x...x...x.', top: 'x.x.x.x.x.x.x', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X.o.X.o.X.o.o.', coreName: '2+2+3',
+    kick: 'x...x...x.....', top: 'X.o.X.o.X.o.o.', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: '"Laz" = Laz people (Black Sea). "Mantilatos" = from Italian "mantello" = cloak. 7/8 = 3+2+2 or 2+2+3. Fast, energetic.',
     note: '7/8 Black Sea rhythm. Fast, driving. Horon (line dance). Knee lifts, sharp turns.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x', sound: 'snare' },
-      { name: 'Tulum (bagpipe)', pattern: 'x...x...x...x.', sound: 'wind' },
-      { name: 'Kemençe (fiddle)', pattern: 'x.x.x.x.x.x.x', sound: 'bow' }
+      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
+      { name: 'Tulum (bagpipe)', pattern: 'x...x...x.....', sound: 'wind' },
+      { name: 'Kemençe (fiddle)', pattern: 'x.x.x.x.x.x.x.', sound: 'bow' }
     ] },
 
   { id: 'chiftetelli', name: 'Chiftetelli (8/4)', region: 'Turkey / Greece / Arab World', bpm: 60, range: '50–70', steps: 16, family: 'chiftetelli',
-    kick: 'x.......x.......', top: 'x.x.x...x.x.x.', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X..x..x.X.X.x...', coreName: 'Dum tek tek, dum dum tek',
+    kick: 'x.......x.......', top: 'X..x..x.X.X.x...', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: 'Turkish "çiftetelli" = double-stringed (violin). Or "çifte" = pair + "telli" = stringed. Belly dance staple. Slow, sensual.',
     note: '8/4 slow belly dance rhythm. Similar to masmoudi but distinct feel. Taxim (improvisation) friendly.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x...x.x.x.', sound: 'snare' },
-      { name: 'Riq', pattern: 'x.x.x.x.x.x.x.x', sound: 'metal' },
+      { name: 'Darbuka', pattern: 'X..x..x.X.X.x...', sound: 'snare' },
+      { name: 'Riq', pattern: 'x.x.x.x.x.x.x.x.', sound: 'metal' },
       { name: 'Violin/Oud', pattern: 'x.......x.......', sound: 'bow' }
     ] },
 
   { id: 'dawr-hindi', name: 'Dawr Hindi / Devr-i Hindi (7/8)', region: 'Arab Classical / Turkey', bpm: 100, range: '90–110', steps: 14, family: 'dawr-hindi',
-    kick: 'x...x...x...x.', top: 'x.x.x.x.x.x.x', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X.x.x.X...x...', coreName: 'Dum tek tek, dum tek (3+2+2)',
+    kick: 'x.....x.......', top: 'X.x.x.X...x...', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: '"Dawr hindi" = Indian cycle. "Devr-i hindi" = Ottoman Turkish for Indian cycle. 7/8 in muwashshah. Not actually Indian.',
     note: '7/8 classical form. 2+2+3 or 3+2+2. Named for exotic "Indian" association in Ottoman court.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x', sound: 'snare' },
-      { name: 'Riq', pattern: 'x.x.x.x.x.x.x', sound: 'metal' },
-      { name: 'Keman', pattern: 'x...x...x...x.', sound: 'bow' }
+      { name: 'Darbuka', pattern: 'X.x.x.X...x...', sound: 'snare' },
+      { name: 'Riq', pattern: 'x.x.x.x.x.x.x.', sound: 'metal' },
+      { name: 'Keman', pattern: 'x.....x.......', sound: 'bow' }
     ] },
 
   { id: 'wahda', name: 'Wahda (4/4)', region: 'Egypt / Levant', bpm: 90, range: '80–100', steps: 16, family: 'maqsum',
-    kick: 'x.......x.......', top: 'x.x.x.x.x.x.x.', sound: 'darbuka', groove: 'straight', src: 'std',
+    core: 'X.....x.....x...', coreName: 'Dum tek tek (one dum per bar)',
+    kick: 'x.......x.......', top: 'X.....x.....x...', sound: 'darbuka', groove: 'straight', src: 'std',
     etymology: 'Arabic "wahda" = one / single. "Wahda kebira" = big one (8/4). Basic tarab (art music) rhythm.',
     note: 'Simple 4/4. Dum-tek-tek-tek. Foundation for tarab. "Wahda kebira" = 8/4 version.',
     topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Riq', pattern: 'x.x.x.x.x.x.x.x', sound: 'metal' },
+      { name: 'Darbuka', pattern: 'X.....x.....x...', sound: 'snare' },
+      { name: 'Riq', pattern: 'x.x.x.x.x.x.x.x.', sound: 'metal' },
       { name: 'Oud', pattern: 'x.......x.......', sound: 'pluck' }
     ] },
 
   // ── Balkan Odd Meters ──
   { id: 'kopanitsa', name: 'Kopanitsa (11/16)', region: 'Bulgaria (Shopluk)', bpm: 160, range: '150–180', steps: 22, family: 'balkan-11',
-    kick: 'x...x...x...x...x...x..', top: 'x.x.x.x.x.x.x.x.x.x', sound: 'tupan', groove: 'straight', src: 'std',
+    core: 'X.o.X.o.X.o.o.X.o.X.o.', coreName: '2+2+3+2+2',
+    kick: 'x...x...x.....x...x...', top: 'X.o.X.o.X.o.o.X.o.X.o.', sound: 'tupan', groove: 'straight', src: 'std',
     etymology: 'Bulgarian "kopanitsa" = from "kopam" = to dig/hoe. "Digging dance." 11/16 = 2+2+3+2+2 (QQSQQ). Fast line dance.',
     note: '11/16 = 5 beats (2+2+3+2+2). "Quick-quick-slow-quick-quick." Shopluk region. Gankino horo = faster northern version.',
     topLines: [
-      { name: 'Tupan (bass drum)', pattern: 'x...x...x...x...x...x..', sound: 'dunun' },
-      { name: 'Tambura (lute)', pattern: 'x.x.x.x.x.x.x.x.x.x', sound: 'pluck' },
-      { name: 'Gaida (bagpipe)', pattern: 'x...x...x...x...x...x..', sound: 'wind' }
+      { name: 'Tupan (bass drum)', pattern: 'x...x...x.....x...x...', sound: 'dunun' },
+      { name: 'Tambura (lute)', pattern: 'x.x.x.x.x.x.x.x.x.x.x.', sound: 'pluck' },
+      { name: 'Gaida (bagpipe)', pattern: 'x...x...x.....x...x...', sound: 'wind' }
     ] },
 
   { id: 'rachenitsa', name: 'Rachenitsa (7/16)', region: 'Bulgaria', bpm: 180, range: '170–200', steps: 14, family: 'balkan-7',
-    kick: 'x...x...x...x.', top: 'x.x.x.x.x.x.x', sound: 'tupan', groove: 'straight', src: 'std',
+    core: 'X.o.X.o.X.o.o.', coreName: '2+2+3',
+    kick: 'x...x...x.....', top: 'X.o.X.o.X.o.o.', sound: 'tupan', groove: 'straight', src: 'std',
     etymology: 'Bulgarian "rachenitsa" = from "rachena" = arm/hand. "Arm dance" — hands on hips/shoulders. 7/16 = 2+2+3 (QQS). Solo/couple/choral.',
     note: '7/16 = 3 beats (2+2+3). "Quick-quick-slow." National dance. Regional variations: Macedonian (slow), Thracian (fast).',
     topLines: [
-      { name: 'Tupan', pattern: 'x...x...x...x.', sound: 'dunun' },
-      { name: 'Tambura', pattern: 'x.x.x.x.x.x.x', sound: 'pluck' },
-      { name: 'Gadulka (fiddle)', pattern: 'x...x...x...x.', sound: 'bow' }
+      { name: 'Tupan', pattern: 'x...x...x.....', sound: 'dunun' },
+      { name: 'Tambura', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
+      { name: 'Gadulka (fiddle)', pattern: 'x...x...x.....', sound: 'bow' }
     ] },
 
   { id: 'paidushko', name: 'Paidushko Horo (5/16)', region: 'Bulgaria / Macedonia', bpm: 200, range: '190–220', steps: 10, family: 'balkan-5',
-    kick: 'x...x...x.', top: 'x.x.x.x.x', sound: 'tupan', groove: 'straight', src: 'std',
+    core: 'X.o.X.o.o.', coreName: '2+3',
+    kick: 'x...x.....', top: 'X.o.X.o.o.', sound: 'tupan', groove: 'straight', src: 'std',
     etymology: 'Bulgarian "paidushko" = from "paidus" = child/lad. "Lad\'s dance." 5/16 = 2+3 (QS). Quick-slow heartbeat rhythm.',
     note: '5/16 = 2 beats (2+3). "Quick-slow" like rapid heartbeat. Simple but driving. Mixed-gender line dance.',
     topLines: [
-      { name: 'Tupan', pattern: 'x...x...x.', sound: 'dunun' },
-      { name: 'Tambura', pattern: 'x.x.x.x.x', sound: 'pluck' },
-      { name: 'Gaida', pattern: 'x...x...x.', sound: 'wind' }
+      { name: 'Tupan', pattern: 'x...x.....', sound: 'dunun' },
+      { name: 'Tambura', pattern: 'x.x.x.x.x.', sound: 'pluck' },
+      { name: 'Gaida', pattern: 'x...x.....', sound: 'wind' }
     ] },
 
   { id: 'gankino', name: 'Gankino Horo (11/16 fast)', region: 'Bulgaria (Northern)', bpm: 200, range: '190–220', steps: 22, family: 'balkan-11',
-    kick: 'x...x...x...x...x...x..', top: 'x.x.x.x.x.x.x.x.x.x', sound: 'tupan', groove: 'straight', src: 'std',
+    core: 'X.o.X.o.X.o.o.X.o.X.o.', coreName: '2+2+3+2+2',
+    kick: 'x...x...x.....x...x...', top: 'X.o.X.o.X.o.o.X.o.X.o.', sound: 'tupan', groove: 'straight', src: 'std',
     etymology: '"Gankino" = from personal name Ganka. Northern Bulgarian fast kopanitsa. "Gankino horo" = Ganka\'s dance.',
     note: 'Faster northern kopanitsa. Same 2+2+3+2+2 but 200+ bpm. Virtuoso gaida/tambura.',
     topLines: [
-      { name: 'Tupan', pattern: 'x...x...x...x...x...x..', sound: 'dunun' },
-      { name: 'Tambura', pattern: 'x.x.x.x.x.x.x.x.x.x', sound: 'pluck' },
-      { name: 'Gaida', pattern: 'x...x...x...x...x...x..', sound: 'wind' }
+      { name: 'Tupan', pattern: 'x...x...x.....x...x...', sound: 'dunun' },
+      { name: 'Tambura', pattern: 'x.x.x.x.x.x.x.x.x.x.x.', sound: 'pluck' },
+      { name: 'Gaida', pattern: 'x...x...x.....x...x...', sound: 'wind' }
     ] },
 
   { id: 'lesno', name: 'Lesno (7/8 slow)', region: 'Macedonia / Bulgaria', bpm: 90, range: '80–100', steps: 14, family: 'balkan-7',
-    kick: 'x...x...x...x.', top: 'x.x.x.x.x.x.x', sound: 'tupan', groove: 'straight', src: 'std',
+    core: 'X.o.o.X.o.X.o.', coreName: '3+2+2',
+    kick: 'x.....x...x...', top: 'X.o.o.X.o.X.o.', sound: 'tupan', groove: 'straight', src: 'std',
     etymology: 'Macedonian "lesno" = easy/simple. Slow 7/8 = 3+2+2. "Macedonian ruchenitsa." Wedding dance.',
     note: 'Slow 7/8 (3+2+2). Easier "Macedonian ruchenitsa." Weighted steps. Often at weddings.',
     topLines: [
-      { name: 'Tupan', pattern: 'x...x...x...x.', sound: 'dunun' },
-      { name: 'Tambura', pattern: 'x.x.x.x.x.x.x', sound: 'pluck' },
-      { name: 'Kaval (flute)', pattern: 'x...x...x...x.', sound: 'wind' }
+      { name: 'Tupan', pattern: 'x.....x...x...', sound: 'dunun' },
+      { name: 'Tambura', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
+      { name: 'Kaval (flute)', pattern: 'x.....x...x...', sound: 'wind' }
     ] },
 
   { id: 'daychovo', name: 'Daychovo Horo (9/16)', region: 'Bulgaria (Thrace)', bpm: 140, range: '130–150', steps: 18, family: 'balkan-9',
-    kick: 'x...x...x...x...x.', top: 'x.x.x.x.x.x.x.x.', sound: 'tupan', groove: 'straight', src: 'std',
+    core: 'X.o.X.o.X.o.X.o.o.', coreName: '2+2+2+3',
+    kick: 'x...x...x...x.....', top: 'X.o.X.o.X.o.X.o.o.', sound: 'tupan', groove: 'straight', src: 'std',
     etymology: '"Daychovo" = from "Daycho" (personal name). Thracian 9/16 = 2+2+2+3. "Quick-quick-quick-slow."',
     note: '9/16 = 4 beats (2+2+2+3). Thracian style. Fast, energetic. Often transitions to rachenitsa.',
     topLines: [
-      { name: 'Tupan', pattern: 'x...x...x...x...x.', sound: 'dunun' },
-      { name: 'Tambura', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Gaida', pattern: 'x...x...x...x...x.', sound: 'wind' }
+      { name: 'Tupan', pattern: 'x...x...x...x.....', sound: 'dunun' },
+      { name: 'Tambura', pattern: 'x.x.x.x.x.x.x.x.x.', sound: 'pluck' },
+      { name: 'Gaida', pattern: 'x...x...x...x.....', sound: 'wind' }
     ] },
 
   { id: 'sedi-donka', name: 'Sedi Donka (25/16)', region: 'Bulgaria', bpm: 120, range: '110–130', steps: 50, family: 'balkan-complex',
-    kick: 'x...x...x...x...x...x...x...x...x...x...x...x..', top: 'x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x', sound: 'tupan', groove: 'straight', src: 'std',
+    core: 'X.o.o.X.o.X.o.X.o.o.X.o.X.o.X.o.X.o.X.o.o.X.o.X.o.', coreName: '7+7+11 (3+2+2, 3+2+2, 2+2+3+2+2)',
+    kick: 'x.....x...x...x.....x...x...x...x...x.....x...x...', top: 'X.o.o.X.o.X.o.X.o.o.X.o.X.o.X.o.X.o.X.o.o.X.o.X.o.', sound: 'tupan', groove: 'straight', src: 'std',
     etymology: '"Sedi Donka" = "Donka sits." 25/16 = 7/16 + 11/16 + 7/16 (SQQ + QQSQQ + SQQ). Mixed meter masterpiece.',
     note: '25/16 = mixed meter: 7/16 + 11/16 + 7/16. "SQQ + QQSQQ + SQQ." One of the most complex Balkan dances. Vocal version exists.',
     topLines: [
-      { name: 'Tupan', pattern: 'x...x...x...x...x...x...x...x...x...x...x...x..', sound: 'dunun' },
-      { name: 'Voice (call)', pattern: 'x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x', sound: 'voice' }
+      { name: 'Tupan', pattern: 'x.....x...x...x.....x...x...x...x...x.....x...x...', sound: 'dunun' },
+      { name: 'Voice (call)', pattern: 'x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.x.', sound: 'voice' }
     ] },
 
   // ── Indian Classical Talas ──
   { id: 'misra-chapu', name: 'Misra Chapu (7/8)', region: 'South India (Carnatic)', bpm: 80, range: '70–90', steps: 14, family: 'tala-7',
-    kick: 'x...x...x...x.', top: 'x.x.x.x.x.x.x', sound: 'mridangam', groove: 'straight', src: 'std',
+    core: 'X.o.o.X.o.X.o.', coreName: '3+2+2',
+    kick: 'x.....x...x...', top: 'X.o.o.X.o.X.o.', sound: 'mridangam', groove: 'straight', src: 'std',
     etymology: 'Sanskrit "misra" = mixed/7 + "chapu" = beat/clap. 7 beats = 3+2+2 (tali-khali-tali). No anga structure — pure clap-wave.',
     note: '7 beats = 3+2+2. Clap on 1, wave on 4, clap on 6. Padams, javalis. "Ta-ka di-mi ta-ki-ta." Distinctive lilt.',
     topLines: [
-      { name: 'Mridangam', pattern: 'x.x.x.x.x.x.x', sound: 'dunun' },
-      { name: 'Ghatam (clay pot)', pattern: 'x...x...x...x.', sound: 'metal' },
-      { name: 'Kanjira (frame drum)', pattern: 'x.x.x.x.x.x.x', sound: 'snare' }
+      { name: 'Mridangam', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Ghatam (clay pot)', pattern: 'x.....x...x...', sound: 'metal' },
+      { name: 'Kanjira (frame drum)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' }
     ] },
 
   { id: 'khanda-chapu', name: 'Khanda Chapu (10/8)', region: 'South India (Carnatic)', bpm: 100, range: '90–110', steps: 20, family: 'tala-10',
-    kick: 'x...x...x...x...x.', top: 'x.x.x.x.x.x.x.x.x.', sound: 'mridangam', groove: 'straight', src: 'std',
+    core: 'X...o...X...X...o...', coreName: '2+1+2',
+    kick: 'x.......x...x.......', top: 'X...o...X...X...o...', sound: 'mridangam', groove: 'straight', src: 'std',
     etymology: 'Sanskrit "khanda" = 5 + "chapu" = beat. 10 beats = 5+5 (2+3 | 2+3). Two 5-beat halves. Asymmetric within symmetry.',
     note: '10 beats = 5+5, each 2+3. Clap on 1, wave on 4, clap on 6, wave on 9. Rare but beautiful.',
     topLines: [
-      { name: 'Mridangam', pattern: 'x.x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Ghatam', pattern: 'x...x...x...x...x.', sound: 'metal' },
-      { name: 'Morsing (jaw harp)', pattern: 'x.x.x.x.x.x.x.x.x.', sound: 'pluck' }
+      { name: 'Mridangam', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Ghatam', pattern: 'x.......x...x.......', sound: 'metal' },
+      { name: 'Morsing (jaw harp)', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'pluck' }
     ] },
 
   { id: 'rupak-tala', name: 'Rupak Tala (7/8)', region: 'North India (Hindustani)', bpm: 80, range: '70–90', steps: 14, family: 'tala-7',
-    kick: 'x...x...x...x.', top: 'x.x.x.x.x.x.x', sound: 'tabla', groove: 'straight', src: 'std',
+    core: 'X.o.o.X.o.X.o.', coreName: '3+2+2',
+    kick: 'x.....x...x...', top: 'X.o.o.X.o.X.o.', sound: 'tabla', groove: 'straight', src: 'std',
     etymology: 'Sanskrit "rupak" = beautiful/form. 7 beats = 3+2+2 (khali-tali-tali). Wave on 1, claps on 4&6. Mughlai/Roopak.',
     note: '7 beats = 3+2+2 but starts on KHALI (wave) = beat 1 is empty. Unique "offbeat" start. Bhajans, khayal.',
     topLines: [
-      { name: 'Tabla (dayan/bayan)', pattern: 'x.x.x.x.x.x.x', sound: 'dunun' },
-      { name: 'Harmonium', pattern: 'x...x...x...x.', sound: 'pluck' },
-      { name: 'Manjira (cymbals)', pattern: 'x.x.x.x.x.x.x', sound: 'metal' }
+      { name: 'Tabla (dayan/bayan)', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Harmonium', pattern: 'x.....x...x...', sound: 'pluck' },
+      { name: 'Manjira (cymbals)', pattern: 'x.x.x.x.x.x.x.', sound: 'metal' }
     ] },
 
   { id: 'ektal', name: 'Ektal (12/8)', region: 'North India (Hindustani)', bpm: 60, range: '50–70', steps: 12, family: 'tala-12',
-    kick: 'x..x..x..x..', top: 'x.x.x.x.x.x.x.x.x.x.x', sound: 'tabla', groove: 'tri:even', src: 'std',
+    core: 'XoooXoooXoXo', coreName: 'Claps on 1, 5, 9, 11',
+    kick: 'x..x..x..x..', top: 'XoooXoooXoXo', sound: 'tabla', groove: 'tri:even', src: 'std',
     etymology: 'Sanskrit "eka" = one + "tal" = clap. 12 beats = 2+2+2+2+2+2. 6 vibhags. Khayal, dhrupad. "Chautal" = 12-beat cousin.',
     note: '12 beats = 6 groups of 2. Clap-wave-clap-wave-clap-wave. Slow, stately. Dhrupad, khayal accompaniment.',
     topLines: [
-      { name: 'Tabla', pattern: 'x.x.x.x.x.x.x.x.x.x.x', sound: 'dunun' },
+      { name: 'Tabla', pattern: 'x.x.x.x.x.x.', sound: 'dunun' },
       { name: 'Pakhavaj', pattern: 'x..x..x..x..', sound: 'dunun' },
-      { name: 'Manjira', pattern: 'x.x.x.x.x.x.x.x.x.x.x', sound: 'metal' }
+      { name: 'Manjira', pattern: 'x.x.x.x.x.x.', sound: 'metal' }
     ] },
 
   { id: 'jhaptal', name: 'Jhaptal (10/8)', region: 'North India (Hindustani)', bpm: 100, range: '90–110', steps: 20, family: 'tala-10',
-    kick: 'x...x...x...x...x.', top: 'x.x.x.x.x.x.x.x.x.', sound: 'tabla', groove: 'straight', src: 'std',
+    core: 'X.o.X.o.o.X.o.X.o.o.', coreName: '2+3+2+3',
+    kick: 'x...x.....x...x.....', top: 'X.o.X.o.o.X.o.X.o.o.', sound: 'tabla', groove: 'straight', src: 'std',
     etymology: 'Sanskrit "jhap" = 10 + "tal" = clap. 10 beats = 2+3+2+3. Uneven vibhags. Khayal, tarana. Distinctive swing.',
     note: '10 beats = 2+3+2+3. Clap on 1, wave on 3, clap on 6, wave on 8. Asymmetric swing feel.',
     topLines: [
-      { name: 'Tabla', pattern: 'x.x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Sitar', pattern: 'x...x...x...x...x.', sound: 'pluck' },
-      { name: 'Manjira', pattern: 'x.x.x.x.x.x.x.x.x.', sound: 'metal' }
+      { name: 'Tabla', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Sitar', pattern: 'x...x.....x...x.....', sound: 'pluck' },
+      { name: 'Manjira', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'metal' }
     ] },
 
   // ── Flamenco (Andalusian) ──
   // Merges into 12/8 bell family (soleá, bulerías share 12-beat compás)
   { id: 'solea', name: 'Soleá (12-beat)', region: 'Andalusia (Flamenco)', bpm: 80, range: '70–90', steps: 12, family: 'bell12',
-    kick: 'x..x..x..x..', top: 'x.x.xx.x.x.x', sound: 'cajon', groove: 'straight', src: 'std',
+    core: '..X..X.X.X.X', coreName: 'Compás accents 3, 6, 8, 10, 12',
+    kick: 'x..x..x..x..', top: '..X..X.X.X.X', sound: 'cajon', groove: 'straight', src: 'std',
     etymology: 'Spanish "soleá" = from "soledad" = solitude/loneliness. Mother of flamenco palos. 12-beat compás = 3+3+2+2+2.',
     note: '12-beat compás = 3+3+2+2+2 (accents on 3,6,8,10,12). Deep, solemn. Cante jondo. "Mother of all palos."',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.xx.x.x.x', sound: 'dunun' },
-      { name: 'Palmas (handclaps)', pattern: 'x.x.xx.x.x.x', sound: 'clap' },
+      { name: 'Cajón', pattern: '..x..x.x.x.x', sound: 'dunun' },
+      { name: 'Palmas (handclaps)', pattern: '..X..X.X.X.X', sound: 'clap' },
       { name: 'Guitar (rasgueado)', pattern: 'x..x..x..x..', sound: 'pluck' }
     ] },
 
   { id: 'bulerias', name: 'Bulerías (12-beat fast)', region: 'Andalusia (Flamenco)', bpm: 220, range: '200–240', steps: 12, family: 'bell12',
-    kick: 'x..x..x..x..', top: 'x.x.xx.x.x.x', sound: 'cajon', groove: 'straight', src: 'std',
+    core: 'X..X..X.X.X.', coreName: 'Compás accents 12, 3, 6, 8, 10',
+    kick: 'x..x..x..x..', top: 'X..X..X.X.X.', sound: 'cajon', groove: 'straight', src: 'std',
     etymology: 'Spanish "bulería" = from "burlar" = to mock/jest. Festive, fast 12-beat. Party finale. Jerez/Gitano heartland.',
     note: 'Fast 12-beat (220+ bpm). Same compás as soleá but playful. "Fiesta" rhythm. Offbeat accents. Palmas on 12,3,6,8,10.',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.xx.x.x.x', sound: 'dunun' },
-      { name: 'Palmas', pattern: 'x.x.xx.x.x.x', sound: 'clap' },
+      { name: 'Cajón', pattern: 'x..x..x.x.x.', sound: 'dunun' },
+      { name: 'Palmas', pattern: 'X..X..X.X.X.', sound: 'clap' },
       { name: 'Guitar', pattern: 'x..x..x..x..', sound: 'pluck' }
     ] },
 
   { id: 'alegrias', name: 'Alegrías (12-beat major)', region: 'Andalusia (Flamenco)', bpm: 100, range: '90–110', steps: 12, family: 'bell12',
-    kick: 'x..x..x..x..', top: 'x.x.xx.x.x.x', sound: 'cajon', groove: 'straight', src: 'std',
+    core: '..X..X.X.X.X', coreName: 'Compás accents 3, 6, 8, 10, 12',
+    kick: 'x..x..x..x..', top: '..X..X.X.X.X', sound: 'cajon', groove: 'straight', src: 'std',
     etymology: 'Spanish "alegría" = joy. Major key 12-beat. Cádiz origin. Lighter than soleá. "Alegrías de Cádiz."',
     note: 'Major key 12-beat compás. Same accent structure as soleá (3,6,8,10,12) but major mode. Dancing, festive.',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.xx.x.x.x', sound: 'dunun' },
-      { name: 'Palmas', pattern: 'x.x.xx.x.x.x', sound: 'clap' },
+      { name: 'Cajón', pattern: '..x..x.x.x.x', sound: 'dunun' },
+      { name: 'Palmas', pattern: '..X..X.X.X.X', sound: 'clap' },
       { name: 'Guitar', pattern: 'x..x..x..x..', sound: 'pluck' }
     ] },
 
   { id: 'tangos-flamenco', name: 'Tangos Flamenco (4/4)', region: 'Andalusia (Flamenco)', bpm: 120, range: '110–130', steps: 16, family: 'tangos',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'cajon', groove: 'straight', src: 'std',
+    core: '....X...X...X...', coreName: 'Accents on 2, 3, 4',
+    kick: 'x...x...x...x...', top: '....X...X...X...', sound: 'cajon', groove: 'straight', src: 'std',
     etymology: 'African "tango" = drum/dance place. Or Cuban "tango" = touch. 4/4 flamenco. Not Argentine tango. Gitano wedding rhythm.',
     note: '4/4 flamenco (not Argentine). Cajón + palmas. "Tangos de Málaga/Granada." Playful, sensual. 120 bpm.',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Palmas', pattern: 'x.x.x.x.x.x.x.', sound: 'clap' },
+      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Palmas', pattern: 'x.x.x.x.x.x.x.x.', sound: 'clap' },
       { name: 'Guitar', pattern: 'x...x...x...x...', sound: 'pluck' }
     ] },
 
   { id: 'rumba-flamenca', name: 'Rumba Flamenca (4/4)', region: 'Andalusia (Flamenco)', bpm: 130, range: '120–140', steps: 16, family: 'rumba-flamenca',
-    kick: F, top: 'x.x.x.x.x.x.x.', sound: 'cajon', groove: 'sw16:52', src: 'std',
+    core: 'X..x..x.X..x..x.', coreName: '3-3-2 strum',
+    kick: F, top: 'X..x..x.X..x..x.', sound: 'cajon', groove: 'sw16:52', src: 'std',
     etymology: 'Cuban "rumba" → flamenco via return migration (ida y vuelta). 4/4 with Cuban clave feel. Gipsy Kings style.',
     note: 'Cuban rumba → flamenco. 4/4 with tresillo feel. "Rumba catalana" (Peret, Gipsy Kings). Party rhythm.',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Palmas', pattern: 'x.x.x.x.x.x.x.', sound: 'clap' },
-      { name: 'Guitar (strum)', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' }
+      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Palmas', pattern: 'x.x.x.x.x.x.x.x.', sound: 'clap' },
+      { name: 'Guitar (strum)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
     ] },
 
   // ── Caribbean / Latin Additions ──
-  { id: 'plena', name: 'Plena', region: 'Puerto Rico', bpm: 100, range: '90–110', steps: 16, family: 'tresillo',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'pandereta', groove: 'straight', src: 'std',
-    etymology: 'Spanish "plena" = full/complete. "Periódico cantao" = sung newspaper. Ponce, early 1900s. Pandereta (frame drum) choir.',
-    note: 'Call-response. Three panderetas (seguidor, segundo, requinto) + güiro + accordion. News, protest, satire. "Plena libre."',
-    topLines: [
-      { name: 'Pandereta (requinto lead)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Pandereta (segundo)', pattern: 'x...x...x...x...', sound: 'snare' },
-      { name: 'Pandereta (seguidor)', pattern: 'x.......x.......', sound: 'dunun' },
-      { name: 'Güiro', pattern: 'xxxxxxxxxxxxxxxx', sound: 'scraper' }
-    ] },
-
   { id: 'bomba-sica', name: 'Bomba Sicá (6/8)', region: 'Puerto Rico', bpm: 100, range: '90–110', steps: 12, family: 'bomba',
     kick: 'x..x..x..x..', top: 'x.x.xx.x.x.x', sound: 'barril', groove: 'tri:even', src: 'std',
     etymology: '"Sicá" = 6/8 sub-style of bomba. "Bomba" = barrel drum (Kikongo "bombo"). Enslaved Africans\' communication. Santurce, Loíza.',
@@ -1174,68 +868,25 @@ RX.RHYTHMS = [
       { name: 'Maraca', pattern: 'x...x...x...', sound: 'shaker' }
     ] },
 
-  { id: 'bomba-yuba', name: 'Bomba Yubá', region: 'Puerto Rico', bpm: 90, range: '80–100', steps: 16, family: 'bomba',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'barril', groove: 'sw16:54', src: 'std',
-    etymology: '"Yubá" = Yoruba root. Another bomba sub-style. Slower, heavier. Call-response between dancer and lead drummer.',
-    note: 'Slower 4/4 bomba. Same instruments. Dancer marks accents with "piquetes" (foot stamps). Spiritual.',
-    topLines: [
-      { name: 'Barril (lead)', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Buleador', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Cuá', pattern: 'xxxxxxxxxxxx', sound: 'metal' }
-    ] },
-
   { id: 'merengue', name: 'Merengue (Dominican)', region: 'Dominican Republic', bpm: 140, range: '130–150', steps: 16, family: 'dembow',
-    kick: F, top: 'x.x.x.x.x.x.x.', sound: 'tambora', groove: 'straight', src: 'std',
+    kick: F, top: 'x.xxx.xxx.xxx.xx', sound: 'tambora', groove: 'straight', src: 'std',
     etymology: 'French "meringue" = whipped egg whites. Or African "merengue" = dance. Haitian "méring" influence. Nacional rhythm. 1840s+.',
     note: 'Fast 4/4. Tambora (double-headed drum) + güira + accordion. "Merengue típico" = perico ripiao. 140+ bpm.',
     topLines: [
-      { name: 'Tambora', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Güira (scraper)', pattern: 'xxxxxxxxxxxxxxxx', sound: 'scraper' },
-      { name: 'Accordion', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' }
-    ] },
-
-  { id: 'bachata', name: 'Bachata', region: 'Dominican Republic', bpm: 120, range: '110–130', steps: 16, family: 'bachata',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'bongo', groove: 'straight', src: 'std',
-    etymology: 'African "bachata" = party/celebration. Or "bachatear" = to party. Rural guitar music. 1960s marginalized, 1990s global (Aventura).',
-    note: 'Bolero-based. Bongo (macho/hembra) + güira + bass + guitar (requinto). "Pop bachata" = electric. Sensual partner dance.',
-    topLines: [
-      { name: 'Bongo (macho/hembra)', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Güira', pattern: 'xxxxxxxxxxxxxxxx', sound: 'scraper' },
-      { name: 'Bass', pattern: 'x...x...x...x...', sound: 'bass' },
-      { name: 'Requinto (lead guitar)', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' }
+      { name: 'Tambora', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Güira (scraper)', pattern: 'x.xxx.xxx.xxx.xx', sound: 'scraper' },
+      { name: 'Accordion', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
     ] },
 
   { id: 'cumbia', name: 'Cumbia', region: 'Colombia (Caribbean Coast)', bpm: 100, range: '90–110', steps: 16, family: 'dembow',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'tambora', groove: 'sw16:52', src: 'std',
+    kick: 'x...x...x...x...', top: 'x.xxx.xxx.xxx.xx', sound: 'tambora', groove: 'sw16:52', src: 'std',
     etymology: 'African "cumbé" = dance/celebration. Or "cumbe" = Kikongo for navel. Indigenous (gaita) + African (drum) + European (accordion).',
     note: 'Gaita (cactus flute) + tambora + llamador + maracas. "Cumbia clásica" instrumental. "Cumbia villera" = Argentine shantytown style.',
     topLines: [
       { name: 'Tambora (bass)', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Llamador (mid)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Gaita (flute)', pattern: 'x.x.x.x.x.x.x.', sound: 'wind' },
-      { name: 'Maracas', pattern: 'xxxxxxxxxxxx', sound: 'shaker' }
-    ] },
-
-  { id: 'vallenato', name: 'Vallenato', region: 'Colombia (Valledupar)', bpm: 100, range: '90–110', steps: 16, family: 'cumbia',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'caja', groove: 'straight', src: 'std',
-    etymology: '"Vallenato" = from Valle de Upar (Valledupar). "Born in the valley." Caja + guacharaca + accordion. 4 airs: paseo, merengue, son, puya.',
-    note: 'Caja (box drum) + guacharaca (scraper) + accordion. 4 rhythmic airs. Storytelling. UNESCO heritage.',
-    topLines: [
-      { name: 'Caja (box drum)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Guacharaca (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'scraper' },
-      { name: 'Accordion', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Bass', pattern: 'x...x...x...x...', sound: 'bass' }
-    ] },
-
-  { id: 'joropo', name: 'Joropo', region: 'Venezuela / Colombia (Llanos)', bpm: 140, range: '130–150', steps: 16, family: 'joropo',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'maracas', groove: 'sw16:60', src: 'std',
-    etymology: 'From "jaropo" = Arabic "xarop" = syrup/sweet. Or "joropo" = party. Llanero (cowboy) music. Harp + cuatro + maracas.',
-    note: 'Fast 6/8 feel in 4/4. Harp (arpista) + cuatro (4-string) + maracas. "Golpe" = rhythmic pattern. Virtuosic harp.',
-    topLines: [
-      { name: 'Harp (arpista)', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Cuatro', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Maracas', pattern: 'xxxxxxxxxxxx', sound: 'shaker' },
-      { name: 'Bandola', pattern: 'x...x...x...x...', sound: 'pluck' }
+      { name: 'Llamador (mid)', pattern: '..x...x...x...x.', sound: 'snare' },
+      { name: 'Gaita (flute)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'wind' },
+      { name: 'Maracas', pattern: 'x.xxx.xxx.xxx.xx', sound: 'shaker' }
     ] },
 
   // ── Additional African (filling gaps) ──
@@ -1267,8 +918,8 @@ RX.RHYTHMS = [
     note: 'Ga recreational. Bell = son clave. Kpanlogo drum (conga-shaped) + nono (bell) + gankogui. Post-independence Ghana identity.',
     topLines: [
       { name: 'Kpanlogo drum', pattern: 'x..x..x...x.x...', sound: 'dunun' },
-      { name: 'Nono (bell)', pattern: 'x.x.xx.x.x.x', sound: 'metal' },
-      { name: 'Gankogui', pattern: 'x...x...x...', sound: 'metal' }
+      { name: 'Nono (bell)', pattern: 'x..x..x...x.x...', sound: 'metal' },
+      { name: 'Gankogui', pattern: 'x...x...x...x...', sound: 'metal' }
     ] },
 
   { id: 'adzogbo', name: 'Adzogbo (Ewe/Fon)', region: 'Ghana/Togo/Benin (Ewe/Fon)', bpm: 140, range: '130–150', steps: 12, family: 'ewe',
@@ -1282,62 +933,20 @@ RX.RHYTHMS = [
       { name: 'Gankogui', pattern: 'x.x.xx.x.x.x', sound: 'metal' }
     ] },
 
-  { id: 'bata-santeria', name: 'Batá (Santería/Lucumí)', region: 'Cuba (Yoruba/Lucumí)', bpm: 120, range: '110–130', steps: 12, family: 'bata',
-    kick: 'x..x..x..x..', top: 'x.x.x.x.x.x.', sound: 'iya-ilu', groove: 'rs:polak', src: 'std',
-    etymology: 'Yoruba "bàtá" = three-drum ensemble for Shango. Lucumí (Cuban Yoruba) preserves language. Iya-ilu = mother drum speaks.',
-    note: 'Sacred trio for orishas. Iya-ilu (mother/lead) + omele ako (male) + omele abo (female). Only initiates (omobatá) play. Each orisha = distinct toque.',
-    topLines: [
-      { name: 'Iya-ilu (mother)', pattern: 'x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Omele ako (male)', pattern: '.x.x.x.x.x.x', sound: 'dunun' },
-      { name: 'Omele abo (female)', pattern: 'x...x...x...', sound: 'dunun' },
-      { name: 'Shaker (ache)', pattern: 'x...x...x...', sound: 'shaker' }
-    ] },
-
   { id: 'nyabinghi', name: 'Nyabinghi (Rastafari)', region: 'Jamaica (Rastafari)', bpm: 60, range: '50–70', steps: 16, family: 'nyabinghi',
-    kick: 'x.......x.......', top: 'x.x.x.x.x.x.x.', sound: 'fundeh', groove: 'straight', src: 'std',
+    kick: 'x.......x.......', top: 'x...x...........', sound: 'fundeh', groove: 'straight', src: 'std',
     etymology: '"Nyabinghi" = East African queen/warrior spirit. Rasta "binghi" = heartbeat of Africa. Three drums: bass, fundeh, repeater.',
     note: 'Rasta heart-beat. Bass (thunder) on 1&3, fundeh (heart) on 2&4, repeater (spirit) improvises. Groundation ceremony.',
     topLines: [
       { name: 'Bass (thunder)', pattern: 'x.......x.......', sound: 'dunun' },
-      { name: 'Fundeh (heart)', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Repeater (spirit)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' }
-    ] },
-
-  { id: 'kumina', name: 'Kumina (Jamaica)', region: 'Jamaica (African retention)', bpm: 100, range: '90–110', steps: 16, family: 'kumina',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'kbandu', groove: 'sw16:58', src: 'std',
-    etymology: 'Kikongo "kumina" = drum/dance. Congo/Angola retention in Jamaica. St. Thomas parish. Two drums: kbandu (bass) + playing cast (lead).',
-    note: 'Congo retention. Kbandu (bass) + playing cast (lead) + shakka (scraper). Spirit possession. "Country" style.',
-    topLines: [
-      { name: 'Kbandu (bass)', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Playing cast (lead)', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Shakka (scraper)', pattern: 'xxxxxxxxxxxx', sound: 'scraper' }
+      { name: 'Fundeh (heart)', pattern: 'x...x...........', sound: 'dunun' },
+      { name: 'Repeater (spirit)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'snare' }
     ] },
 
   // ── Maghreb / Andalusian (North Africa classical) ──
-  { id: 'andalusi-nuba', name: 'Andalusi Nuba (Moroccan Classical)', region: 'Morocco / Algeria / Tunisia', bpm: 70, range: '60–80', steps: 16, family: 'andalusi',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'darbuka', groove: 'straight', src: 'std',
-    etymology: '"Andalusi" = from Al-Andalus (Islamic Spain). "Nuba" = suite/mode. 1492 expulsion brought this to Maghreb. 11 nubat (modes).',
-    note: 'Classical suite. Oud + rebab + qanun + darbuka + taarija. Each nuba = 5 movements (msaddar, btayhi, darj, insiraf, khlas). Tarab = ecstasy.',
-    topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Taarija (clay drum)', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Oud', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Rebab (fiddle)', pattern: 'x.x.x.x.x.x.x.', sound: 'bow' }
-    ] },
-
-  { id: 'ghaita', name: 'Ghaita (Moroccan Oboe Rhythm)', region: 'Morocco (Berber/Rif)', bpm: 140, range: '130–150', steps: 16, family: 'ghaita',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'ghaita', groove: 'straight', src: 'std',
-    etymology: 'Arabic "ghaita" = from "ghayta" = bagpipe/oboe. Double-reed. Rif mountain weddings. "Master of the dance."',
-    note: 'Double-reed oboe + bendir + tabl (bass drum). Outdoor festivals, weddings. Circular breathing. Trance-inducing.',
-    topLines: [
-      { name: 'Ghaita (oboe)', pattern: 'x.x.x.x.x.x.x.', sound: 'wind' },
-      { name: 'Bendir (frame drum)', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Tabl (bass drum)', pattern: 'x...x...x...x...', sound: 'dunun' }
-    ] },
-
   // ── West African (additional) ──
   { id: 'yankadi-makru', name: 'Yankadi-Makru (paired)', region: 'Guinea (Mandé)', bpm: 110, range: '100–130', steps: 16, family: 'djembe',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'djembe', groove: 'sw16:58', src: 'std',
+    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'djembe', groove: 'sw16:58', src: 'std',
     etymology: '"Yankadi" = slow courting dance. "Makru" = fast version. Always paired — transition marks the shift from flirtation to passion.',
     note: 'Paired rhythms. Yankadi (slow, 80 bpm, swing) → Makru (fast, 140 bpm, straight). Same dunun parts. DJEMBE lead changes density.',
     topLines: [
@@ -1348,59 +957,87 @@ RX.RHYTHMS = [
       { name: 'Dununba', pattern: 'x.......x.......', sound: 'dunun' }
     ] },
 
-  { id: 'sorsonet', name: 'Sorsonet (Baga)', region: 'Guinea (Baga)', bpm: 130, range: '120–140', steps: 16, family: 'djembe',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'djembe', groove: 'tri:even', src: 'std',
-    etymology: 'Baga "sorsonet" = "the protection" or "the mask." Female initiation (bondo). Masked spirit dance. Women\'s power.',
-    note: 'Female initiation rhythm. Only women dance. Djembe lead mimics mask movements. Sacred, not recreational.',
-    topLines: [
-      { name: 'Djembe lead', pattern: 'x.x.x.x.x.x.x.', sound: 'djembe' },
-      { name: 'Djembe accomp.', pattern: '.x.x.x.x.x.x.x.', sound: 'djembe' },
-      { name: 'Kenkeni', pattern: 'x...x...x...x...', sound: 'dunun' },
-      { name: 'Sangban', pattern: '..x...x...x...x.', sound: 'dunun' }
-    ] },
-
   { id: 'toro', name: 'Toro (Mandé)', region: 'Guinea/Mali (Mandé)', bpm: 120, range: '110–130', steps: 16, family: 'djembe',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'djembe', groove: 'sw16:58', src: 'std',
+    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'djembe', groove: 'sw16:58', src: 'std',
     etymology: 'Maninka "toro" = bull. Strength, virility. Men\'s dance. Originally for hunters\' ceremonies. "Toro" = also a dununba family rhythm.',
     note: 'Men\'s strength dance. Dununba family. Heavy bass. Hunters\' guild. Similar to dununba but distinct sangban phrasing.',
     topLines: [
-      { name: 'Djembe lead', pattern: 'x.x.x.x.x.x.x.', sound: 'djembe' },
-      { name: 'Djembe accomp.', pattern: '.x.x.x.x.x.x.x.', sound: 'djembe' },
+      { name: 'Djembe lead', pattern: 'x.x.x.x.x.x.x.x.', sound: 'djembe' },
+      { name: 'Djembe accomp.', pattern: '.x.x.x.x.x.x.x.x', sound: 'djembe' },
       { name: 'Kenkeni', pattern: 'x...x...x...x...', sound: 'dunun' },
       { name: 'Sangban', pattern: '.x..x.x..x..x.x.', sound: 'dunun' },
       { name: 'Dununba', pattern: 'x..x..x...x..x..', sound: 'dunun' }
     ] },
 
   // ── Afro-Peruvian ──
-  { id: 'festejo', name: 'Festejo', region: 'Peru (Afro-Peruvian)', bpm: 120, range: '110–130', steps: 16, family: 'festejo',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'cajon', groove: 'tri:even', src: 'std',
-    etymology: 'Spanish "festejo" = celebration/party. Afro-Peruvian coastal (Chincha, Cañete). Cajón + cajita + quijada. "Alcatraz" = courtship dance.',
-    note: 'Cajón (box drum) + cajita (box) + quijada (jawbone). Syncopated 4/4. "Ingá" = Yoruba-derived call. Susana Baca.',
+
+  // ── Restored 2026-11-14 with patterns read from published notation ──
+  { id: 'frevo', name: 'Frevo', region: 'Brazil (Recife)', bpm: 140, range: '130–150', steps: 16, family: 'samba',
+    kick: '....x.......x...', top: 'XooXooXooXooX...', sound: 'caixa', groove: 'straight', src: 'std',
+    etymology: 'Portuguese "ferver" = to boil. "Frevo" = boiling over. Carnival street music. Capoeira-influenced acrobatic dance.',
+    note: 'Two bars of 2/4. The caixa runs sixteenths with an accent every three (a 3-against-4 pull) and lands on a buzz roll on the last beat; the surdo answers on beat 2; the pandeiro gallops. Pattern from Adam Osmianski\'s "Traditional orchestration" notation (That Drum Blog, 2020).',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Cajita (box)', pattern: 'x...x...x...x...', sound: 'metal' },
-      { name: 'Quijada (jawbone)', pattern: 'xxxxxxxxxxxx', sound: 'quijada' },
-      { name: 'Guitar', pattern: 'x...x...x...x...', sound: 'pluck' }
+      { name: 'Caixa (snare)', pattern: 'XooXooXooXooX...', sound: 'snare' },
+      { name: 'Pandeiro', pattern: 'x.xxx.xxx.xxx.xx', sound: 'pandeiro' },
+      { name: 'Surdo (bass)', pattern: '....x.......x...', sound: 'dunun' }
     ] },
 
-  { id: 'lando', name: 'Landó', region: 'Peru (Afro-Peruvian)', bpm: 70, range: '60–80', steps: 16, family: 'lando',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'cajon', groove: 'sw16:60', src: 'std',
-    etymology: 'From "landó" = Angolan "lundú" = dance. Slow, sensual. "Landó" = the dance of the black woman. Minor key. Susana Baca, Eva Ayllón.',
-    note: 'Slow 4/4 with swing. Cajón + cajita + guitar. Melancholic, sensual. "María Landó" (Chabuca Granda). 60-70 bpm.',
+  { id: 'ndombolo-detailed', name: 'Soukous / Ndombolo (cavacha)', region: 'DRC / Congo', bpm: 140, range: '120–150', steps: 16, family: 'soukous',
+    kick: F, top: 'XooXooXXooXoXooo', sound: 'snare', groove: 'straight', src: 'std',
+    etymology: '"Cavacha" is onomatopoeic ("ca-va-cha", a train engine). Lingala "ndombolo" = the hip-shaking dance of 1990s Kinshasa.',
+    note: 'The cavacha: the snare (or hi-hat) pattern of the sebene, created by Meridjo Belobi of Zaïko Langa Langa in the early 1970s. Accents on a field of ghosted sixteenths, bass drum on every beat. Pattern from the notation on Wikipedia\'s Cavacha article ("Cavacha drum pattern, original").',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Cajita', pattern: 'x...x...x...x...', sound: 'metal' },
-      { name: 'Guitar', pattern: 'x...x...x...x...', sound: 'pluck' }
+      { name: 'Snare (cavacha)', pattern: 'XooXooXXooXoXooo', sound: 'snare' },
+      { name: 'Bass', pattern: 'x.x.x.x.x.x.x.x.', sound: 'bass' },
+      { name: 'Guitars (3)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
     ] },
 
-  { id: 'zamacueca', name: 'Zamacueca', region: 'Peru / Chile / Argentina', bpm: 100, range: '90–110', steps: 16, family: 'zamacueca',
-    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.', sound: 'cajon', groove: 'tri:even', src: 'std',
-    etymology: 'Quechua "zama" = rest + "cueca" = dance. Or "zamacueca" = zambo (mixed) + cueca. Ancestor of Chilean cueca, Argentine zamba, Mexican chilena.',
-    note: 'Mother of cueca/zamba/chilena. Handkerchief dance. Guitar + cajón + harp. 19th century pan-South American spread.',
+  { id: 'batuque', name: 'Batuque', region: 'Cape Verde (Santiago)', bpm: 150, range: '3/4 at about 112', steps: 12, family: 'batuque',
+    kick: 'x...x...x...', top: 'X.xxx.X.xxx.', sound: 'clap', groove: 'straight', src: 'std',
+    etymology: 'Portuguese "batuque" = drumming/beat. From "bater" = to beat. African-derived Santiago tradition.',
+    note: 'Women\'s circle dance with call-and-response singing. One bar of 3/4 in sixteenths: the kick lane counts the three beats, the txabeta (hands on a rolled cloth) plays two equal groups across them, so 2 sits against 3. Pattern from the "Rhythmic model of the batuque" notation on Wikipedia.',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Guitar', pattern: 'x.x.x.x.x.x.x.', sound: 'pluck' },
-      { name: 'Harp', pattern: 'x...x...x...x...', sound: 'pluck' }
+      { name: 'Txabeta (cloth slap)', pattern: 'X.xxx.X.xxx.', sound: 'clap' }
+    ] },
+
+  // ── Free-looping parts: `loop: true` marks a part whose pattern is its own length, not the row's ──
+  { id: 'aka-mongombi', name: 'Mongombi (Aka Hunt)', region: 'Central Africa (CAR)', bpm: 160, range: '150–170', steps: 16, family: 'pygmy',
+    kick: 'x...x...x...x...', top: 'xx.', sound: 'enzeko', groove: 'straight', src: 'approx',
+    etymology: 'Aka "mongombi" = net hunt. Shouts and rhythms during collective net hunting.',
+    note: 'Fast hunt rhythm. Vocal counterpoint with yodeling. The lead part is a gallop of three 16ths (hit, hit, rest) that loops on its own, so it turns against the four-beat bar and lines up again every three beats. Not transcribed from a source: this is the library\'s original gallop, played whole instead of cut off at 16 steps.',
+    topLines: [
+      { name: 'Enzeko (drum)', pattern: 'xx.', sound: 'dunun', loop: true },
+      { name: 'Geedale-bagongo', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
+    ] },
+
+  { id: 'ingoma-intore', name: 'Intore (Rwanda Heroic Dance)', region: 'Great Lakes (Rwanda)', bpm: 140, range: '130–150', steps: 16, family: 'ingoma',
+    kick: 'x...x...x...x...', top: 'xx.', sound: 'amashako', groove: 'straight', src: 'approx',
+    etymology: 'Kinyarwanda "intore" = "the chosen ones" / elite warriors. Heroic dance of the royal court.',
+    note: 'Warrior dance. High leaps, spear movements. The lead part is a gallop of three 16ths (hit, hit, rest) that loops on its own, so it turns against the four-beat bar and lines up again every three beats. Not transcribed from a source: this is the library\'s original gallop, played whole instead of cut off at 16 steps.',
+    topLines: [
+      { name: 'Lead drum', pattern: 'xx.', sound: 'dunun', loop: true },
+      { name: 'Support drums', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Shakers', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' }
+    ] },
+
+  { id: 'chakacha', name: 'Chakacha (Swahili Women)', region: 'Kenya / Tanzania (Swahili)', bpm: 120, range: '110–130', steps: 16, family: 'chakacha',
+    kick: 'x...x...x...x...', top: 'xx.', sound: 'dumbak', groove: 'straight', src: 'approx',
+    etymology: 'Swahili "chakacha" = onomatopoeic for hip-shaking sound. Women\'s wedding dance. Coastal Mijikenda roots.',
+    note: 'Women\'s hip dance, often at kuchenga (henna night). The lead part is a gallop of three 16ths (hit, hit, rest) that loops on its own, so it turns against the four-beat bar and lines up again every three beats. Not transcribed from a source: this is the library\'s original gallop, played whole instead of cut off at 16 steps.',
+    topLines: [
+      { name: 'Dumbak', pattern: 'xx.', sound: 'dunun', loop: true },
+      { name: 'Msondo (bass drum)', pattern: 'x.......x.......', sound: 'dunun' },
+      { name: 'Cherewa (shakers)', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' }
+    ] },
+
+  { id: 'coco', name: 'Coco (Zabumba)', region: 'Brazil (Northeast)', bpm: 100, range: '90–110', steps: 16, family: 'samba',
+    kick: 'x...x...x...x...', top: 'xx.', sound: 'zabumba', groove: 'straight', src: 'approx',
+    etymology: 'Tupi "coco" = coconut (head). Or "co-co" = call-response. Circular dance with improvisation. Quilombola roots.',
+    note: 'Call-response circle dance. Zabumba + pandeiro + ganzá. The lead part is a gallop of three 16ths (hit, hit, rest) that loops on its own, so it turns against the four-beat bar and lines up again every three beats. Not transcribed from a source: this is the library\'s original gallop, played whole instead of cut off at 16 steps.',
+    topLines: [
+      { name: 'Zabumba', pattern: 'xx.', sound: 'dunun', loop: true },
+      { name: 'Pandeiro', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pandeiro' },
+      { name: 'Ganzá (shaker)', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' }
     ] },
 ];
 

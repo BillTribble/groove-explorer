@@ -54,6 +54,9 @@ window.RX = window.RX || {};
       metal: ['cowbell', 'agogo', 'agogo'], dawuro: 'cowbell',
       xylophone: 'balafon',
       mbira: 'mbira',
+      // The two mbira dzavadzimu players use the same instrument and tuning but sit in different registers:
+      // real recordings of two other keys of the same mbira (kushaura high, kutsinhira an octave below).
+      'mbira-kushaura': 'mbira-e4', 'mbira-kutsinhira': 'mbira-e3',
 
       // Keys used only by the name lookup below.
       wood: 'claves',
@@ -109,6 +112,8 @@ window.RX = window.RX || {};
       [/caixa/i, 'caixa'],
       [/caja\b/i, 'caja'],
       [/foot stomp/i, 'kick'],
+      [/kushaura/i, 'mbira-kushaura'],
+      [/kutsinhira/i, 'mbira-kutsinhira'],
     ],
   };
 
