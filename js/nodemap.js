@@ -1,7 +1,7 @@
 // Node map view. Two layouts of the same nodes, toggled with the World button and animated between:
 // - pattern: placed by pattern similarity (RX.PATTERN_MAP from py/rhythm_ml.py);
 // - world: at each rhythm's approximate centre of origin (RX.ORIGIN, js/origins.js) over a land outline
-//   (RX.WORLD_LAND, js/world-land.js); global club styles sit in the mid-Atlantic.
+//   (RX.WORLD_LAND, js/world-land.js).
 // Links join nearest neighbours by pattern (RX.PATTERN_NEAR) in both layouts; colour is the pattern group.
 // Dots that would touch on screen are fanned into a small ring (a pair, a triangle, ...) measured in screen pixels,
 // so they stay apart at every zoom and split into their true places as you zoom in. Drag to pan, wheel or pinch to zoom, tap a node to play it (switching at the next
@@ -13,13 +13,18 @@ RX.nodeMap = (function () {
   // Every dot is drawn the same size. Its invisible tap area grows from HIT_R to HIT_R_MAX as you zoom in, but never
   // past half the gap to its nearest neighbour.
   const PAD = 40, NODE_R = 8, HIT_R = 22, HIT_R_MAX = 36, LINKS = 2, TAP_MOVE = 8, MORPH_MS = 700;
-  const MAX_ZOOM = { pattern: 16, world: 48 }; // times the fitted zoom
+  // Times the fitted zoom. On a phone the World map fits at about 0.9 px per degree, so 400x gives ~345 px per degree:
+  // enough to pull apart places a fraction of a degree apart (Accra, the Volta region, Kumasi).
+  const MAX_ZOOM = { pattern: 120, world: 400 };
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const LAND = RX.WORLD_LAND || { width: 1000, height: 383.3, top: 80, path: '' };
   const U = LAND.width / 360; // map units per degree (equirectangular, same as py/build_world_outline.py)
   const BOUNDS = { pattern: { w: 1000, h: 1000 }, world: { w: LAND.width, h: LAND.height } };
   let hooks = null, host = null, svg = null, gLand = null, gLinks = null, gNodes = null, toggle = null;
-  let panel = null, panelId = null, panelLanes = [];
+  let panel = null, panelId = null, panelLanes = [], playBtn = null, collapseBtn = null;
+  let collapsed = false;
+  try { collapsed = localStorage.getItem('rx-map-panel-collapsed') === '1'; } catch (e) { /* per-viewer convenience only */ }
+  const wide = window.matchMedia('(min-width: 841px)');
   let rings = []; // rings drawn by the last placeOnScreen(): { cx, cy, r } on screen
   let nodes = [], links = [], view = { x: 0, y: 0, k: 1 }, fitK = 1, fitted = false, w = 0, h = 0, layout = 'pattern', anim = 0;
 
@@ -80,7 +85,8 @@ RX.nodeMap = (function () {
     }));
     setLayout(hooks.layout ? hooks.layout() : 'pattern', false);
     bindGestures();
-    if (window.ResizeObserver) new ResizeObserver(() => { if (!host.hidden) resize(); }).observe(host);
+    // Work is deferred a frame so a resize that changes another observed element does not loop within one frame.
+    if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(() => { if (!host.hidden) resize(); })).observe(host);
   }
 
   // Dots that sit on (nearly) the same screen point at the current zoom (one city, identical patterns, or two towns a
@@ -249,13 +255,17 @@ RX.nodeMap = (function () {
     panel.replaceChildren();
     const head = el('div', 'map-panel-head');
     const titleRow = el('div', 'map-panel-title-row');
-    // Stop button beside the title: the panel only shows while this rhythm plays.
-    const stop = el('button', 'map-panel-stop');
-    stop.title = 'Stop ' + hooks.name(id); stop.setAttribute('aria-label', stop.title);
-    stop.appendChild(el('span', 'material-symbols-outlined', 'stop'));
-    stop.addEventListener('click', () => { if (hooks.playing() === id) hooks.onTap(id); });
-    titleRow.appendChild(stop);
+    // Play / stop beside the title. The panel stays on this rhythm after it stops, so the button plays it again.
+    playBtn = el('button', 'map-panel-stop');
+    playBtn.appendChild(el('span', 'material-symbols-outlined', 'stop'));
+    playBtn.addEventListener('click', () => hooks.onTap(id));
+    titleRow.appendChild(playBtn);
     titleRow.appendChild(el('h2', 'map-panel-title', hooks.name(id)));
+    // Collapse chevron, always at the top right: down on phones (panel below the map), right on desktop (beside it).
+    collapseBtn = el('button', 'map-panel-collapse');
+    collapseBtn.appendChild(el('span', 'material-symbols-outlined', ''));
+    collapseBtn.addEventListener('click', () => { collapsed = !collapsed; try { localStorage.setItem('rx-map-panel-collapsed', collapsed ? '1' : '0'); } catch (e) { /* ignore */ } paintPanelChrome(); });
+    titleRow.appendChild(collapseBtn);
     head.appendChild(titleRow);
     head.appendChild(el('span', 'map-panel-sub', [hooks.region(id), groupLabel[id], hooks.bpm(id) + ' bpm'].filter(Boolean).join(' · ')));
     panel.appendChild(head);
@@ -287,6 +297,20 @@ RX.nodeMap = (function () {
     });
   }
 
+  /** Play / stop icon, collapse chevron and the panel's collapsed state. */
+  function paintPanelChrome() {
+    if (!playBtn) return;
+    const on = hooks.playing() === panelId, name = hooks.name(panelId);
+    playBtn.firstChild.textContent = on ? 'stop' : 'play_arrow';
+    playBtn.title = (on ? 'Stop ' : 'Play ') + name; playBtn.setAttribute('aria-label', playBtn.title);
+    playBtn.classList.toggle('map-panel-play', !on);
+    collapseBtn.firstChild.textContent = wide.matches ? (collapsed ? 'chevron_left' : 'chevron_right') : (collapsed ? 'expand_less' : 'expand_more');
+    collapseBtn.title = collapsed ? 'Show the rhythm' : 'Hide the rhythm';
+    collapseBtn.setAttribute('aria-label', collapseBtn.title); collapseBtn.setAttribute('aria-expanded', String(!collapsed));
+    document.body.classList.toggle('map-panel-collapsed', collapsed);
+    if (!on) panelLanes.forEach((l) => { if (l.now >= 0) l.cells[l.now].classList.remove('map-step-now'); l.now = -1; });
+  }
+
   /** Repaint playing / queued nodes and the picture panel. */
   function paint() {
     if (!svg) return;
@@ -296,17 +320,25 @@ RX.nodeMap = (function () {
       n.g.classList.toggle('map-node-pending', n.id === pend);
       n.g.setAttribute('aria-label', (n.id === cur ? 'Stop ' : 'Play ') + hooks.name(n.id));
     });
-    const show = !host.hidden && !!cur;
+    // The panel follows the playing rhythm and stays on the last one after it stops.
+    if (cur && cur !== panelId) buildPanel(cur);
+    const show = !host.hidden && !!panelId;
     panel.hidden = !show;
     document.body.classList.toggle('map-has-panel', show);
-    if (show && cur !== panelId) buildPanel(cur);
-    if (!cur) panelId = null;
+    paintPanelChrome();
     render();
+  }
+
+  // The map leaves room for the panel at whatever size it is (full, collapsed, phone or desktop).
+  function trackPanelSize() {
+    const set = () => { const r = panel.getBoundingClientRect(); document.documentElement.style.setProperty('--panel-h', r.height + 'px'); document.documentElement.style.setProperty('--panel-w', r.width + 'px'); };
+    if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(set)).observe(panel);
+    wide.addEventListener ? wide.addEventListener('change', paintPanelChrome) : wide.addListener(paintPanelChrome);
   }
 
   return {
     init(h) { hooks = h; },
-    show() { if (!svg) build(); host.hidden = false; resize(); paint(); },
+    show() { if (!svg) { build(); trackPanelSize(); } host.hidden = false; resize(); paint(); },
     hide() { if (!host) return; host.hidden = true; if (panel) panel.hidden = true; document.body.classList.remove('map-has-panel'); },
     paint, step,
   };

@@ -325,10 +325,10 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
   padding: 16px 16px max(16px, env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0;
   background: var(--md-sys-color-surface-container-low); box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.12);
 }
-.map-has-panel .map { bottom: 33vh; }
+.map-has-panel .map { bottom: var(--panel-h, 33vh); }
 @media (min-width: 841px) {
   .map-panel { top: var(--bar-h, 76px); left: auto; width: 25vw; height: auto; border-radius: 24px 0 0 0; box-shadow: -2px 0 12px rgba(0, 0, 0, 0.12); }
-  .map-has-panel .map { bottom: 0; right: 25vw; }
+  .map-has-panel .map { bottom: 0; right: var(--panel-w, 25vw); }
 }
 .map-panel-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
 .map-panel-title { font-size: 18px; font-weight: 600; }
@@ -356,4 +356,20 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
   background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);
 }
 .map-panel-stop .material-symbols-outlined { font-size: 24px; }
+.map-panel-play { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
+.map-panel-title { flex: 1; min-width: 0; }
+.map-panel-collapse {
+  display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; margin-left: auto; border-radius: 9999px;
+  background: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface);
+}
+/* Collapsed: the title strip on phones, a narrow strip with the buttons on desktop. */
+.map-panel-collapsed .map-panel { height: auto; overflow: hidden; }
+.map-panel-collapsed .map-panel-sub, .map-panel-collapsed .map-panel-lanes { display: none; }
+.map-panel-collapsed .map-panel-head { margin-bottom: 0; }
+@media (min-width: 841px) {
+  .map-panel-collapsed .map-panel { width: 72px; padding: 14px; }
+  .map-panel-collapsed .map-panel-title-row { flex-direction: column-reverse; gap: 8px; }
+  .map-panel-collapsed .map-panel-title { display: none; }
+  .map-panel-collapsed .map-panel-collapse { margin-left: 0; }
+}
 

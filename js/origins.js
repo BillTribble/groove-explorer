@@ -1,19 +1,17 @@
 // Approximate centre of origin for every rhythm: [latitude, longitude, place]. Used by the node map's World
 // layout (js/nodemap.js). Points are deliberately rough (a city or area the style is associated with), not a claim
-// about a single birthplace. Global club styles sit in the middle of the Atlantic. Rhythms that share a point are
-// fanned out into a small ring on the map.
+// about a single birthplace. Rhythms that share a point are fanned out into a small ring on the map.
 window.RX = window.RX || {};
 
 (function () {
   const P = {
-    atlantic: [8, -30, 'Global (mid-Atlantic)'],
     conakry: [9.6, -13.6, 'Conakry, Guinea'], hamana: [10.6, -9.9, 'Hamana (Kouroussa), Guinea'], forest: [8.7, -8.6, 'Forest region, Guinea'],
     wassolon: [11.0, -8.2, 'Wassolon, Mali / Guinea'], kankan: [10.4, -9.3, 'Kankan, Guinea'],
     essaouira: [31.5, -9.8, 'Essaouira, Morocco'], addis: [9.0, 38.7, 'Addis Ababa, Ethiopia'], harare: [-17.8, 31.0, 'Harare, Zimbabwe'],
     kampala: [0.35, 32.6, 'Kampala, Uganda'], volta: [6.6, 0.5, 'Volta region, Ghana / Togo'], abomey: [7.2, 2.0, 'Abomey, Benin'],
     kumasi: [6.7, -1.6, 'Kumasi, Ghana'], accra: [5.6, -0.2, 'Accra, Ghana'], portonovo: [6.5, 2.6, 'Porto-Novo, Benin'],
     abidjan: [5.35, -4.0, 'Abidjan, Côte d\'Ivoire'], lagos: [6.5, 3.4, 'Lagos, Nigeria'],
-    durban: [-29.9, 31.0, 'Durban, South Africa'], soweto: [-26.2, 27.9, 'Soweto, South Africa'], pretoria: [-25.7, 28.2, 'Pretoria, South Africa'],
+    johannesburg: [-26.2, 28.05, 'Johannesburg, South Africa'], durban: [-29.9, 31.0, 'Durban, South Africa'], soweto: [-26.2, 27.9, 'Soweto, South Africa'], pretoria: [-25.7, 28.2, 'Pretoria, South Africa'],
     limpopo: [-23.9, 30.5, 'Limpopo, South Africa'],
     kingston: [18.0, -76.8, 'Kingston, Jamaica'], santodomingo: [18.5, -69.9, 'Santo Domingo, Dominican Republic'], cibao: [19.45, -70.7, 'Cibao, Dominican Republic'],
     portofspain: [10.65, -61.5, 'Port of Spain, Trinidad'], guadeloupe: [16.2, -61.5, 'Guadeloupe / Martinique'], sanjuan: [18.4, -66.1, 'San Juan, Puerto Rico'],
@@ -34,7 +32,7 @@ window.RX = window.RX || {};
     cartagena: [10.4, -75.5, 'Cartagena, Colombia'],
   };
   const ORIGIN_OF = {
-    '111': 'atlantic', afrohouse: 'atlantic', afrohouse12: 'atlantic',
+    '111': 'johannesburg', afrohouse: 'johannesburg', afrohouse12: 'johannesburg',
     kuku: 'forest', 'djembe-kassa': 'hamana', 'djembe-soli': 'hamana', 'djembe-dununba': 'hamana', 'djembe-mendiani': 'wassolon',
     'djembe-yankadi': 'conakry', 'djembe-makru': 'conakry', 'yankadi-makru': 'conakry', toro: 'kankan',
     'gnawa-full': 'essaouira', gnawa: 'essaouira',

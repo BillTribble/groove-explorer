@@ -21,7 +21,7 @@ const DEMBOW = '...x..x....x..x.';
 
 RX.RHYTHMS = [
   // ── Featured ──
-  { id: '111', name: '111 (Ape Drums & JAMIIE)', region: 'Global (Afro house scene)', bpm: 120, range: 'measured 120.0', steps: 16, family: 'tresillo',
+  { id: '111', name: '111 (Ape Drums & JAMIIE)', region: 'South Africa', bpm: 120, range: 'measured 120.0', steps: 16, family: 'tresillo',
     kick: F, top: '.x....x..x....x.', sound: 'tom', groove: 'straight', src: 'audio',
     etymology: 'Named for the 1-1-1 triplet feel; "Ape Drums" = producer Eric Alberto-Lopez, "JAMIIE" = vocalist.',
     note: 'Measured from audio. Kick is four on the floor at 120.0 bpm. Tom hits land on the "e" of 1, "and" of 2, "e" of 3, "and" of 4, with clap on 2 and 4. Across the barline hits fall 3-3-2: and-of-2, e-of-3, then kick on 4. A tresillo rotated to start on and-of-2, third stroke swallowed by kick. Same cell as dembow (keeps strokes 2&3 of unrotated tresillo), pushed six 16ths later. Quantised; only and-of-2 hit ~10 ms late. Every 2nd bar adds pickup on "a" of 1. Released Aug 2025 on Rampa\'s VOD label, tagged Afro-tech / Afro house.' },

@@ -675,7 +675,7 @@
     });
     const bar = document.querySelector('.app-bar');
     const barH = () => document.documentElement.style.setProperty('--bar-h', bar.getBoundingClientRect().height + 'px');
-    if (window.ResizeObserver) new ResizeObserver(barH).observe(bar); barH();
+    if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(barH)).observe(bar); barH();
     $('view-toggle').addEventListener('click', () => { state.view = state.view === 'map' ? 'list' : 'map'; applyMode(); save(); });
     applyMode();
     segmented('top-voice', TOP_VOICES, 'topVoice', 'voice', () => {
