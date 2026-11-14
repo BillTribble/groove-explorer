@@ -161,6 +161,23 @@ Beat where a *tali* (clap) falls is accented `X`, *khali* (wave) is `o` in the c
 
 ---
 
+## 11. East Asia, Southeast Asia & the Pacific (2026-11-14)
+**Indonesia ×2, Philippines, Japan, Korea, New Zealand, Andes.**
+
+| Rhythm | Region | Core | Notes |
+|--------|--------|------|-------|
+| **Kecak** | Bali | 3-voice interlock `x..x..` / `.x..x..` / `..x..x..` | A hundred voices "cak-cak" in interlocking waves — the interlock IS the instrument (like gamelan kotèkan). ML: drops into the 12/8 bell family with samai-darij |
+| **Ketawang** | Java | gong on beat 2: `....x.......` | Colotomic gong cycle — gong ageng lands on beat 2, not 1. Layers (gong, kethuk, balungan, ornament) all mark the same skeleton. ML: clusters with Indian dadra/keharwa |
+| **Tinikling** | Philippines (Leyte) | tap-tap-together `x.x..X` | Bamboo poles: 2 taps + 1 clash per 3/4 bar; dancers dodge the closing gap. ML: near the Ewe 12/8 bell timelines |
+| **Matsuri daiko** | Japan | don-don-ko-don `X.x.x.x.` | Festival beat: ō-daiko quarters ("don!"), shime-daiko 8ths ("ko!"), shinobue flute. The kakegoe shouts are part of the pattern |
+| **Samulnori** | Korea | janggu 8ths `x.x.x.x.` | Four instruments (sa = four, mul = object, nori = play): kkwaenggwari leads, jing thunders, buk keeps quarters, janggu carries the groove. ML: identical to ansai-yaogu (the China-Korea drum continuum) |
+| **Haka (Ka Mate)** | New Zealand | stamps `x...x...` | The rhythm is carried by bodies: stamps (tū waewae) on quarters, thigh/chest slaps on the 8ths, calls on top. ML: 0.898 similarity to powwow — the body-drum family |
+| **Huayno** | Peru / Bolivia | long-short-short `X.xx....` | Quechua couple-dance: stress + two short beats; zampoña panpipes answer antiphonally (odd notes vs even notes — the Andean interlock). ML: near bomba / batuque |
+
+*Antiphony (one row plays odd notes, the other even) shows up independently in the Andes (sikuri), Bali (kotèkan) and Ewe drumming — convergent evolution of interlock.*
+
+---
+
 ## Summary: Actually Identical Patterns (same kick + top)
 
 | Group | Members | Shared Pattern |

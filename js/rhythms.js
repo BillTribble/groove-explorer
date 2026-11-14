@@ -951,6 +951,91 @@ RX.RHYTHMS = [
       { name: 'Bass drum (march)', pattern: 'x.......x.......', sound: 'dunun' }
     ] },
 
+  // ── Indonesia ──
+  { id: 'kecak', name: 'Kecak (Balinese monkey chant)', region: 'Indonesia (Bali)', bpm: 130, range: '120–150', steps: 12, family: 'indonesia',
+    core: 'x.x.x.x.x.x.', coreName: 'Interlocking cak pulse',
+    kick: 'x.......x...', top: 'x.x.x.x.x.x.', sound: 'clap', groove: 'straight', src: 'std',
+    etymology: 'Onomatopoeic: "cak-cak-cak" — the sharp shout a hundred interlocked voices make. Developed c.1930 in Bedulu village from the older sanghyang exorcism chant for Walter Spies\' film island, since Bali\'s gamelan was too heavy to film.',
+    note: 'Three seated circles chant "cak" in interlocking waves — each voice pulses every third 8th so together they chatter like one giant drum. Like gamelan kotèkan: the interlock IS the instrument. The kecak chorus replaces the gamelan for the Ramayana fire dance — no instruments, just a hundred throats.',
+    topLines: [
+      { name: 'Cak voice 1', pattern: 'x..x..x..x..', sound: 'clap' },
+      { name: 'Cak voice 2', pattern: '.x..x..x..x.', sound: 'voice' },
+      { name: 'Cak voice 3', pattern: '..x..x..x..x', sound: 'shaker' }
+    ] },
+
+  { id: 'ketawang', name: 'Ketawang (Javanese gong cycle)', region: 'Indonesia (Java)', bpm: 50, range: '40–70', steps: 16, family: 'indonesia',
+    core: '....x...........', coreName: 'Gong on beat 2',
+    kick: '....x.......x...', top: 'x...x...x...x...', sound: 'metal', groove: 'straight', src: 'std',
+    etymology: 'Javanese "ketawang" — the four-beat gong cycle (patet) of the slow, courtly pathetan. The great gong (gong ageng) falls on beat 2, not 1: the cycle breathes in before it lands. "Ketawang" names the feeling of floating that opens wayang and wedding processions.',
+    note: 'Simplified court gamelan: the big gong lands on beat 2 of 4, the kethuk marks beat 4, saron balungan plays the skeleton on the 8ths. Everything else (rebab, gender, singer) ornaments toward the gong. Colotomic layers, not drummers: structure is marked by gongs, the deepest ones least often.',
+    topLines: [
+      { name: 'Gong ageng + kethuk', pattern: '....x.......x...', sound: 'metal' },
+      { name: 'Saron (balungan)', pattern: 'x...x...x...x...', sound: 'metal' },
+      { name: 'Gender (ornament)', pattern: '..x...x...x...x.', sound: 'mbira' },
+      { name: 'Rebab (spike fiddle)', pattern: 'x.......x.......', sound: 'bow' }
+    ] },
+
+  // ── Philippines ──
+  { id: 'tinikling', name: 'Tinikling (bamboo poles)', region: 'Philippines (Leyte)', bpm: 120, range: '100–140', steps: 12, family: 'philippines',
+    core: 'x.x.X..x.x.X', coreName: 'Tap-tap-together',
+    kick: '..X..X..X..X', top: 'x.x.x.x.x.x.', sound: 'wood', groove: 'straight', src: 'std',
+    etymology: 'Named for the tikling bird (rail) that hops nimbly through rice paddies and dodges the farmers\' bamboo traps. From Leyte island; dancers step between two bamboo poles that clap together at their heels. Philippine national dance.',
+    note: 'Two pole workers tap the bamboos on the ground on beats 1–2 and snap them together on beat 3 — apart, apart, together. Dancers hop in and out of the closing gap. Faster and faster until the poles are a blur and someone\'s ankles pay the price.',
+    topLines: [
+      { name: 'Bamboo taps', pattern: 'x.x.x.x.x.x.', sound: 'wood' },
+      { name: 'Bamboo clash', pattern: '..X..X..X..X', sound: 'clap' },
+      { name: 'Dancers\' heels', pattern: 'x.....x.....', sound: 'tom' }
+    ] },
+
+  // ── New Zealand ──
+  { id: 'haka', name: 'Haka (Ka Mate)', region: 'New Zealand (Aotearoa)', bpm: 100, range: '90–120', steps: 16, family: 'nz',
+    core: 'x...x...x...x...', coreName: 'Stomp pulse',
+    kick: 'x...x...x...x...', top: 'X...x...X...x...', sound: 'tom', groove: 'straight', src: 'std',
+    etymology: 'Māori "haka" = to stir, to glow hot (Ngāti Toa). "Ka Mate" (c.1820) — Te Rauparaha\'s chant of escaping death by hiding in a kūmara pit: "Tis death, tis death, tis life, tis life." Performed by men standing, feet stamping (tū waewae), hands slapping thighs and chest.',
+    note: 'The heartbeat of the haka is the stamp: one heavy foot on the floor on every quarter, thigh-slaps (whakaroro) answering on the "ands" of the calls. A hundred voices in perfect unison — the rhythm is carried by bodies, not instruments. Weapons (mere, tewhatewha) add held tension.',
+    topLines: [
+      { name: 'Foot stamps (tū waewae)', pattern: 'x...x...x...x...', sound: 'tom' },
+      { name: 'Thigh & chest slaps', pattern: 'x.x.x.x.x.x.x.x.', sound: 'clap' },
+      { name: 'Voice (Ka Mate! Ka Mate!)', pattern: 'X.......X...X...', sound: 'voice' }
+    ] },
+
+  // ── Japan ──
+  { id: 'taiko-odori', name: 'Matsuri Daiko (don-ko-don)', region: 'Japan', bpm: 120, range: '110–140', steps: 16, family: 'japan',
+    core: 'X.x.x.x.x.x.x.x.', coreName: 'Don-don-ko-don',
+    kick: 'X...X...X...X...', top: 'X.x.x.x.X.x.x.x.', sound: 'tom', groove: 'straight', src: 'std',
+    etymology: 'Japanese "matsuri" = festival, "daiko" = big drum, "odori" = dance. "Don" and "ko" imitate the drum\'s own voice — the syllables drummers shout ("kakegoe") while playing. Chū-daiko barrel drums came to Japan with Buddhism; kumi-daiko groups are a 1951 invention.',
+    note: 'The festival street beat every Japanese neighborhood plays: big drum hammers the quarters ("don!"), the small shime drum snaps the 8ths in between ("ko!"), shouts answer. For bon-odori dances whole towns dance in a circle around the yagura tower while everyone keeps the same simple beat.',
+    topLines: [
+      { name: 'Ō-daiko (big drum)', pattern: 'X...X...X...X...', sound: 'tom' },
+      { name: 'Shime-daiko (small drum)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'snare' },
+      { name: 'Shinobue (flute)', pattern: 'X.......x...x...', sound: 'wind' }
+    ] },
+
+  // ── Korea ──
+  { id: 'samulnori', name: 'Samulnori (사물놀이)', region: 'Korea', bpm: 110, range: '100–130', steps: 16, family: 'korea',
+    core: 'x.x.x.x.x.x.x.x.', coreName: 'Janggu 8ths',
+    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'tom', groove: 'straight', src: 'std',
+    etymology: 'Korean "sa-mul" = four objects, "nori" = play: the four instruments of the farmer\'s band (nongak). Kkwaenggwari (small gong, leads), jing (big gong), janggu (hourglass drum), buk (barrel drum). From shamanic and village rites; the 1978 SamulNori quartet took it to the concert stage.',
+    note: 'The janggu carries the groove: deep head (kūng) on the quarters, bright head (tchā) rippling 8ths. Kkwaenggwari rings the cycle\'s corners and calls the changes; jing and buk thunder underneath. The players move — spins, leaps, hats with ribbons (sangmo) whirling.',
+    topLines: [
+      { name: 'Janggu (hourglass drum)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'tom' },
+      { name: 'Kkwaenggwari (small gong)', pattern: 'X.......X.......', sound: 'metal' },
+      { name: 'Buk (barrel drum)', pattern: 'x.......x.......', sound: 'dunun' },
+      { name: 'Jing (big gong)', pattern: 'X...............', sound: 'metal' }
+    ] },
+
+  // ── Andes ──
+  { id: 'huayno', name: 'Huayno (Andes)', region: 'Peru / Bolivia (Andes)', bpm: 110, range: '100–130', steps: 16, family: 'andes',
+    core: 'X.xx....x.xx....', coreName: 'Long-short-short cell',
+    kick: 'X.....x.X.....x.', top: 'X.xx....x.xx....', sound: 'dunun', groove: 'straight', src: 'std',
+    etymology: 'Quechua "waynu" — the couple-dance and song of the highland villages, already ancient when the Inca made it their court music. Survived colonial bans (the church called it devilish), now Peru\'s signature: Danza de los tijeras, sikuri processions, every fiesta in the altiplano.',
+    note: 'The huayno cell: a strong beat followed by two quick ones (long-short-short), bombo drum marking the quarters. Zampoña panpipes answer antiphonally — one row plays the odd notes, the other the even (like Balinese interlock). Charango strums the same cell in miniature.',
+    topLines: [
+      { name: 'Bombo (drum)', pattern: 'X.....x.X.....x.', sound: 'dunun' },
+      { name: 'Zampoña (panpipes)', pattern: 'X.xx....x.xx....', sound: 'wind' },
+      { name: 'Charango (strum)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' }
+    ] },
+
   // ── Flamenco (Andalusian) ──
   // Merges into 12/8 bell family (soleá, bulerías share 12-beat compás)
   { id: 'solea', name: 'Soleá (12-beat)', region: 'Andalusia (Flamenco)', bpm: 80, range: '70–90', steps: 12, family: 'bell12',
