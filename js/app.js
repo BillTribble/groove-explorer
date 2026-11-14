@@ -810,6 +810,8 @@
 
     const paintTheme = (t) => { $('theme-icon').textContent = t === 'dark' ? 'light_mode' : 'dark_mode'; };
     paintTheme(window.RX_applyTheme());
+    const build = $('settings-build');
+    if (build) build.textContent = window.APP_BUILD || '';
     $('theme-toggle').addEventListener('click', () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       try { localStorage.setItem('rx-theme', next); } catch (e) {}

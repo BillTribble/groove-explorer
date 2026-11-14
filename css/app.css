@@ -95,6 +95,7 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 }
 .settings-group { display: flex; flex-direction: column; gap: 4px; min-width: 160px; }
 .settings-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.settings-build { font-size: 11px; color: var(--md-sys-color-on-surface-variant); opacity: 0.8; user-select: all; white-space: nowrap; }
 .slider { accent-color: var(--md-sys-color-primary); height: 40px; margin: 0; cursor: pointer; }
 .amount-label { font-size: 13px; font-weight: 500; color: var(--md-sys-color-on-surface-variant); }
 
