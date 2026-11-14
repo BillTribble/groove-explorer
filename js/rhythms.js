@@ -1062,14 +1062,15 @@ RX.RHYTHMS = [
     ] },
 
   { id: 'tangos-flamenco', name: 'Tangos Flamenco (4/4)', region: 'Andalusia (Flamenco)', bpm: 120, range: '110–130', steps: 16, family: 'tangos',
-    core: '....X...X...X...', coreName: 'Accents on 2, 3, 4',
-    kick: 'x...x...x...x...', top: '....X...X...X...', sound: 'cajon', groove: 'straight', src: 'std',
+    core: 'X...x...X...x...', coreName: 'Beats 1 & 3 emphasized',
+    kick: 'X...x...X...x...', top: 'X..x..x.X..x..x.', sound: 'cajon', groove: 'straight', src: 'std',
     etymology: 'African "tango" = drum/dance place. Or Cuban "tango" = touch. 4/4 flamenco. Not Argentine tango. Gitano wedding rhythm.',
-    note: '4/4 flamenco (not Argentine). Cajón + palmas. "Tangos de Málaga/Granada." Playful, sensual. 120 bpm.',
+    note: '4/4 flamenco (not Argentine). Compás de 4: beats 1 & 3 emphasized (compas-flamenco.com). Palmas: 1, "and" of 2, 3, "and" of 4 — two palmos answer each other. Guitar rasgueado marks the accents; cajón drives it. Tangos de Málaga/Granada.',
     topLines: [
-      { name: 'Cajón', pattern: 'x.x.x.x.x.x.x.x.', sound: 'dunun' },
-      { name: 'Palmas', pattern: 'x.x.x.x.x.x.x.x.', sound: 'clap' },
-      { name: 'Guitar', pattern: 'x...x...x...x...', sound: 'pluck' }
+      { name: 'Palmas 1 (lead)', pattern: 'X..x..x.X..x..x.', sound: 'clap' },
+      { name: 'Palmas 2 (answer)', pattern: '..x..x...x..x...', sound: 'clap' },
+      { name: 'Guitar (rasgueado)', pattern: 'X.x.x.x.X.x.x.x.', sound: 'pluck' },
+      { name: 'Cajón', pattern: 'x...x...x...x...', sound: 'cajon' }
     ] },
 
 
