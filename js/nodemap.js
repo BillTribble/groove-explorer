@@ -83,10 +83,47 @@ RX.nodeMap = (function () {
       gLinks.appendChild(line);
       links.push({ a: n, b: byId[to], line });
     }));
+    weakLinks(byId, seen);
     setLayout(hooks.layout ? hooks.layout() : 'pattern', false);
     bindGestures();
     // Work is deferred a frame so a resize that changes another observed element does not loop within one frame.
     if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(() => { if (!host.hidden) resize(); })).observe(host);
+  }
+
+  // Identical patterns fill each other's link slots, so some clusters (Soli / Makru / Mendiani) form islands. Join
+  // every island to the rest with a weak, dashed link: its members' best similarity to anything outside it
+  // (RX.PATTERN_NEAR), else the nearest dot on the pattern map. Repeats until the graph is one piece.
+  function weakLinks(byId, seen) {
+    const parent = Object.fromEntries(nodes.map((n) => [n.id, n.id]));
+    const find = (id) => (parent[id] === id ? id : (parent[id] = find(parent[id])));
+    links.forEach((l) => { parent[find(l.a.id)] = find(l.b.id); });
+    const near = RX.PATTERN_NEAR || {};
+    for (let guard = 0; guard < nodes.length; guard++) {
+      const comps = {};
+      nodes.forEach((n) => (comps[find(n.id)] = comps[find(n.id)] || []).push(n));
+      const list = Object.values(comps);
+      if (list.length < 2) break;
+      list.forEach((members) => {
+        const root = find(members[0].id);
+        let best = null;
+        members.forEach((n) => (near[n.id] || []).forEach(([to, sim]) => {
+          if (byId[to] && find(to) !== root && (!best || sim > best.sim)) best = { a: n, b: byId[to], sim };
+        }));
+        if (!best) members.forEach((n) => nodes.forEach((m) => {
+          if (find(m.id) === root) return;
+          const d = Math.hypot(n.at.pattern[0] - m.at.pattern[0], n.at.pattern[1] - m.at.pattern[1]);
+          if (!best || d < best.d) best = { a: n, b: m, d };
+        }));
+        if (!best) return; // merged into everything else earlier in this pass
+        const key = [best.a.id, best.b.id].sort().join('|');
+        if (find(best.b.id) === root || seen.has(key)) return; // an earlier island already joined this one
+        seen.add(key);
+        parent[root] = find(best.b.id);
+        const line = svgEl('line', { class: 'map-link map-link-weak' });
+        gLinks.appendChild(line);
+        links.push({ a: best.a, b: best.b, line, weak: true });
+      });
+    }
   }
 
   // Dots that sit on (nearly) the same screen point at the current zoom (one city, identical patterns, or two towns a
