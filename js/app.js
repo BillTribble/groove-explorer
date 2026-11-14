@@ -9,7 +9,7 @@
     return Array.from({ length: n }, (_, i) => (hits.has(i) ? 'x' : '.')).join('');
   };
   const REGION_CLASS = ['badge-fuchsia', 'badge-orange', 'badge-indigo', 'badge-teal', 'badge-lime', 'badge-rose', 'badge-cyan', 'badge-violet', 'badge-yellow'];
-  const VOICE_LABEL = { snare: 'Snare', tom: 'Tom', bass: 'Bass' };
+  const VOICE_LABEL = { snare: 'Snare', tom: 'Tom', bass: 'Bass', metal: 'Bell' };
   const TOP_VOICES = [['typical', 'Typical'], ['snare', 'Snare'], ['tom', 'Tom'], ['bass', 'Bass']];
 
   // The grouped view groups rhythms by the kind of pattern they are: js/pattern-groups.js
@@ -213,7 +213,7 @@
       // A part that loops on its own length, not the row's.
       if (pattern.length !== r.steps) label += ' · loops every ' + pattern.length;
     } else if (lane === 'top') {
-      label = VOICE_LABEL[voiceOf(r)];
+      label = VOICE_LABEL[voiceOf(r)] || cap(voiceOf(r)); // any sound gets a name, never a blank
       // In the simple version of an ensemble row, say which part or skeleton the line is.
       const core = multi(r) ? RX.coreTop(r) : null;
       if (core && core.name && s.top === core.pattern) label += ' · ' + core.name;
@@ -735,7 +735,8 @@
     // One toggle for the tempo mode, one for list / map.
     $('tempo-mode').addEventListener('click', () => { state.tempoMode = state.tempoMode === 'native' ? 'set' : 'native'; paintTempo(); save(); });
     RX.nodeMap.init({
-      ids: () => RX.RHYTHMS.map((r) => r.id), name: (id) => byId[id].name, region: (id) => byId[id].region, bpm: (id) => bpmOf(byId[id]),
+      ids: () => RX.RHYTHMS.map((r) => r.id), name: (id) => byId[id].name, region: (id) => byId[id].region,
+      mapLabel: (id) => byId[id].mapLabel || byId[id].name.split(' (')[0], bpm: (id) => bpmOf(byId[id]),
       lanes: pictureLanes, onTap: togglePlay, playing: () => RX.audio.playing(),
       // A merged picture lane passes all its parts, so one tap changes them together.
       toggleStep: (id, lanes, i) => [].concat(lanes).forEach((l) => toggleStep(byId[id], l, i, false)),

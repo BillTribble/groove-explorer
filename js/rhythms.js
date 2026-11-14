@@ -9,6 +9,7 @@
 //   Every pattern is exactly `steps` long, except a part marked `loop: true`: that part loops on its
 //   own length at the row's step size (a 3-step gallop turning against a 16-step bar). A row's `top`
 //   may equal such a part.
+// mapLabel: optional short label for the node map (default: the name before any bracket).
 // core / coreName: the structural skeleton (meter grouping, iqa', compás, tala claps) for rhythms whose
 //   parts are even pulses, so the simple one-voice version shows the shape. See js/shape.js (RX.coreTop).
 window.RX = window.RX || {};
@@ -317,7 +318,7 @@ RX.RHYTHMS = [
     note: 'Son clave with the last stroke delayed.' },
 
   { id: 'bell12', name: 'Standard Bell (12/8)', region: 'Ghana & West Africa', bpm: 120, range: '100–160', steps: 12, family: 'bell12',
-    kick: F12, top: 'x.x.xx.x.x.x', sound: 'snare', groove: 'tri:even', src: 'std',
+    kick: F12, top: 'x.x.xx.x.x.x', sound: 'metal', groove: 'tri:even', src: 'std',
     etymology: 'The "standard pattern" (Arom) / "standard bell" (Ewe gankogui). 7-stroke timeline. Ewe agbekor, Yoruba, Cuban bembé.',
     note: 'The seven-stroke bell of Ewe agbekor, Yoruba and Cuban bembé music, on a true 12-pulse grid with the kick on each dotted quarter. For a played feel try the jembe ternary groove, which applies Rainer Polak\'s measured short-medium-long subdivision from Malian drumming.' },
 
@@ -348,7 +349,7 @@ RX.RHYTHMS = [
     etymology: '"Afrobeats" (plural) = 2000s+ Nigerian pop fusion (Wizkid, Davido, Burna Boy). Distinct from Fela\'s singular "Afrobeat". Coined by DJ Abrantee (UK).',
     note: 'Lagos pop. Rim plays a clave fragment over a sparse kick; usually a light 16th swing.' },
 
-  { id: 'afrobeat', name: 'Afrobeat (Tony Allen)', region: 'Nigeria', bpm: 110, range: '100–125', steps: 16, family: 'afrobeat',
+  { id: 'afrobeat', name: 'Afrobeat (Tony Allen)', mapLabel: 'Tony Allen', region: 'Nigeria', bpm: 110, range: '100–125', steps: 16, family: 'afrobeat',
     kick: 'x......x..x.....', top: '....x..o....x.o.', sound: 'snare', groove: 'sw16:56', src: 'approx',
     etymology: 'Fela Kuti\'s "Afrobeat" (singular) = African + jazz + funk + highlife. Tony Allen\'s drumming = "the engine". Political, extended grooves.',
     note: 'Fela Kuti\'s band. A sketch of Tony Allen\'s displaced kick and ghosted snare.' },

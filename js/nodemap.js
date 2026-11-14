@@ -66,7 +66,7 @@ RX.nodeMap = (function () {
       const hit = svgEl('circle', { r: HIT_R, class: 'map-hit' });
       const dot = svgEl('circle', { r: NODE_R, class: 'map-dot', fill: colour(id) });
       const label = svgEl('text', { class: 'map-label', 'text-anchor': 'middle' });
-      label.textContent = hooks.name(id).split(' (')[0];
+      label.textContent = hooks.mapLabel ? hooks.mapLabel(id) : hooks.name(id).split(' (')[0];
       g.appendChild(hit); g.appendChild(dot); g.appendChild(label);
       g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hooks.onTap(id); } });
       gNodes.appendChild(g);
