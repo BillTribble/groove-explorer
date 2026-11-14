@@ -146,6 +146,44 @@ window.RX = window.RX || {};
     else voiceFor(name)(t, v, r);
   }
 
+  // ── Export support (Ableton project) ──
+  // The sound one hit plays, using the same rules as playVoice: { file } for a kit sample,
+  // { voice } for a synth voice (aliases like 'guitar' resolve to the voice they share).
+  const pickFile = (key, v) => {
+    const entry = key && kitMap()[key];
+    return entry ? (Array.isArray(entry) ? entry[v > 0.9 ? 0 : v > 0.55 ? 1 : 2] : entry) : null;
+  };
+  function resolveSound(name, v, synth, inst) {
+    const file = kit === 'samples' && !synth ? pickFile(inst, v) || pickFile(name, v) : null;
+    if (file) return { file };
+    const fn = voiceFor(name);
+    return { voice: Object.keys(VOICES).find((k) => VOICES[k] === fn) };
+  }
+
+  /** Renders one synth voice offline to mono samples: top-line low-pass included, tail trimmed, peak-normalised. */
+  async function renderVoice(name, ratio, rate = 44100) {
+    const Off = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const oc = new Off(1, Math.ceil(rate * 1.2), rate);
+    const live = { ctx, master, topBus, noiseBuf };
+    try {
+      ctx = oc; master = oc.createGain(); master.connect(oc.destination);
+      topBus = oc.createBiquadFilter(); topBus.type = 'lowpass'; topBus.Q.value = 0.5; topBus.frequency.value = topCutoff; topBus.connect(master);
+      noiseBuf = oc.createBuffer(1, rate, rate);
+      const d = noiseBuf.getChannelData(0);
+      let seed = 0x2f6e2b1; // seeded so every export renders identical noise
+      for (let i = 0; i < d.length; i++) { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; d[i] = seed / 2147483648 - 1; }
+      VOICES[name](0.004, 1, ratio);
+    } finally { ({ ctx, master, topBus, noiseBuf } = live); }
+    const buf = await new Promise((res, rej) => { const p = oc.startRendering(); if (p && p.then) p.then(res, rej); else oc.oncomplete = (e) => res(e.renderedBuffer); });
+    const all = buf.getChannelData(0);
+    let peak = 0; for (let i = 0; i < all.length; i++) peak = Math.max(peak, Math.abs(all[i]));
+    let end = all.length; while (end > rate * 0.05 && Math.abs(all[end - 1]) < peak * 0.003) end--;
+    const fade = Math.floor(rate * 0.008), samples = new Float32Array(Math.min(all.length, end + fade));
+    const gain = peak > 0 ? 0.89 / peak : 1;
+    for (let i = 0; i < samples.length; i++) samples[i] = all[i] * gain * (i > end ? Math.max(0, 1 - (i - end) / fade) : 1);
+    return { samples, rate };
+  }
+
   // ── Scheduler ──
   const LOOKAHEAD = 0.14;
   let timer = null, row = null, stepIndex = 0, nextTime = 0;
@@ -222,7 +260,7 @@ window.RX = window.RX || {};
     return { row, stepIndex, stepsPerBar: st.steps, bpm: st.bpm, pendingSwitch };
   }
 
-  RX.audio = { play, stop, playing: () => row, scheduleSwitch, getSchedulerState,
+  RX.audio = { play, stop, playing: () => row, scheduleSwitch, getSchedulerState, resolveSound, renderVoice,
     setTopCutoff(hz) { topCutoff = hz; if (topBus) topBus.frequency.setTargetAtTime(hz, ctx.currentTime, 0.02); },
     hit(voice) { ensure(); playVoice(voice, ctx.currentTime + 0.01, 0.8); },
     // kit: 'synth' | 'samples'. Switching to samples starts loading them (needs a user gesture first for the AudioContext).

@@ -80,7 +80,7 @@
     if (!r) return null;
     const s = state.rows[id];
     const off = '.'.repeat(r.steps);
-    const lanes = [{ pattern: s.muteKick ? off : patternOf(r, 'kick'), voice: 'kick' }];
+    const lanes = [{ id: 'kick', pattern: s.muteKick ? off : patternOf(r, 'kick'), voice: 'kick' }];
 
     // Multi-instrument rows: "Typical" plays the full ensemble; any chosen top
     // sound (global or per-row) collapses the row to a simple kick + top combo.
@@ -88,22 +88,42 @@
       const chosen = (s.topVoice && s.topVoice !== 'typical') ? s.topVoice : (state.topVoice !== 'typical' ? state.topVoice : null);
       if (chosen) {
         const p = s.muteTop ? off : (s.top || fit(r.top, r.steps));
-        lanes.push({ pattern: p, voice: chosen });
+        lanes.push({ id: 'top', pattern: p, voice: chosen });
       } else {
         r.topLines.forEach((tl, idx) => {
           const muted = s['muteTop' + idx] || false;
           const voice = s['topVoice' + idx] || tl.sound;
-          lanes.push({ pattern: muted ? off : tl.pattern, voice, notes: RX.notesFor(tl), inst: s['topVoice' + idx] ? null : RX.instrumentFor(tl) });
+          lanes.push({ id: 'top' + idx, label: tl.name, pattern: muted ? off : tl.pattern, voice, notes: RX.notesFor(tl), inst: s['topVoice' + idx] ? null : RX.instrumentFor(tl) });
         });
       }
     } else {
-      lanes.push({ pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
+      lanes.push({ id: 'top', pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
     }
 
     const keep = (RX.SAMPLE_KIT && RX.SAMPLE_KIT.keepSynth && RX.SAMPLE_KIT.keepSynth[r.id]) || [];
     lanes.forEach((l) => { l.synth = keep.includes(l.voice); });
     return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent, lanes };
 
+  }
+
+  // Everything the Ableton project and the MIDI downloads need, per rhythm. Each part carries its
+  // pattern with mutes applied and `fullPattern` ignoring them, so a part's MIDI note never depends on a mute.
+  // Sound settings (voice, instrument, pitch, synth-only) come from playState, i.e. exactly what playback uses.
+  function exportRows() {
+    RX.audio.setKit(state.kit); // sound choice follows the Drum sounds setting even before the first tap
+    return RX.RHYTHMS.map((r) => {
+      const s = state.rows[r.id], p = playState(r.id), off = '.'.repeat(r.steps);
+      const part = (lane, track, label, id) => {
+        const full = patternOf(r, lane.id);
+        return { id: id || lane.id, label, track, voice: lane.voice, notes: lane.notes, inst: lane.inst, synth: lane.synth,
+          fullPattern: full, pattern: s['mute' + cap(lane.id)] ? off : full };
+      };
+      const kick = p.lanes[0], parts = [];
+      const four = { id: 'kick4', label: 'kick 4x4', track: 0, voice: 'kick', synth: kick.synth, fullPattern: fourFor(r.steps), pattern: fourFor(r.steps) };
+      parts.push(four, part(kick, 1, 'kick'));
+      p.lanes.slice(1).forEach((l) => parts.push(part(l, 2, l.label || l.voice)));
+      return { id: r.id, name: r.name, bpm: r.bpm, steps: r.steps, groove: p.groove, timing: p.timing, accent: p.accent, parts };
+    });
   }
 
   function el(tag, cls, text) {
@@ -191,12 +211,9 @@
     fold.addEventListener('click', () => { const s = state.rows[r.id]; s['open' + L] = !s['open' + L]; paintLane(r, lane); save(); });
     head.appendChild(fold);
 
-    const dl = iconBtn('download', 'Export this part as MIDI', 'lane-download');
-    const voiceForExport = topLine ? topLine.sound : (lane === 'kick' ? 'kick' : voiceOf(r));
+    const dl = iconBtn('download', 'Export this part as MIDI (notes match the Ableton project\'s Drum Rack)', 'lane-download');
     dl.addEventListener('click', () => {
-      const s = state.rows[r.id];
-      RX.exportMidi({ rhythmName: r.name, partName: voiceForExport, steps: r.steps, bpm: bpmOf(r), pattern: patternOf(r, lane), voice: voiceForExport,
-        groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent });
+      try { RX.exportMidi(exportRows(), r.id, lane, bpmOf(r)); } catch (e) { toast('MIDI export failed: ' + e.message); }
     });
     head.appendChild(dl);
 
@@ -604,12 +621,10 @@
 
     $('export-als').addEventListener('click', () => {
       if (!('CompressionStream' in window)) { toast('Ableton set export needs a newer browser'); return; }
-      const out = RX.RHYTHMS.map((r) => {
-        const s = state.rows[r.id];
-        return { name: r.name, bpm: r.bpm, steps: r.steps, kick: s.kick, top: s.top, voice: voiceOf(r),
-          groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent };
-      });
-      RX.exportAls(out, state.bpm).catch((e) => toast('Export failed: ' + e.message));
+      toast('Building the Ableton project…');
+      RX.exportAls(exportRows(), state.bpm)
+        .then((r) => toast('Downloaded: ' + r.pads + ' sounds in a Drum Rack, ' + r.samples + ' sample files'))
+        .catch((e) => toast('Export failed: ' + e.message));
     });
 
     const paintTheme = (t) => { $('theme-icon').textContent = t === 'dark' ? 'light_mode' : 'dark_mode'; };

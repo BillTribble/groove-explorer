@@ -71,7 +71,7 @@ window.RX = window.RX || {};
   /**
    * Render one lane to timed events over a whole number of bars, long enough to
    * cover the groove's own loop. Used by both exporters.
-   * @returns { length (beats), events: [{ t, vel (1-127) }] }
+   * @returns { length (beats), events: [{ t, step (index in the pattern), vel (1-127) }] }
    */
   RX.renderLane = function (pattern, steps, groove, timing, accent) {
     const stepBeats = 4 / steps;
@@ -84,7 +84,7 @@ window.RX = window.RX || {};
       const g = RX.applyGroove(groove, pos, timing, accent);
       let t = pos + g.offset;
       if (t < 0) t += length;
-      events.push({ t, vel: Math.max(1, Math.min(127, Math.round(lv * g.gain * 127))) });
+      events.push({ t, step: i % steps, vel: Math.max(1, Math.min(127, Math.round(lv * g.gain * 127))) });
     }
     events.sort((a, b) => a.t - b.t);
     return { length, events };

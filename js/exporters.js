@@ -1,9 +1,9 @@
-// MIDI (per part) and Ableton Live Set (.als) export. Groove timing is baked into note positions.
+// MIDI (per part) and Ableton project (.als + samples, zipped) export. Groove timing is baked into note positions.
+// Which MIDI note plays which sound comes from the pad table in export-kit.js, shared by both exports.
 window.RX = window.RX || {};
 
 (function () {
   const PPQ = 480;
-  const NOTE = { kick: 36, snare: 38, tom: 45, bass: 36 };
   const NOTE_LEN = 0.2; // beats
 
   function download(bytes, filename, type) {
@@ -23,12 +23,13 @@ window.RX = window.RX || {};
     return out;
   }
 
-  function midiBytes(name, bpm, lane, note) {
+  /** events: [{ t (beats), vel, note }] over `length` beats. */
+  function midiBytes(name, bpm, length, events) {
     const evs = [];
-    lane.events.forEach((e) => {
+    events.forEach((e) => {
       const on = Math.round(e.t * PPQ);
-      const off = Math.min(Math.round((e.t + NOTE_LEN) * PPQ), lane.length * PPQ);
-      evs.push([on, 1, [0x90, note, e.vel]], [off, 0, [0x80, note, 0]]);
+      const off = Math.min(Math.round((e.t + NOTE_LEN) * PPQ), length * PPQ);
+      evs.push([on, 1, [0x90, e.note, e.vel]], [off, 0, [0x80, e.note, 0]]);
     });
     evs.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
     const us = Math.round(60000000 / bpm);
@@ -38,7 +39,7 @@ window.RX = window.RX || {};
       0, 0xff, 0x58, 0x04, 4, 2, 24, 8];
     let last = 0;
     evs.forEach(([tick, , msg]) => { data.push(...vlq(tick - last), ...msg); last = tick; });
-    data.push(...vlq(lane.length * PPQ - last), 0xff, 0x2f, 0x00);
+    data.push(...vlq(length * PPQ - last), 0xff, 0x2f, 0x00);
     const len = data.length;
     return new Uint8Array([
       0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, PPQ >> 8, PPQ & 255,
@@ -46,11 +47,17 @@ window.RX = window.RX || {};
       ...data]);
   }
 
-  /** part: { rhythmName, partName, pattern, steps, groove, timing, accent, voice, bpm } */
-  RX.exportMidi = function (part) {
-    const lane = RX.renderLane(part.pattern, part.steps, part.groove, part.timing, part.accent);
-    const name = part.rhythmName + ' ' + part.partName;
-    download(midiBytes(name, part.bpm, lane, NOTE[part.voice]), slug(name) + '-' + Math.round(part.bpm) + 'bpm.mid', 'audio/midi');
+  /**
+   * One part as a MIDI file. `rows` is the full export table (see app.js exportRows) so the notes are
+   * the ones the Ableton project's Drum Rack uses: drop the file on that rack and every hit plays its own sound.
+   */
+  RX.exportMidi = function (rows, rowId, partId, bpm) {
+    const row = rows.find((r) => r.id === rowId), part = row && row.parts.find((p) => p.id === partId);
+    if (!part) throw new Error('unknown part ' + rowId + '/' + partId);
+    const pads = RX.collectPads(rows);
+    const { length, events } = RX.eventsFor(row, part, part.fullPattern, pads); // a downloaded part ignores mutes
+    const name = row.name + ' ' + part.label;
+    download(midiBytes(name, bpm, length, events.map((e) => ({ t: e.t, vel: e.vel, note: e.pad.note }))), slug(name) + '-' + Math.round(bpm) + 'bpm.mid', 'audio/midi');
   };
   RX._midiBytes = midiBytes;
 
@@ -66,10 +73,11 @@ window.RX = window.RX || {};
     if (n) n.setAttribute('Value', String(value));
   }
 
-  function makeClip(doc, tpl, name, lane, note, color) {
+  /** events: [{ t, vel, pad }] — one KeyTrack per pad, keyed by the pad's MIDI note. */
+  function makeClip(doc, tpl, name, length, events, color) {
     const clip = tpl.cloneNode(true);
     clip.setAttribute('Id', '0'); clip.setAttribute('Time', '0');
-    const L = lane.length;
+    const L = length;
     setV(clip, 'CurrentStart', 0); setV(clip, 'CurrentEnd', L);
     setV(clip, 'Loop/LoopStart', 0); setV(clip, 'Loop/LoopEnd', L);
     setV(clip, 'Loop/OutMarker', L); setV(clip, 'Loop/HiddenLoopStart', 0); setV(clip, 'Loop/HiddenLoopEnd', L);
@@ -78,32 +86,36 @@ window.RX = window.RX || {};
     setV(clip, 'TimeSelection/AnchorTime', 0); setV(clip, 'TimeSelection/OtherTime', 0);
     const keyTracks = q(clip, 'Notes/KeyTracks');
     while (keyTracks.firstChild) keyTracks.removeChild(keyTracks.firstChild);
-    if (lane.events.length) {
-      const kt = doc.createElement('KeyTrack'); kt.setAttribute('Id', '0');
+    const byNote = new Map();
+    events.forEach((e) => { const list = byNote.get(e.pad.note) || []; list.push(e); byNote.set(e.pad.note, list); });
+    let noteId = 1;
+    [...byNote.keys()].sort((a, b) => a - b).forEach((note, k) => {
+      const kt = doc.createElement('KeyTrack'); kt.setAttribute('Id', String(k));
       const notes = doc.createElement('Notes');
-      lane.events.forEach((e, i) => {
+      byNote.get(note).forEach((e) => {
         const n = doc.createElement('MidiNoteEvent');
         const attrs = { Time: +e.t.toFixed(6), Duration: Math.min(NOTE_LEN, L - e.t).toFixed(4), Velocity: e.vel,
-          VelocityDeviation: 0, OffVelocity: 64, Probability: 1, IsEnabled: 'true', NoteId: i + 1 };
-        Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, String(v)));
+          VelocityDeviation: 0, OffVelocity: 64, Probability: 1, IsEnabled: 'true', NoteId: noteId++ };
+        Object.entries(attrs).forEach(([key, v]) => n.setAttribute(key, String(v)));
         notes.appendChild(n);
       });
       const key = doc.createElement('MidiKey'); key.setAttribute('Value', String(note));
       kt.appendChild(notes); kt.appendChild(key); keyTracks.appendChild(kt);
-    }
-    setV(clip, 'Notes/NoteIdGenerator/NextId', lane.events.length + 1);
+    });
+    setV(clip, 'Notes/NoteIdGenerator/NextId', noteId);
     return clip;
   }
 
   /**
-   * rows: [{ name, bpm, steps, kick, top, voice, groove, timing, accent }]
-   * Builds a session-view set: one scene per rhythm (scene tempo = rhythm tempo),
-   * tracks "Kick 4x4", "Kick pattern", "Top".
+   * rows: [{ name, bpm, steps, groove, timing, accent, parts: [{ track: 0|1|2, ... }] }] with pads already
+   * collected (RX.collectPads). Session-view set: one scene per rhythm at its tempo, three tracks:
+   * "Kick 4x4" and "Kick pattern" (Drum Rack with only the kick pads they use) and "Top parts"
+   * (Drum Rack with every pad, so the whole kit is playable from it).
    */
-  RX.buildAls = async function (rows, masterBpm) {
+  RX.buildAls = async function (rows, masterBpm, pads) {
     const raw = Uint8Array.from(atob(RX.ALS_TEMPLATE_B64), (c) => c.charCodeAt(0));
-    const xml = new TextDecoder().decode(await pipe(raw, new DecompressionStream('gzip')));
-    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    const gunzip = (b) => pipe(b, new DecompressionStream('gzip'));
+    const doc = new DOMParser().parseFromString(new TextDecoder().decode(await gunzip(raw)), 'application/xml');
     const set = q(doc.documentElement, 'LiveSet');
     const clipTpl = set.querySelector('GroovePool MidiClip').cloneNode(true);
 
@@ -117,18 +129,27 @@ window.RX = window.RX || {};
     // Pointee / *Target ids must be unique across the document and below NextPointeeId.
     const nextEl = q(set, 'NextPointeeId');
     let next = +nextEl.getAttribute('Value');
-    third.querySelectorAll('*').forEach((e) => {
+    const renumber = (root) => root.querySelectorAll('*').forEach((e) => {
       if (e.hasAttribute('Id') && (e.tagName === 'Pointee' || e.tagName.endsWith('Target'))) e.setAttribute('Id', String(next++));
     });
-    nextEl.setAttribute('Value', String(next + 1));
+    renumber(third);
     tracks.insertBefore(third, midi[1].nextSibling);
     const laneTracks = [midi[0], midi[1], third];
-    const trackNames = ['Kick 4x4', 'Kick pattern', 'Top'];
+    const trackNames = ['Kick 4x4', 'Kick pattern', 'Top parts'];
     const trackColors = [14, 2, 9];
     laneTracks.forEach((t, i) => {
       setV(t, 'Name/EffectiveName', trackNames[i]); setV(t, 'Name/UserName', trackNames[i]);
       setV(t, 'Color', trackColors[i]);
     });
+
+    // A Drum Rack of Simpler pads on each track: the kick tracks get only the pads they play, the top track gets them all.
+    const used = (track) => pads.filter((p) => rows.some((r) => r.parts.some((pt) => pt.track === track && pt.events.some((e) => e.pad === p))));
+    for (let i = 0; i < laneTracks.length; i++) {
+      const rack = await RX.buildDrumRack(i === 2 ? pads : used(i), gunzip);
+      renumber(rack);
+      q(laneTracks[i], 'DeviceChain/DeviceChain/Devices').appendChild(rack);
+    }
+    nextEl.setAttribute('Value', String(next + 1));
 
     // Scenes: one per rhythm, each carrying its own tempo.
     const scenes = q(set, 'Scenes');
@@ -149,13 +170,14 @@ window.RX = window.RX || {};
       rows.forEach((_, i) => { const s = slotTpl.cloneNode(true); s.setAttribute('Id', String(i)); list.appendChild(s); });
     });
 
+    // One clip per rhythm per track; the top track's clip carries every top part, each on its own pad.
     rows.forEach((r, i) => {
-      const four = r.steps === 12 ? 'x..x..x..x..' : 'x...x...x...x...';
-      const parts = [[four, 36], [r.kick, 36], [r.top, NOTE[r.voice]]];
-      parts.forEach(([pattern, note], ti) => {
-        const lane = RX.renderLane(pattern, r.steps, r.groove, r.timing, r.accent);
-        const slot = q(laneTracks[ti], 'DeviceChain/MainSequencer/ClipSlotList').children[i];
-        q(slot, 'ClipSlot/Value').appendChild(makeClip(doc, clipTpl, r.name + ' ' + trackNames[ti].toLowerCase(), lane, note, trackColors[ti]));
+      laneTracks.forEach((track, ti) => {
+        const parts = r.parts.filter((p) => p.track === ti);
+        const length = Math.max(...parts.map((p) => p.length));
+        const events = parts.flatMap((p) => p.events);
+        const slot = q(track, 'DeviceChain/MainSequencer/ClipSlotList').children[i];
+        q(slot, 'ClipSlot/Value').appendChild(makeClip(doc, clipTpl, r.name + ' ' + trackNames[ti].toLowerCase(), length, events, trackColors[ti]));
       });
     });
 
@@ -166,7 +188,15 @@ window.RX = window.RX || {};
     return pipe(new TextEncoder().encode(out), new CompressionStream('gzip'));
   };
 
+  /** Zip in Live's project layout: "<name> Project/<name>.als" + "Samples/Imported/*.wav". Resolves { pads, bytes }. */
   RX.exportAls = async function (rows, masterBpm) {
-    download(await RX.buildAls(rows, masterBpm), 'groove-explorer.als', 'application/octet-stream');
+    const pads = RX.collectPads(rows);
+    await RX.loadPadAudio(pads);
+    const als = await RX.buildAls(rows, masterBpm, pads);
+    const name = 'Groove Explorer', root = name + ' Project/';
+    const files = [{ path: root + name + '.als', bytes: als }, ...RX.padFiles(pads).map((f) => ({ path: root + f.path, bytes: f.bytes }))];
+    const zip = RX.zip(files);
+    download(zip, name + ' Project.zip', 'application/zip');
+    return { pads: pads.length, samples: files.length - 1, bytes: zip.length };
   };
 })();
