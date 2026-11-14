@@ -382,3 +382,15 @@ button.map-step { cursor: pointer; }
   .map-panel-collapsed .map-panel-collapse { margin-left: 0; }
 }
 
+/* Dials for groove, accent and top filter (js/dial.js); the range input they drive stays, hidden. */
+.settings-group .dial-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.dial { width: 56px; height: 56px; display: grid; place-items: center; border-radius: 9999px; cursor: ns-resize; touch-action: none; outline: none; -webkit-user-select: none; user-select: none; }
+.dial:focus-visible { box-shadow: 0 0 0 3px var(--md-sys-color-primary); }
+.dial svg { width: 48px; height: 48px; }
+.dial-knob { fill: var(--md-sys-color-surface-container-high); }
+.dial-track { fill: none; stroke: var(--md-sys-color-surface-container-highest); stroke-width: 5; stroke-linecap: round; }
+.dial-value { fill: none; stroke: var(--md-sys-color-primary); stroke-width: 5; stroke-linecap: round; }
+.dial-hand { stroke: var(--md-sys-color-on-surface); stroke-width: 3; stroke-linecap: round; }
+.settings-group:has(.dial) { min-width: 0; align-items: center; }
+@media (max-width: 840px) { .settings-group:has(.dial) { flex: 0 1 auto; } }
+

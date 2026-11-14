@@ -156,7 +156,9 @@ RX.nodeMap = (function () {
     if (!w) { nodes.forEach((n, i) => Object.assign(n, to[i])); return; } // not laid out yet: resize() fits
     // With a rhythm selected (the one in the picture panel), keep the zoom level (relative to each layout's fitted
     // view) and centre that rhythm in the new layout, so switching keeps context. Otherwise show the whole layout.
-    const sel = panelId && nodes.find((n) => n.id === panelId), ratio = fitK ? view.k / fitK : 1;
+    // Going to node view zooms out 3x (to see neighbouring clusters); going to the world map zooms in 3x.
+    const sel = panelId && nodes.find((n) => n.id === panelId), was = fitK ? view.k / fitK : 1;
+    const ratio = layout === 'pattern' ? Math.max(1, was / 3) : Math.min(MAX_ZOOM.world, was * 3);
     const fit = fitView(layout); fitK = fit.k;
     const target = sel && w ? (() => { const k = fit.k * ratio; return { k, x: w / 2 - sel.at[layout][0] * k, y: h / 2 - sel.at[layout][1] * k }; })() : fit;
     if (!animate) { nodes.forEach((n, i) => Object.assign(n, to[i])); view = target; render(); return; }

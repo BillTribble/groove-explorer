@@ -797,6 +797,8 @@
     };
     $('cutoff-slider').addEventListener('input', (e) => { state.cutoff = +e.target.value / 100; paintCutoff(); save(); });
     paintCutoff();
+    // Groove, accent and top filter are dials (js/dial.js) driving the same range inputs.
+    ['timing-slider', 'accent-slider', 'cutoff-slider'].forEach((id) => RX.dial($(id)));
 
     $('export-als').addEventListener('click', () => {
       if (!('CompressionStream' in window)) { toast('Ableton set export needs a newer browser'); return; }
