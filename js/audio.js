@@ -75,8 +75,8 @@ window.RX = window.RX || {};
     // Plucked string (krar, oud, guitar, kora)
     pluck(t, v, r = 1) { tone(topBus, t, 300 * r, 150 * r, 0.04, 0.2, 0.5 * v); tone(topBus, t, 600 * r, 300 * r, 0.02, 0.08, 0.1 * v, 'triangle'); },
 
-    // Bowed string (masinko, goje, violin, rebab)
-    bow(t, v, r = 1) { tone(topBus, t, 200 * r, 180 * r, 0.12, 0.4, 0.55 * v); tone(topBus, t, 400 * r, 350 * r, 0.08, 0.15, 0.15 * v, 'sawtooth'); },
+    // Bowed string (masinko, goje, violin, rebab) — short, more like a spiccato tap.
+    bow(t, v, r = 1) { tone(topBus, t, 200 * r, 180 * r, 0.04, 0.16, 0.55 * v); tone(topBus, t, 400 * r, 350 * r, 0.03, 0.09, 0.15 * v, 'sawtooth'); },
 
     // Wind (washint, flute, mizmar)
     wind(t, v, r = 1) { tone(topBus, t, 400 * r, 350 * r, 0.08, 0.35, 0.5 * v); noise(topBus, t, 0.08, 0.08 * v, 2000); },
