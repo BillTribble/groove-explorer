@@ -881,6 +881,76 @@ RX.RHYTHMS = [
       { name: 'Tumbi (lead pluck)', pattern: 'x..x..x.x..x..x.', sound: 'pluck' }
     ] },
 
+  // ── China ──
+  { id: 'lion-drum', name: 'Lion Dance (三星 three-star)', region: 'China (Cantonese)', bpm: 120, range: '110–140', steps: 16, family: 'china',
+    core: 'x..x..x.x..x..x.', coreName: 'Three-star drum (sam-sing)',
+    kick: 'x...x...x...x...', top: 'x..x..x.x..x..x.', sound: 'tom', groove: 'straight', src: 'std',
+    etymology: 'Cantonese 三星鼓 "sam-sing gu" = three-star drum — the dotted three-stroke beat of the southern lion dance, played on the big drum (gu) with bo cymbals and a gong. The lion (醒獅 "sing-si", awakened lion) came from Guangdong province; each stroke maps the lion\'s steps.',
+    note: 'The basic "three-star" beat: gu drum plays the dotted 3+3+2 cell (x..x..x.) against a gong on beat 1. Cymbals (bo) shimmer on the 8ths. Faster "seven-star" (七星) variants add strokes to the same skeleton. Chinese New Year, weddings, store openings.',
+    topLines: [
+      { name: 'Gu (big drum)', pattern: 'x..x..x.x..x..x.', sound: 'tom' },
+      { name: 'Bo (cymbals)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'metal' },
+      { name: 'Luo (gong)', pattern: 'X.......x.......', sound: 'metal' }
+    ] },
+
+  { id: 'ansai-yaogu', name: 'Ansai Yaogu (腰鼓 waist drum)', region: 'China (Shaanxi)', bpm: 100, range: '90–120', steps: 16, family: 'china',
+    core: 'x.x.x.x.x.x.x.x.', coreName: 'Dong-dong-qiang walk',
+    kick: 'x...x...x...x...', top: 'x.x.x.x.x.x.x.x.', sound: 'tom', groove: 'straight', src: 'std',
+    etymology: 'Mandarin 安塞腰鼓 "Ansai yāogǔ" = Ansai (a Loess Plateau county in Shaanxi) + waist drum. Drums strapped at the waist, danced with wild crossing steps and leaps. Paper records date it to the Northern Wei (386–534 CE) as a war drum.',
+    note: 'The driving "dong-dong-qiang" walk: waist drums hammer straight 8ths with a cymbal (qiang) on the "and" of each beat, kick drum marking the quarters. Dozens of drummers in crossed ranks; the loudness is the point — Yellow River new year celebrations.',
+    topLines: [
+      { name: 'Yaogu (waist drums)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'tom' },
+      { name: 'Qiang (cymbals)', pattern: '..x...x...x...x.', sound: 'metal' },
+      { name: 'Suona (shawm)', pattern: 'X.......X...x...', sound: 'wind' }
+    ] },
+
+  // ── Russia ──
+  { id: 'barynya', name: 'Barynya (Барыня)', region: 'Russia', bpm: 140, range: '120–160', steps: 16, family: 'russia',
+    core: '..x...x...x...x.', coreName: 'Offbeat prisyadka',
+    kick: 'x...x...x...x...', top: '..x...x...x...x.', sound: 'snare', groove: 'straight', src: 'std',
+    etymology: 'Russian "барыня" = lady of the house / landlady. The fast Russian dance song whose verses mock the gentry ("Барыня, барыня, сударыня-барыня"). Tchaikovsky quoted it; balalaika ensembles made it famous.',
+    note: 'The classic two-beat drive: bass drum on the downbeats, the snare answers on the "ands" — the squat-kick (prisyadka) lands on those syncopations. Balalaika 8ths over the top. The pattern alternates with sudden stops ("молотьбы" breaks) for the dancer.',
+    topLines: [
+      { name: 'Snare (prisyadka)', pattern: '..x...x...x...x.', sound: 'snare' },
+      { name: 'Balalaika', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pluck' },
+      { name: 'Bass drum', pattern: 'x...x...x...x...', sound: 'dunun' }
+    ] },
+
+  // ── Australia ──
+  { id: 'bunggul', name: 'Bunggul (Arnhem Land)', region: 'Australia (Arnhem Land)', bpm: 100, range: '90–110', steps: 16, family: 'australia',
+    core: 'x.x.x.x.x.x.x.x.', coreName: 'Clapstick pulse',
+    kick: 'x.......x.......', top: 'x.x.x.x.x.x.x.x.', sound: 'clap', groove: 'straight', src: 'std',
+    etymology: 'From Yolŋu Matha (east Arnhem Land): "bunggul" = ceremony / dance-ground gathering of song, didjeridu (yidaki) and clapsticks (bilma). One of the oldest continuous music traditions on earth.',
+    note: 'Bilma clapsticks keep a rock-steady duple pulse while the yidaki (didjeridu) drones underneath, often in a different metre — the polymetry that ethnomusicologists note in wangga/bunggul song cycles. Words and sticks carry the clan song-lines; every rhythm belongs to country.',
+    topLines: [
+      { name: 'Bilma (clapsticks)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'clap' },
+      { name: 'Yidaki (didjeridu)', pattern: 'x.......x.......', sound: 'bass' },
+      { name: 'Voice (manikay)', pattern: 'x...x...x...x...', sound: 'voice' }
+    ] },
+
+  // ── North America ──
+  { id: 'powwow', name: 'Powwow (intertribal)', region: 'North America (Plains)', bpm: 110, range: '100–130', steps: 16, family: 'powwow',
+    core: 'X...x...X...x...', coreName: 'Heartbeat (strong-weak)',
+    kick: 'X...x...X...x...', top: '....x...x...x...', sound: 'tom', groove: 'straight', src: 'std',
+    etymology: 'From Narragansett "powwaw" = shaman / spiritual leader; the gathering took the name. The big drum (mistabe) is called the heartbeat of the people; it is singers\' voices that carry the songs, not the drum alone.',
+    note: 'The heart of the drum is the duple "strong-weak" heartbeat (accent 1, answer on 2) in the lower voices, steady through the song. Honor beats — loud double strokes by the drummers — mark respect, and the syncopated two-step of the Round Dance pulls against the march. Hundreds of singers in unison around one drum.',
+    topLines: [
+      { name: 'Drum (heartbeat)', pattern: 'X...x...X...x...', sound: 'tom' },
+      { name: 'Honor beats', pattern: '....x...x...x...', sound: 'dunun' },
+      { name: 'Voices (vocables)', pattern: 'x.......x...x...', sound: 'voice' }
+    ] },
+
+  { id: 'second-line', name: 'Second Line (street beat)', region: 'North America (New Orleans)', bpm: 96, range: '90–110', steps: 16, family: 'nola',
+    core: 'x..x..x...x.x...', coreName: 'Offset 3-2 street clave',
+    kick: 'x.......x.......', top: 'x..x..x...x.x...', sound: 'snare', groove: 'straight', src: 'std',
+    etymology: 'New Orleans: the "second line" is the crowd of strutting revelers behind the brass band — the parasols, the sashes. The word comes from the march formation: first line = the band, second line = everyone else.',
+    note: 'Bass drum marches on 1 and 3 like a street band; the snare plays an offset 3-2 son clave — the Afro-Caribbean cell New Orleans drummers made their own. Tambourine holds straight quarters. The "Big Four" (and-3, 4) accents end the phrases. Ancestor of funk and of every Mardi Gras Indian street song.',
+    topLines: [
+      { name: 'Snare (street clave)', pattern: 'x..x..x...x.x...', sound: 'snare' },
+      { name: 'Tambourine', pattern: 'x...x...x...x...', sound: 'metal' },
+      { name: 'Bass drum (march)', pattern: 'x.......x.......', sound: 'dunun' }
+    ] },
+
   // ── Flamenco (Andalusian) ──
   // Merges into 12/8 bell family (soleá, bulerías share 12-beat compás)
   { id: 'solea', name: 'Soleá (12-beat)', region: 'Andalusia (Flamenco)', bpm: 80, range: '70–90', steps: 12, family: 'bell12',

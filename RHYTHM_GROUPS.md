@@ -145,6 +145,22 @@ Beat where a *tali* (clap) falls is accented `X`, *khali* (wave) is `o` in the c
 
 ---
 
+## 10. World Additions (2026-11-14)
+**Filling the continental gaps: China, Russia, Australia, North America (Plains + New Orleans).**
+
+| Rhythm | Region | Core | Notes |
+|--------|--------|------|-------|
+| **Lion dance 三星 (three-star)** | China (Cantonese) | `x..x..x.x..x..x.` | The dotted 3+3+2 cell — ML drops it straight into the Tresillo type, correctly: the cell is universal. Gu drum + bo cymbals + luo gong |
+| **Ansai yaogu 腰鼓** | China (Shaanxi) | `x.x.x.x.x.x.x.x.` | Loess Plateau waist drum; straight 8ths, cymbals on the ands, suorna on top. Clusters with bunggul (both steady-pulse drums) |
+| **Barynya Барыня** | Russia | `..x...x...x...x.` | Two-beat drive; snare on the ands = where the squat-kick (prisyadka) lands; balalaika 8ths |
+| **Bunggul** | Australia (Arnhem Land) | `x.x.x.x.x.x.x.x.` | Yolŋu ceremony: bilma clapsticks in strict duple vs didjeridu drone — polymetry the ethnomusicologists note; oldest continuous music tradition on earth |
+| **Powwow (intertribal)** | North America (Plains) | `X...x...X...x...` | The drum as heartbeat: strong-weak duple, honor beats, hundreds of singers on one drum. ML: near bhangra/teental (the steady-pulse family) |
+| **Second line** | New Orleans | `x..x..x...x.x...` | Bass drum marches 1 & 3, snare = offset 3-2 son clave (drumming.com: "not dissimilar to the Bo Diddley beat"). ML: identical to son/kpanlogo. Ancestor of funk |
+
+*Every continent now covered: Africa, Asia (India/China), Europe (Balkans/Russia), North America, South America, Australia.*
+
+---
+
 ## Summary: Actually Identical Patterns (same kick + top)
 
 | Group | Members | Shared Pattern |
