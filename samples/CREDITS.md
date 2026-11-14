@@ -129,5 +129,5 @@ Marked **Creative Commons 0** on the Freesound pack page ("Djembe Samples", one 
 |:---|:---|:---|:---|
 | djembe-king.wav, djembe-tick.wav, djembe-hi.wav | DJEMBE_LO_KING, DJEMBE_TICK, DJEMBE_HI_2 (54020, 54025, 54015) | domingus | https://freesound.org/people/domingus/packs/3456/ |
 
-Level note: cowbell.wav, agogo.wav, agogo-low.wav and agogo-high2.wav are stored at half level (peak 0.45, -6 dB) so the
-bell timelines (gankogui, nono, dawuro, agogô) sit under the drums.
+Level note: cowbell.wav, agogo.wav, agogo-low.wav and agogo-high2.wav are stored 10 dB down (peak 0.28) so the bell
+timelines (gankogui, nono, dawuro, agogô) sit under the drums.

@@ -126,16 +126,16 @@
       const chosen = (s.topVoice && s.topVoice !== 'typical') ? s.topVoice : (state.topVoice !== 'typical' ? state.topVoice : null);
       if (chosen) {
         const p = s.muteTop ? off : (s.top || simpleTop(r));
-        lanes.push({ id: 'top', pattern: p, voice: chosen });
+        lanes.push({ id: 'top', pattern: p, voice: chosen, chosen: true });
       } else {
         r.topLines.forEach((tl, idx) => {
           const muted = muteOf(r, 'top' + idx);
           const voice = s['topVoice' + idx] || tl.sound;
-          lanes.push({ id: 'top' + idx, label: tl.name, pattern: muted ? off : patternOf(r, 'top' + idx), voice, notes: RX.notesFor(tl), inst: s['topVoice' + idx] ? null : RX.instrumentFor(tl) });
+          lanes.push({ id: 'top' + idx, label: tl.name, pattern: muted ? off : patternOf(r, 'top' + idx), voice, chosen: !!s['topVoice' + idx], notes: RX.notesFor(tl), inst: s['topVoice' + idx] ? null : RX.instrumentFor(tl) });
         });
       }
     } else {
-      lanes.push({ id: 'top', pattern: s.muteTop ? off : s.top, voice: voiceOf(r) });
+      lanes.push({ id: 'top', pattern: s.muteTop ? off : s.top, voice: voiceOf(r), chosen: voiceOf(r) !== r.sound });
     }
 
     lanes.forEach((l) => { if (fillerOff(r, l.id)) l.pattern = off; });
@@ -143,7 +143,8 @@
     // Modern dance rows: drum-machine voices in place of the acoustic ones (RX.SAMPLE_KIT.machine).
     const machine = RX.SAMPLE_KIT && RX.SAMPLE_KIT.machine;
     if (machine && machine.rows.includes(r.id)) lanes.forEach((l) => { l.voice = machine.swap[l.voice] || l.voice; });
-    lanes.forEach((l) => { l.synth = keep.includes(l.voice); });
+    // A tom picked in the settings (global or per-row top sound, or a part's sound) is the synth tom, not the samples.
+    lanes.forEach((l) => { l.synth = keep.includes(l.voice) || (l.chosen && l.voice === 'tom'); });
     return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent, lanes };
 
   }

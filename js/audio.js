@@ -88,8 +88,8 @@ window.RX = window.RX || {};
     shaker(t, v) { noise(topBus, t, 0.05, 0.3 * v, 4000); },
 
     // Metal (qraqeb, gankogui, bell, krakeb)
-    // Bells sit at half level: a bright bell on every timeline hit tires the ear quickly.
-    metal(t, v) { tone(topBus, t, 2000, 1500, 0.02, 0.06, 0.35 * v); tone(topBus, t, 4000, 3000, 0.015, 0.03, 0.1 * v); },
+    // Bells sit 10 dB down: a bright bell on every timeline hit tires the ear quickly.
+    metal(t, v) { tone(topBus, t, 2000, 1500, 0.02, 0.06, 0.221 * v); tone(topBus, t, 4000, 3000, 0.015, 0.03, 0.063 * v); },
 
     // Scraper (güira, güiro, ferrinho): a quick train of filtered clicks, like ridges under a stick.
     scraper(t, v) { for (let k = 0; k < 5; k++) noise(topBus, t + k * 0.012, 0.01, (0.28 - k * 0.03) * v, 3500); },
