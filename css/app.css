@@ -312,6 +312,10 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 .map-dot { stroke: var(--md-sys-color-surface); stroke-width: 2; }
 .map-node:focus-visible .map-dot { stroke: var(--md-sys-color-on-surface); stroke-width: 3; }
 .map-node-playing .map-dot { stroke: var(--md-sys-color-primary); stroke-width: 6; }
+.map-node-dim .map-dot { filter: saturate(0.15); opacity: 0.3; } /* outside the selected rhythm's pattern group */
+.map-node-dim .map-label { opacity: 0.25; }
+.map-link-dim { opacity: 0.25; }
+.map-dot, .map-label, .map-link { transition: opacity 0.2s, filter 0.2s; }
 .map-node-pending .map-dot { stroke: var(--md-sys-color-primary); stroke-width: 3; stroke-dasharray: 4 3; }
 .map-label {
   font: 500 12px var(--md-ref-typeface-plain, Inter, sans-serif); fill: var(--md-sys-color-on-surface); opacity: 0; pointer-events: none;

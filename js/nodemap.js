@@ -412,6 +412,10 @@ RX.nodeMap = (function () {
     });
     // The panel follows the playing rhythm and stays on the last one after it stops.
     if (cur && cur !== panelId) buildPanel(cur);
+    // The selected rhythm's pattern group stays in colour; every other node, and links with no end in it, fade.
+    const fam = panelId == null ? null : groupOf[panelId], inFam = (id) => fam == null || id === panelId || groupOf[id] === fam;
+    nodes.forEach((n) => n.g.classList.toggle('map-node-dim', !inFam(n.id)));
+    links.forEach((l) => l.line.classList.toggle('map-link-dim', !inFam(l.a.id) && !inFam(l.b.id)));
     const show = !host.hidden && !!panelId;
     panel.hidden = !show;
     document.body.classList.toggle('map-has-panel', show);
