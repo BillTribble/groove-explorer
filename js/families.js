@@ -22,7 +22,7 @@ RX.FAMILIES = [
   ['maqsum', 'Maqsum / Egyptian & Levantine', ['maqsum', 'baladi', 'saidi', 'masmoudi-kabir', 'wahda', 'ayyub', 'nawari-dabke', 'chiftetelli']],
   ['arab-classical', 'Arab & Turkish classical cycles', ['samai-thaqil', 'samai-darij', 'jurjina', 'dawr-hindi']],
   ['balkan', 'Balkan & Anatolian odd meters', ['paidushko', 'rachenitsa', 'lesno', 'kalamatianos', 'laz', 'daychovo', 'karsilama', 'kopanitsa', 'gankino', 'sedi-donka']],
-  ['tala', 'Indian talas', ['rupak-tala', 'misra-chapu', 'ektal', 'jhaptal']],
+  ['tala', 'Indian talas', ['rupak-tala', 'misra-chapu', 'khanda-chapu', 'ektal', 'jhaptal', 'teental', 'keharwa', 'dadra', 'deepchandi', 'adi-tala', 'bhangra']],
   ['flamenco', 'Flamenco', ['solea', 'alegrias', 'bulerias', 'tangos-flamenco']],
   ['ethio', 'Ethiopian qenet', ['ethio-tizita', 'ethio-ambassel', 'ethio-anchihoye']],
   ['great-lakes', 'Great Lakes & Central African ensembles', ['baganda-akisoma']],

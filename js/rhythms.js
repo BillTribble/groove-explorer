@@ -798,9 +798,87 @@ RX.RHYTHMS = [
     etymology: 'Sanskrit "jhap" = 10 + "tal" = clap. 10 beats = 2+3+2+3. Uneven vibhags. Khayal, tarana. Distinctive swing.',
     note: '10 beats = 2+3+2+3. Clap on 1, wave on 3, clap on 6, wave on 8. Asymmetric swing feel.',
     topLines: [
-      { name: 'Tabla', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'dunun' },
+      { name: 'Tabla', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'tabla' },
       { name: 'Sitar', pattern: 'x...x.....x...x.....', sound: 'pluck' },
       { name: 'Manjira', pattern: 'x.x.x.x.x.x.x.x.x.x.', sound: 'metal' }
+    ] },
+
+  { id: 'teental', name: 'Teental (16 beats)', region: 'North India (Hindustani)', bpm: 90, range: '80–140', steps: 16, family: 'tala-16',
+    core: 'X...X...o...X...', coreName: 'Tali 1, 5, 13 · khali 9',
+    kick: 'x...x...x...x...', top: 'XxxxXxxxxooooxxX', sound: 'tabla', groove: 'straight', src: 'std',
+    etymology: 'Hindi "tin" = three + "tal" = three claps (beats 1, 5, 13). "Tintal" — the most-used tala in Hindustani music. 16 beats = 4 vibhags of 4.',
+    note: '16 beats = 4×4. Sam on 1; tali on 5 & 13; khali (wave) on 9. Theka: "Dha Dhin Dhin Dha | Dha Dhin Dhin Dha | Dha Tin Tin Ta | Ta Dhin Dhin Dha." Khayal, instrumental, kathak.',
+    topLines: [
+      { name: 'Tabla (theka)', pattern: 'XxxxXxxxxooooxxX', sound: 'tabla' },
+      { name: 'Bansuri (flute)', pattern: 'x...x...x...x...', sound: 'wind' },
+      { name: 'Manjira', pattern: 'x.x.x.x.x.x.x.x.', sound: 'metal' }
+    ] },
+
+  { id: 'keharwa', name: 'Keharwa (8 beats)', region: 'North India (Hindustani)', bpm: 120, range: '100–160', steps: 16, family: 'tala-8',
+    core: 'X.......o.......', coreName: 'Tali 1 · khali 5 (4+4)',
+    kick: 'x.......x.......', top: 'X.x.x.o.x.o.x.o.', sound: 'tabla', groove: 'straight', src: 'std',
+    etymology: 'Named for the Kahar caste of palanquin-bearers whose work songs set this cycle. The default tala of folk, bhajan and film songs. 8 beats = 4+4.',
+    note: '8 beats = 4+4, tali on 1, khali on 5. Theka: "Dha Ge Na Ti | Na Ka Dhi Na." Behind almost every Hindi film song.',
+    topLines: [
+      { name: 'Tabla (theka)', pattern: 'X.x.x.o.x.o.x.o.', sound: 'tabla' },
+      { name: 'Dholak', pattern: 'x..x..x.x..x..x.', sound: 'tupan' },
+      { name: 'Harmonium', pattern: 'x.......x.......', sound: 'pluck' },
+      { name: 'Manjira', pattern: 'x.x.x.x.x.x.x.x.', sound: 'metal' }
+    ] },
+
+  { id: 'dadra', name: 'Dadra (6 beats)', region: 'North India (Hindustani)', bpm: 100, range: '90–130', steps: 12, family: 'tala-6',
+    core: 'X.....o.....', coreName: 'Tali 1 · khali 4 (3+3)',
+    kick: 'x.....x.....', top: 'X.x.x.X.o.x.', sound: 'tabla', groove: 'straight', src: 'std',
+    etymology: 'From the Dadra folk dance of Bundelkhand (UP). Light classical tala of thumri, ghazal and the semi-classical dadra song form. 6 beats = 3+3.',
+    note: '6 beats = 3+3, tali on 1, khali on 4. Theka: "Dha Dhin Na | Dha Tu Na." Lilting, songful; thumri at its sweetest.',
+    topLines: [
+      { name: 'Tabla (theka)', pattern: 'X.x.x.X.o.x.', sound: 'tabla' },
+      { name: 'Sarangi', pattern: 'x.....x.....', sound: 'bow' },
+      { name: 'Manjira', pattern: 'x.x.x.x.x.x.', sound: 'metal' }
+    ] },
+
+  { id: 'deepchandi', name: 'Deepchandi (14 beats)', region: 'North India (Hindustani)', bpm: 70, range: '60–90', steps: 14, family: 'tala-14',
+    core: 'X..X...o..X...', coreName: '3+4+3+4 · tali 1, 4, 11 · khali 8',
+    kick: 'x..x......x...', top: 'Xx.xxo.oo.xxxx', sound: 'tabla', groove: 'straight', src: 'std',
+    etymology: 'Persian/Hindi "dip" = lamp + "chand" = moon: lamp-and-moon, the romantic 14-beat tala. Also "chachar"/"ada chautal" in cousin forms. Thumri, ghazal.',
+    note: '14 beats = 3+4+3+4, tali on 1, 4 & 11, khali on 8. Theka: "Dha Dhin – | Dha Dha Tin – | Ta Tin – | Dha Dha Dhin Dhin." Slow, lilting, semiclassical.',
+    topLines: [
+      { name: 'Tabla (theka)', pattern: 'Xx.xxo.oo.xxxx', sound: 'tabla' },
+      { name: 'Sarangi', pattern: 'x..x......x...', sound: 'bow' },
+      { name: 'Manjira', pattern: 'x.x.x.x.x.x.x.', sound: 'metal' }
+    ] },
+
+  { id: 'adi-tala', name: 'Adi Tala (8 beats)', region: 'South India (Carnatic)', bpm: 100, range: '80–140', steps: 16, family: 'tala-8',
+    core: 'X.......X.o.X.o.', coreName: 'Laghu 4 + 2 drutam (claps 1, 5, 7)',
+    kick: 'x.......x...x...', top: 'X.x.x.o.X.o.X.o.', sound: 'mridangam', groove: 'straight', src: 'std',
+    etymology: 'Sanskrit "adi" = prime, first — the first tala every Carnatic student learns and the commonest in the whole repertoire. 8 beats = laghu (4) + drutam + drutam.',
+    note: '8 beats: clap-count 2-3-4 on 1, clap on 5, wave 6, clap 7, wave 8. Kritis, varnams, everything. Mridangam sollukattu: "tha ka dhi mi tha ka tha ki."',
+    topLines: [
+      { name: 'Mridangam', pattern: 'X.x.x.o.X.o.X.o.', sound: 'mridangam' },
+      { name: 'Ghatam', pattern: 'x.....x.x.....x.', sound: 'metal' },
+      { name: 'Kanjira', pattern: '..x...x...x...x.', sound: 'snare' }
+    ] },
+
+  { id: 'khanda-chapu', name: 'Khanda Chapu (5 beats)', region: 'South India (Carnatic)', bpm: 80, range: '70–100', steps: 10, family: 'tala-5',
+    core: 'X...o.....', coreName: '2+3',
+    kick: 'x...x.....', top: 'X.x.x.o.x.', sound: 'mridangam', groove: 'straight', src: 'std',
+    etymology: 'Sanskrit "khanda" = five. Chapu tala: 5 beats counted 2+3 ("ta-ka ta-ki-ta"), no full anga structure. Light, brisk: tillanas, javalis, folk.',
+    note: '5 beats = 2+3, clap on 1, wave on 3. Distinct lurching gait: "ta-ka | ta-ki-ta". Brother of misra chapu (7 = 3+2+2).',
+    topLines: [
+      { name: 'Mridangam', pattern: 'X.x.x.o.x.', sound: 'mridangam' },
+      { name: 'Ghatam', pattern: 'x...x.x...', sound: 'metal' },
+      { name: 'Kanjira', pattern: 'x.x.x.x.x.', sound: 'snare' }
+    ] },
+
+  { id: 'bhangra', name: 'Bhangra (dhol chaal)', region: 'Punjab (Bhangra)', bpm: 130, range: '120–150', steps: 16, family: 'bhangra',
+    core: 'X...X...X...X...', coreName: 'Dhol chaal 4/4',
+    kick: 'x.......x.......', top: 'X.x.x.x.x.x.x.x.', sound: 'tupan', groove: 'straight', src: 'std',
+    etymology: 'Punjabi "bhangra" from "bhanga" — the harvesting dance of Punjabi farmers, now the diaspora dancefloor sound. Driven by the dhol, a two-headed barrel drum played with sticks.',
+    note: '4/4 dhol "chaal" (walk): bass "dum" on 1 and 3, treble "na" 8ths on top, tumbi riffing over it. The engine of Punjabi dance music and UK bhangra.',
+    topLines: [
+      { name: 'Dhol bass (dum)', pattern: 'x.......x.......', sound: 'tupan' },
+      { name: 'Dhol treble (na)', pattern: 'X.x.x.x.x.x.x.x.', sound: 'tabla' },
+      { name: 'Tumbi (lead pluck)', pattern: 'x..x..x.x..x..x.', sound: 'pluck' }
     ] },
 
   // ── Flamenco (Andalusian) ──

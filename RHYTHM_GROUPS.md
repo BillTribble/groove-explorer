@@ -123,6 +123,28 @@ Analyzed from `js/rhythms.js` — grouped by shared rhythmic cells (kick + top p
 
 ---
 
+## 9. Indian Talas (2026-11-14)
+**Clap/wave cycles: the pattern IS the tala. 1 step = 1 beat unless noted.**
+Beat where a *tali* (clap) falls is accented `X`, *khali* (wave) is `o` in the core line.
+
+| Rhythm | Beats | Tali / Khali | Theka (top line) | Notes |
+|--------|-------|--------------|-------------------|-------|
+| **Teental** | 16 = 4+4+4+4 | 1, 5, 13 / 9 | `XxxxXxxxxooooxxX` | Dha Dhin Dhin Dha ×2, Dha Tin Tin Ta, Ta Dhin Dhin Dha. *The* Hindustani tala: khayal, kathak |
+| **Jhaptal** | 10 = 2+3+2+3 | 1, 6 / 3, 8 | `X.o.X.o.o.X.o.X.o.o.` (2 steps/beat) | Asymmetric swing |
+| **Ektal** | 12 = 6×2 | 1, 5, 9, 11 | `XoooXoooXoXo` | Stately dhrupad |
+| **Keharwa** | 8 = 4+4 | 1 / 5 | `X.x.x.o.x.o.x.o.` (2 steps/beat) | Dha Ge Na Ti \| Na Ka Dhi Na. The folk/film default |
+| **Dadra** | 6 = 3+3 | 1 / 4 | `X.x.x.X.o.x.` (2 steps/beat) | Dha Dhin Na \| Dha Tu Na. Thumri's tala |
+| **Deepchandi** | 14 = 3+4+3+4 | 1, 4, 11 / 8 | `Xx.xxo.oo.xxxx` | Lamp-and-moon: slow, romantic semiclassical |
+| **Adi tala** | 8 = 4+2+2 | 1, 5, 7 / 6, 8 | `X.x.x.o.X.o.X.o.` (2 steps/beat) | The Carnatic default: kritis, varnams. Claps on 1, 5 & 7 |
+| **Khanda chapu** | 5 = 2+3 | 1 / 3 | `X.x.x.o.x.` (2 steps/beat) | ta-ka \| ta-ki-ta. Brisk tillanas |
+| **Rupak tala** | 7 = 3+2+2 | 4, 6 / 1 | `X.o.o.X.o.X.o.` | Starts on the *khali* |
+| **Misra chapu** | 7 = 3+2+2 | 1, 6 / 4 | `3+2+2 clap-wave-clap` | Carnati 7; padams |
+| **Bhangra** | 4/4 dhol | — | `X.x.x.x.x.x.x.x.` | Not a tala: Punjabi dance "chaal" — dhol bass on 1 & 3, treble 8ths, tumbi riff |
+
+*Adi, khanda chapu & misra chapu = Carnatic (South); teental → deepchandi = Hindustani (North); bhangra = Punjabi folk.*
+
+---
+
 ## Summary: Actually Identical Patterns (same kick + top)
 
 | Group | Members | Shared Pattern |
