@@ -614,16 +614,6 @@ RX.RHYTHMS = [
       { name: 'Daf', pattern: 'x....x....', sound: 'dunun' }
     ] },
 
-  { id: 'kalamatianos', name: 'Kalamatianos', region: 'Greece', bpm: 100, range: '90–110', steps: 14, family: 'kalamatianos',
-    core: 'X.o.o.X.o.X.o.', coreName: '3+2+2',
-    kick: 'x.....x...x...', top: 'X.o.o.X.o.X.o.', sound: 'darbuka', groove: 'straight', src: 'std',
-    etymology: 'Greek "Kalamatianos" = from Kalamata (Peloponnese). 7/8 = 3+2+2 (SQQ). Pan-Hellenic circle dance. Syrtos family.',
-    note: '7/8 = 3+2+2. "Slow-quick-quick". Most popular Greek circle dance. 12-step pattern. Right foot leads.',
-    topLines: [
-      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
-      { name: 'Laouto (lute)', pattern: 'x.....x...x...', sound: 'pluck' },
-      { name: 'Lyra', pattern: 'x.x.x.x.x.x.x.', sound: 'bow' }
-    ] },
 
   { id: 'karsilama', name: 'Karsilama (9/8)', region: 'Turkey / Greece / Balkans', bpm: 110, range: '100–120', steps: 18, family: 'karsilama',
     core: 'X.o.X.o.X.o.X.o.o.', coreName: '2+2+2+3',
@@ -1256,6 +1246,18 @@ RX.RHYTHMS = [
       { name: 'Pandeiro', pattern: 'x.x.x.x.x.x.x.x.', sound: 'pandeiro' },
       { name: 'Ganzá (shaker)', pattern: 'xxxxxxxxxxxxxxxx', sound: 'shaker' }
     ] },
+
+  { id: 'kalamatianos', name: 'Kalamatianos', region: 'Greece', bpm: 100, range: '90–110', steps: 14, family: 'kalamatianos',
+    core: 'X.o.o.X.o.X.o.', coreName: '3+2+2',
+    kick: 'x.....x...x...', top: 'X.o.o.X.o.X.o.', sound: 'darbuka', groove: 'straight', src: 'std',
+    etymology: 'Greek "Kalamatianos" = from Kalamata (Peloponnese). 7/8 = 3+2+2 (SQQ). Pan-Hellenic circle dance. Syrtos family.',
+    note: '7/8 = 3+2+2. "Slow-quick-quick". Most popular Greek circle dance. 12-step pattern. Right foot leads.',
+    topLines: [
+      { name: 'Darbuka', pattern: 'x.x.x.x.x.x.x.', sound: 'snare' },
+      { name: 'Laouto (lute)', pattern: 'x.....x...x...', sound: 'pluck' },
+      { name: 'Lyra', pattern: 'x.x.x.x.x.x.x.', sound: 'bow' }
+    ] },
+
 ];
 
 RX.REGIONS = [...new Set(RX.RHYTHMS.map(r => r.region))];

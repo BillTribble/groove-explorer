@@ -25,7 +25,7 @@
   // viewMode: 'family' (default) or 'region'
   // view: 'list' (rows) or 'map' (node map, js/nodemap.js).
   // mapLayout: 'pattern' (by similarity) or 'world' (centres of origin) inside the map view.
-  const state = { view: 'list', mapLayout: 'pattern', bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, groovesV2: true, coreTop: true, pulseParts: 'off', rows: {} };
+  const state = { view: 'map', mapLayout: 'world', bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, groovesV2: true, coreTop: true, pulseParts: 'off', worldDefault: true, rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
@@ -46,6 +46,8 @@
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
     if (saved) ['view', 'mapLayout', 'bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode', 'kit', 'pulseParts'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
+    // The world map became the opening view; saves from before that open there once.
+    if (saved && !saved.worldDefault) { state.view = 'map'; state.mapLayout = 'world'; }
     // By family became the default view; saves from before that start there once.
     if (saved && !saved.familyDefault) state.viewMode = 'family';
     // Recorded samples became the default kit; saves from before that switch to it once.
