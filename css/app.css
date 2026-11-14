@@ -335,9 +335,18 @@ h1, h2 { font-family: var(--md-ref-typeface-brand); margin: 0; font-weight: 500;
 .map-panel-sub { font-size: 13px; color: var(--md-sys-color-on-surface-variant); }
 .map-panel-lanes { display: flex; flex-direction: column; gap: 10px; }
 .map-lane { display: flex; flex-direction: column; gap: 4px; }
-.map-lane-label { font-size: 12px; font-weight: 500; color: var(--md-sys-color-on-surface-variant); }
+.map-lane-label {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; min-height: 26px; padding: 0 10px 0 6px; border-radius: 9999px;
+  font-size: 12px; font-weight: 500; color: var(--md-sys-color-on-secondary-container); background: var(--md-sys-color-secondary-container);
+}
+.map-lane-label .material-symbols-outlined { font-size: 16px; }
+.map-lane-muted .map-lane-label { background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
+.map-lane-muted .map-steps { opacity: 0.35; }
 .map-steps { display: grid; grid-template-columns: repeat(var(--cols, 16), minmax(0, 1fr)); gap: 3px; }
-.map-step { height: 16px; border-radius: 4px; background: var(--md-sys-color-surface-container); }
+.map-step { height: 18px; min-width: 0; padding: 0; border: 0; border-radius: 4px; background: var(--md-sys-color-surface-container); }
+button.map-step { cursor: pointer; }
+.map-steps-locked .map-step { opacity: 0.7; }
+/* Compact on purpose: one row per lane, so a whole ensemble fits in the panel on a phone. */
 .map-step-beat { background: var(--md-sys-color-surface-container-highest); }
 .map-step-ghost { background: var(--md-sys-color-primary-container); }
 .map-step-hit { background: var(--md-sys-color-secondary); }

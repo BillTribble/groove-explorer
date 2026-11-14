@@ -278,19 +278,63 @@ RX.nodeMap = (function () {
     panel.appendChild(head);
     const body = el('div', 'map-panel-lanes');
     panelLanes = hooks.lanes(id).map((lane) => {
-      const row = el('div', 'map-lane');
-      row.appendChild(el('span', 'map-lane-label', lane.label));
-      const grid = el('div', 'map-steps');
-      grid.style.setProperty('--cols', lane.pattern.length);
+      const row = el('div', 'map-lane' + (lane.muted ? ' map-lane-muted' : ''));
+      // The part name mutes / unmutes the part, like the list's mute button.
+      const name = el('button', 'map-lane-label');
+      name.appendChild(el('span', 'material-symbols-outlined', lane.muted ? 'volume_off' : 'volume_up'));
+      name.appendChild(el('span', 'map-lane-name', lane.label));
+      name.setAttribute('aria-pressed', String(!lane.muted));
+      name.title = (lane.muted ? 'Unmute ' : 'Mute ') + lane.label;
+      name.addEventListener('click', () => { hooks.toggleMute(id, lane.ids); refreshPanel(); });
+      row.appendChild(name);
+      const grid = el('div', 'map-steps' + (lane.locked ? ' map-steps-locked' : ''));
+      const n = lane.pattern.length;
+      grid.style.setProperty('--cols', n);
       const beat = Math.max(1, lane.grid / 4);
       const cells = [...lane.pattern].map((c, i) => {
-        const s = el('span', 'map-step' + (i % beat === 0 ? ' map-step-beat' : '') + (c === 'X' ? ' map-step-accent' : c === 'x' ? ' map-step-hit' : c === 'o' ? ' map-step-ghost' : ''));
+        // Tap a step to turn it on or off (same edit as the list view); the 4/4 kick is shown but locked.
+        const s = el(lane.locked ? 'span' : 'button', 'map-step' + (i % beat === 0 ? ' map-step-beat' : '') + (c === 'X' ? ' map-step-accent' : c === 'x' ? ' map-step-hit' : c === 'o' ? ' map-step-ghost' : ''));
+        if (!lane.locked) {
+          s.setAttribute('aria-label', lane.label + ' step ' + (i + 1) + (c === '.' ? ', off' : ', on'));
+          s.addEventListener('click', () => { hooks.toggleStep(id, lane.ids, i); refreshPanel(); });
+        }
         grid.appendChild(s); return s;
       });
       row.appendChild(grid); body.appendChild(row);
       return { cells, grid: lane.grid, now: -1 };
     });
     panel.appendChild(body);
+  }
+
+  /** Glide the view (zoom and pan) to a target over `ms`. `target` may be a function, re-read every frame, so the
+   *  glide still lands right if the map is resized meanwhile (the picture panel opening). */
+  function tweenView(target, ms) {
+    cancelAnimationFrame(anim);
+    const v0 = { ...view }, t0 = performance.now(), ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const frame = (now) => {
+      const t = Math.min(1, (now - t0) / ms), e = ease(t), mix = (a, b) => a + (b - a) * e;
+      const to = typeof target === 'function' ? target() : target;
+      view = { x: mix(v0.x, to.x), y: mix(v0.y, to.y), k: mix(v0.k, to.k) };
+      render();
+      if (t < 1) anim = requestAnimationFrame(frame);
+    };
+    anim = requestAnimationFrame(frame);
+  }
+
+  /** Centre a rhythm, zoomed to at least `minRatio` times the fitted view, so its part of the map is in view. */
+  function focus(id, minRatio = 3) {
+    const n = nodes.find((x) => x.id === id);
+    if (!n || !w) return;
+    const ratio = Math.max(minRatio, view.k / fitK);
+    tweenView(() => { const k = fitK * ratio; return { k, x: w / 2 - n.at[layout][0] * k, y: h / 2 - n.at[layout][1] * k }; }, 600);
+  }
+
+  /** Rebuild the picture after an edit, keeping the playhead where it was. */
+  function refreshPanel() {
+    if (!panelId) return;
+    const now = panelLanes.map((l) => l.now);
+    buildPanel(panelId); paintPanelChrome();
+    panelLanes.forEach((l, k) => { if (now[k] >= 0 && l.cells[now[k]]) { l.cells[now[k]].classList.add('map-step-now'); l.now = now[k]; } });
   }
 
   /** Playhead: step k of each lane at this beat position (each lane on its own clock). */
@@ -347,6 +391,7 @@ RX.nodeMap = (function () {
     init(h) { hooks = h; },
     show() { if (!svg) { build(); trackPanelSize(); } host.hidden = false; resize(); paint(); },
     hide() { if (!host) return; host.hidden = true; if (panel) panel.hidden = true; document.body.classList.remove('map-has-panel'); },
-    paint, step,
+    paint, step, focus,
+    selected: () => panelId,
   };
 })();

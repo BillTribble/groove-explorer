@@ -249,7 +249,7 @@
     const mute = d[lane + 'Mute'] = el('button', 'lane-toggle'); mute.title = 'Turn this part on or off';
     mute.appendChild(d[lane + 'MuteIcon'] = icon('volume_up'));
     mute.appendChild(d[lane + 'MuteLabel'] = el('span', 'lane-toggle-label', ''));
-    mute.addEventListener('click', () => { const s = state.rows[r.id]; s['mute' + L] = !s['mute' + L]; paintLane(r, lane); save(); });
+    mute.addEventListener('click', () => toggleMute(r, lane));
     head.appendChild(mute);
 
     if (lane === 'kick' && !nativeFour(r)) {
@@ -279,20 +279,7 @@
     const laneLen = patternOf(r, lane).length || r.steps;
     d[lane + 'Steps'] = Array.from({ length: laneLen }, (_, i) => {
       const b = el('button'); b.setAttribute('aria-label', (lane === 'kick' ? 'Kick' : 'Top') + ' step ' + (i + 1));
-      b.addEventListener('click', () => {
-        const s = state.rows[r.id];
-        if (lane === 'kick' && s.four) return;
-        const cur = patternOf(r, lane), half = cur.length / 2, folded = shownSteps(r, lane) < cur.length;
-        // One tap turns a step on or off. Turning it on gives the rhythm's own accent level when it had a hit there,
-        // and a plain hit when it was a rest, so new hits can always be added.
-        const own = ((topLine ? topLine.pattern : r[lane]) || '')[i];
-        const next = cur[i] !== '.' ? '.' : (own && own !== '.' ? own : 'x');
-        const arr = cur.split('');
-        arr[i] = next;
-        if (folded) arr[i + half] = next;
-        s[lane] = arr.join('');
-        paintLane(r, lane); save();
-      });
+      b.addEventListener('click', () => toggleStep(r, lane, i, shownSteps(r, lane) < patternOf(r, lane).length));
       grid.appendChild(b); return b;
     });
     wrap.appendChild(head); wrap.appendChild(grid);
@@ -470,23 +457,100 @@
   // ── List or node map ──
   // The map shows the same rhythms placed by pattern similarity; it plays through togglePlay, so a tap while
   // something is playing switches at the next bar, exactly as in the list.
+  // The parts of a rhythm for the map's picture: the kick, then each shown top lane (identical top parts already
+  // share their leader's lane). Parts whose patterns are identical (and equally muted / locked) are then merged into
+  // one lane, e.g. "Kick + Kenkeni": a tap on a note or on the name changes every part in it at once (`ids`).
+  // Muted parts stay (dimmed) so they can be unmuted; hidden pulse parts are left out; the 4/4 kick is locked.
   function pictureLanes(id) {
-    const r = byId[id], p = playState(id), out = [];
-    p.lanes.forEach((l) => {
-      if (!/[^.]/.test(l.pattern)) return; // muted or hidden parts are not pictured
-      const label = l.id === 'kick' ? 'Kick' : l.label || (l.id === 'top' && VOICE_LABEL[voiceOf(r)]) || cap(voiceOf(r));
-      const grid = l.grid || r.steps, same = out.find((o) => o.pattern === l.pattern && o.grid === grid);
-      if (same) same.label += ' + ' + label; else out.push({ label, pattern: l.pattern, grid });
+    const merged = [];
+    partLanes(id).forEach((l) => {
+      const same = merged.find((m) => m.pattern === l.pattern && m.grid === l.grid && m.muted === l.muted && !!m.locked === !!l.locked);
+      if (same) { same.label += ' + ' + l.label; same.ids.push(l.id); } else merged.push({ ...l, ids: [l.id] });
     });
+    return merged;
+  }
+  function partLanes(id) {
+    const r = byId[id], s = state.rows[id], out = [];
+    out.push({ id: 'kick', label: s.four ? 'Kick (4/4)' : 'Kick', pattern: patternOf(r, 'kick'), grid: gridOf(r, 'kick'), locked: !!s.four, muted: muteOf(r, 'kick') });
+    const shown = (lane) => !fillerOff(r, lane) && /[^.]/.test(patternOf(r, lane));
+    if (multi(r) && !collapsed(r)) {
+      const G = groupsOf(r);
+      r.topLines.forEach((tl, idx) => {
+        const lane = 'top' + idx;
+        if (G.leader[idx] === idx && shown(lane)) out.push({ id: lane, label: G.members[idx].map((m) => r.topLines[m].name).join(' + '), pattern: patternOf(r, lane), grid: r.steps, muted: muteOf(r, lane) });
+      });
+    } else if (shown('top')) {
+      out.push({ id: 'top', label: VOICE_LABEL[voiceOf(r)] || cap(voiceOf(r)), pattern: patternOf(r, 'top'), grid: r.steps, muted: muteOf(r, 'top') });
+    }
     return out;
   }
-  function applyMode() {
-    const map = state.view === 'map';
+
+  /** Mute or unmute one part (the list's mute buttons and the map panel's part names both land here). */
+  function toggleMute(r, lane) {
+    const s = state.rows[r.id], key = 'mute' + cap(lane);
+    s[key] = !s[key];
+    paintLane(r, lane); save();
+  }
+
+  // ── Keep context across list and map ──
+  // The rhythm to keep in view: the one playing, else the one last shown in the map's panel.
+  const focusId = () => RX.audio.playing() || RX.nodeMap.selected();
+
+  /** Bring a rhythm's row into view in the list: its group's carousel turned to it, or the row itself. Jumps
+   *  (no smooth scroll), then re-aligns for a few frames while late layout settles; stops if the user scrolls. */
+  function scrollToRhythm(id) {
+    const root = dom[id] && dom[id].root;
+    if (!root) return;
+    let anchor = root;
+    if (state.viewMode === 'family') {
+      const f = Object.values(familyDom).find((x) => x.ids.includes(id));
+      if (!f) return;
+      const index = f.ids.indexOf(id);
+      f.track.scrollTo({ left: index * pageWidth(f.track), behavior: 'instant' });
+      f.index = index; paintFamilyNav(f);
+      anchor = f.section;
+    } else if (root.hidden) setRegion('All'); // a region filter would hide it
+    const barH = () => document.querySelector('.app-bar').getBoundingClientRect().height;
+    const offset = () => anchor.getBoundingClientRect().top - barH() - 8;
+    let stopped = false, steady = 0, frames = 0;
+    const stop = () => { stopped = true; };
+    ['wheel', 'touchstart', 'keydown'].forEach((t) => addEventListener(t, stop, { once: true, passive: true }));
+    const align = () => {
+      if (stopped || frames++ > 40) return;
+      const off = offset();
+      if (Math.abs(off) > 1) { window.scrollTo({ top: window.scrollY + off, behavior: 'instant' }); steady = 0; } else steady++;
+      if (steady < 3) requestAnimationFrame(align);
+    };
+    align();
+  }
+
+  /**
+   * One tap turns a step on or off, from the list or the map's picture. Turning it on gives the rhythm's own accent
+   * level when it had a hit there, and a plain hit when it was a rest, so new hits can always be added. `mirrorFold`:
+   * the list shows a repeating lane as one half, so its edit lands in both halves. The 4/4 kick is not editable.
+   */
+  function toggleStep(r, lane, i, mirrorFold) {
+    const s = state.rows[r.id];
+    if (lane === 'kick' && s.four) return;
+    const idx = laneIdx(lane), topLine = idx != null && r.topLines ? r.topLines[idx] : null;
+    const cur = patternOf(r, lane), half = cur.length / 2;
+    const own = ((topLine ? topLine.pattern : r[lane]) || '')[i];
+    const next = cur[i] !== '.' ? '.' : (own && own !== '.' ? own : 'x');
+    const arr = cur.split('');
+    arr[i] = next;
+    if (mirrorFold) arr[i + half] = next;
+    s[lane] = arr.join('');
+    paintLane(r, lane); save();
+  }
+  // switched: true when the user flipped list / map (not at start-up); then the rhythm in hand stays in view.
+  function applyMode(switched) {
+    const map = state.view === 'map', keep = switched ? focusId() : null;
     document.body.classList.toggle('mode-map', map);
     const b = $('view-toggle');
     b.setAttribute('aria-pressed', String(map));
     b.title = map ? 'Map on: tap to go back to the list' : 'Show the rhythms as a map of similar patterns';
-    if (map) RX.nodeMap.show(); else { RX.nodeMap.hide(); applyView(); }
+    if (map) { RX.nodeMap.show(); if (keep) RX.nodeMap.focus(keep); }
+    else { RX.nodeMap.hide(); applyView(); if (keep) requestAnimationFrame(() => scrollToRhythm(keep)); }
   }
   function paintPlaying() {
     const cur = RX.audio.playing();
@@ -585,6 +649,8 @@
       return section;
     });
     rows.replaceChildren(...sections);
+    // Size every carousel now that its rows are in the page, so the page does not grow (and shift) a moment later.
+    Object.values(familyDom).forEach(paintFamilyNav);
   }
 
   const pageWidth = (track) => track.clientWidth + parseFloat(getComputedStyle(track).columnGap || 0);
@@ -670,13 +736,16 @@
     RX.nodeMap.init({
       ids: () => RX.RHYTHMS.map((r) => r.id), name: (id) => byId[id].name, region: (id) => byId[id].region, bpm: (id) => bpmOf(byId[id]),
       lanes: pictureLanes, onTap: togglePlay, playing: () => RX.audio.playing(),
+      // A merged picture lane passes all its parts, so one tap changes them together.
+      toggleStep: (id, lanes, i) => [].concat(lanes).forEach((l) => toggleStep(byId[id], l, i, false)),
+      toggleMute: (id, lanes) => [].concat(lanes).forEach((l) => toggleMute(byId[id], l)),
       layout: () => state.mapLayout, setLayout: (l) => { if (state.mapLayout !== l) { state.mapLayout = l; save(); } },
       pending: () => { const s = RX.audio.getSchedulerState && RX.audio.getSchedulerState(); return s && s.pendingSwitch ? s.pendingSwitch.rowId : null; },
     });
     const bar = document.querySelector('.app-bar');
     const barH = () => document.documentElement.style.setProperty('--bar-h', bar.getBoundingClientRect().height + 'px');
     if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(barH)).observe(bar); barH();
-    $('view-toggle').addEventListener('click', () => { state.view = state.view === 'map' ? 'list' : 'map'; applyMode(); save(); });
+    $('view-toggle').addEventListener('click', () => { state.view = state.view === 'map' ? 'list' : 'map'; applyMode(true); save(); });
     applyMode();
     segmented('top-voice', TOP_VOICES, 'topVoice', 'voice', () => {
       RX.RHYTHMS.forEach((r) => paintRow(r));
