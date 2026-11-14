@@ -48,3 +48,5 @@ Frevo, Ndombolo (cavacha) and Batuque were restored the same day from published 
 Mongombi, Intore, Chakacha and Coco were restored once parts could loop on their own length: their gallop now plays whole
 (three steps against the 16-step bar). That gallop is the library's original, not a sourced transcription; a web search found
 no published pattern for any of the four, nor for Nyamaropa.
+
+Nyabinghi (Rastafari) was removed on 2026-11-14 at the owner's request: a plain heartbeat pattern that was not interesting enough to keep (id `nyabinghi`).

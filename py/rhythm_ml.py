@@ -31,6 +31,10 @@ LEVEL = {'X': 1.0, 'x': 0.8, 'o': 0.4}
 TIMELINE = ('bell', 'gankogui', 'dawuro', 'nono', 'gongu', 'clave', 'agog', 'cowbell', 'palmas', 'sangban')
 
 
+# Group label overrides, keyed by a member id (a group containing it takes the label).
+LABEL_FOR_MEMBER = {'ethio-anchihoye': 'Tresillo-like (12/8)'}
+
+
 def fit(p, n):
     return (p or '')[:n].ljust(n, '.')
 
@@ -178,30 +182,56 @@ def main():
     D = np.linalg.norm(V[:, None, :] - V[None, :, :], axis=2)
 
     # ── 3. Pattern groups: cluster the shaped rhythms; the rest have no pattern to group by ──
+    # The vectors describe where hits fall in the cycle and are blind to the grid, so a sparse 12/8 line can look like a
+    # thinned tresillo. Triplet feel and straight feel do not mix, so each feel class is clustered on its own:
+    # 12 steps = 12/8 (triplet), 8 or 16 steps = straight 4/4, anything else = odd meter.
+    feel = lambda i: '12/8' if rows[i]['r']['steps'] == 12 else ('4/4' if rows[i]['r']['steps'] in (8, 16) else 'odd')
     idx = [i for i, x in enumerate(rows) if x['shaped']]
-    Ds = D[np.ix_(idx, idx)]
-    best = None
-    for k in range(10, 25):
-        lab = AgglomerativeClustering(n_clusters=k, metric='precomputed', linkage='average').fit_predict(Ds)
-        s = silhouette_score(Ds, lab, metric='precomputed')
-        if best is None or s > best[0]:
-            best = (s, k, lab)
-    sil, k, lab = best
-    groups = []
-    for c in range(k):
-        members = [idx[j] for j in range(len(idx)) if lab[j] == c]
-        sub = D[np.ix_(members, members)]
-        medoid = members[int(sub.sum(axis=1).argmin())]
-        members.sort(key=lambda m: D[medoid, m])
-        groups.append({'medoid': medoid, 'members': members})
+    groups, sils = [], {}
+    for fe in ('4/4', '12/8', 'odd'):
+        part = [i for i in idx if feel(i) == fe]
+        if not part:
+            continue
+        if len(part) < 3:
+            clusters = [[i] for i in part]
+        else:
+            Dp = D[np.ix_(part, part)]
+            lo, hi = max(2, round(len(part) / 12)), min(len(part) - 1, max(3, round(len(part) / 5)))
+            best = None
+            for kk in range(lo, max(lo, hi) + 1):
+                lab = AgglomerativeClustering(n_clusters=kk, metric='precomputed', linkage='average').fit_predict(Dp)
+                sc = silhouette_score(Dp, lab, metric='precomputed')
+                if best is None or sc > best[0]:
+                    best = (sc, lab)
+            sils[fe] = (round(float(best[0]), 2), len(part))
+            clusters = [[part[j] for j in range(len(part)) if best[1][j] == c] for c in range(max(best[1]) + 1)]
+        for members in clusters:
+            sub = D[np.ix_(members, members)]
+            medoid = members[int(sub.sum(axis=1).argmin())]
+            members.sort(key=lambda m: D[medoid, m])
+            groups.append({'medoid': medoid, 'members': members, 'feel': fe})
     # Biggest groups first; equal sizes follow the first principal axis of the medoids, so similar groups sit together.
     M = np.array([V[g['medoid']] for g in groups])
     axis = np.linalg.svd(M - M.mean(axis=0), full_matrices=False)[2][0]
     groups.sort(key=lambda g: (-len(g['members']), float(V[g['medoid']] @ axis)))
     for gi, g in enumerate(groups):
         base = rows[g['medoid']]['r']['name'].split(' (')[0].split(' / ')[0]
-        g['label'] = base + (' type' if len(g['members']) > 1 else '')
+        full = rows[g['medoid']]['r']['name']
+        # A group of several is named after its most central member ('Dembow type'); a lone rhythm keeps its full name.
+        g['label'] = (base + ' type' if len(g['members']) > 1 else full) + (' (12/8)' if g['feel'] == '12/8' and '12/8' not in full else '')
+        # Hand labels, chosen by a member the group is known for: the sparse 12/8 lines that used to be filed under
+        # Tresillo because their hits fall where a thinned tresillo's do.
+        for member, label in LABEL_FOR_MEMBER.items():
+            if rows[next(i for i, x in enumerate(rows) if x['r']['id'] == member)] and any(rows[m]['r']['id'] == member for m in g['members']):
+                g['label'] = label
         g['id'] = 'p%02d' % gi
+    seen_labels = {}
+    for g in groups:           # two groups can share a medoid's short name (Gqom / Gqom unison phrase): use the full name then
+        if g['label'] in seen_labels:
+            g['label'] = rows[g['medoid']]['r']['name'] + (' (12/8)' if g['feel'] == '12/8' and '12/8' not in rows[g['medoid']]['r']['name'] else '')
+        seen_labels[g['label']] = True
+    k = len(groups)
+    sil = ', '.join(f'{fe} {v[0]:.2f} over {v[1]}' for fe, v in sils.items())
     shapeless = [i for i, x in enumerate(rows) if not x['shaped']]
     # Rhythms with no pattern are not grouped at all; the report lists them so they can be fixed or removed.
 
@@ -242,7 +272,7 @@ def main():
         rule = r['ruleCore']
         same = flat(rule['pattern']) == flat(l['pattern'])
         out.append(f"| {r['name']} | {l['name']} `{l['pattern']}` | {pr:.2f} | {'same' if same else (rule['name'] or 'top line') + ' `' + rule['pattern'] + '`'} |")
-    out += ['', '## Pattern groups', '', f'{k} groups from {len(idx)} rhythms with a pattern (silhouette {sil:.2f}); {len(shapeless)} rhythms have only even pulses in their data.', '']
+    out += ['', '## Pattern groups', '', f'{k} groups from {len(idx)} rhythms with a pattern, clustered separately by feel (silhouette: {sil}); {len(shapeless)} rhythms have only even pulses in their data.', '']
     if shapeless:
         out += ['### No pattern (not grouped)', ''] + [f"- {rows[m]['r']['name']}" for m in shapeless] + ['']
     for g in groups:
@@ -252,7 +282,7 @@ def main():
             out.append(f"- {rows[m]['r']['name']} — `{rows[m]['core']}` over kick `{fit(rows[m]['r']['kick'], rows[m]['r']['steps'])}`")
         out.append('')
     (ROOT / 'RHYTHM_ML.md').write_text('\n'.join(out))
-    print(f'core AUC {auc:.3f}; {k} groups (silhouette {sil:.2f}) from {len(idx)} shaped rhythms, {len(shapeless)} shapeless; wrote js/pattern-groups.js, RHYTHM_ML.md')
+    print(f'core AUC {auc:.3f}; {k} groups (silhouette {sil}) from {len(idx)} shaped rhythms, {len(shapeless)} shapeless; wrote js/pattern-groups.js, RHYTHM_ML.md')
 
     if args.png:
         import matplotlib

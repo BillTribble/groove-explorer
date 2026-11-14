@@ -11,7 +11,6 @@ RX.FAMILIES = [
   ['son-clave', 'Clave / Son / Kpanlogo', ['son', 'rumba', 'bossa', 'highlife', 'gahu', 'azonto', 'kpanlogo']],
   ['latin', 'Merengue / Bachata / Cumbia', ['merengue', 'cumbia']],
   ['samba', 'Samba / Brazilian', ['samba', 'partido-alto', 'funk', 'baiao', 'forro', 'maracatu', 'afoxe']],
-  ['roots', 'Afro-Caribbean & Afro-Peruvian roots', ['nyabinghi']],
   ['afrobeat', 'Afrobeat / Afrobeats / street-hop', ['afrobeat', 'afrobeats', 'zanku']],
   ['lusophone', 'Kuduro / Soukous / Lusophone', ['kuduro', 'kuduro-sh', 'batida', 'funana', 'coupe', 'ndombolo', 'singeli']],
   ['sa-club', 'South African club', ['afrohouse', 'afrohouse12', 'kwaito', 'gqom', 'amapiano', '3step', 'bacardi', 'shangaan']],

@@ -23,7 +23,9 @@
 
   // tempoMode: 'native' plays each rhythm at its home tempo, 'set' uses state.bpm.
   // viewMode: 'family' (default) or 'region'
-  const state = { bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, groovesV2: true, coreTop: true, pulseParts: 'off', rows: {} };
+  // view: 'list' (rows) or 'map' (node map, js/nodemap.js).
+  // mapLayout: 'pattern' (by similarity) or 'world' (centres of origin) inside the map view.
+  const state = { view: 'list', mapLayout: 'pattern', bpm: 120, tempoMode: 'native', timing: 1, accent: 0.5, topVoice: 'typical', kit: 'samples', cutoff: 0.76, straight12: true, region: 'All', viewMode: 'family', familyDefault: true, samplesDefault: true, groovesV2: true, coreTop: true, pulseParts: 'off', rows: {} };
   const dom = {}; // rowId -> element refs
   const byId = Object.fromEntries(RX.RHYTHMS.map((r) => [r.id, r]));
 
@@ -43,7 +45,7 @@
   function load() {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
-    if (saved) ['bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode', 'kit', 'pulseParts'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
+    if (saved) ['view', 'mapLayout', 'bpm', 'tempoMode', 'timing', 'accent', 'topVoice', 'cutoff', 'viewMode', 'kit', 'pulseParts'].forEach((k) => { if (saved[k] != null) state[k] = saved[k]; });
     // By family became the default view; saves from before that start there once.
     if (saved && !saved.familyDefault) state.viewMode = 'family';
     // Recorded samples became the default kit; saves from before that switch to it once.
@@ -62,9 +64,10 @@
   }
   function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
 
-  // The 4/4 kick is four steady beats on its own clock: 16 steps per bar whatever the row's step count, so it
-  // stays exact in odd meters and never follows the cycle of the polyrhythmic parts.
-  const FOUR = 'x...x...x...x...', FOUR_GRID = 16;
+  // The 4/4 kick is its own four-step lane, one hit per beat, on its own clock: four steps per bar whatever the
+  // row's step count, so it stays exact in odd meters, is never folded or cut to the row's width, and never
+  // follows the cycle of the polyrhythmic parts.
+  const FOUR = 'xxxx', FOUR_GRID = 4;
   const nativeFour = (r) => r.kick === fourFor(r.steps);
   const gridOf = (r, lane) => (lane === 'kick' && state.rows[r.id].four ? FOUR_GRID : r.steps);
   // Parts of an ensemble row that share a pattern (identical apart from the instrument) share one lane:
@@ -103,9 +106,10 @@
   const cap = (lane) => (lane === 'kick' ? 'Kick' : lane.charAt(0).toUpperCase() + lane.slice(1));
   // A lane whose two halves match is shown as one half unless the user opens it.
   const foldable = (p) => p.length % 2 === 0 && p.slice(0, p.length / 2) === p.slice(p.length / 2);
+  const canFold = (r, lane, p) => !(lane === 'kick' && state.rows[r.id].four) && foldable(p); // the 4/4 lane is always shown whole
   const shownSteps = (r, lane) => {
     const p = patternOf(r, lane);
-    return foldable(p) && !state.rows[r.id]['open' + cap(lane)] ? p.length / 2 : p.length;
+    return canFold(r, lane, p) && !state.rows[r.id]['open' + cap(lane)] ? p.length / 2 : p.length;
   };
 
   // Live state for the scheduler: read on every tick, so edits and tempo changes land immediately.
@@ -136,6 +140,9 @@
 
     lanes.forEach((l) => { if (fillerOff(r, l.id)) l.pattern = off; });
     const keep = (RX.SAMPLE_KIT && RX.SAMPLE_KIT.keepSynth && RX.SAMPLE_KIT.keepSynth[r.id]) || [];
+    // Modern dance rows: drum-machine voices in place of the acoustic ones (RX.SAMPLE_KIT.machine).
+    const machine = RX.SAMPLE_KIT && RX.SAMPLE_KIT.machine;
+    if (machine && machine.rows.includes(r.id)) lanes.forEach((l) => { l.voice = machine.swap[l.voice] || l.voice; });
     lanes.forEach((l) => { l.synth = keep.includes(l.voice); });
     return { bpm: bpmOf(r), steps: r.steps, groove: RX.GROOVE_BY_ID[s.groove], timing: state.timing, accent: state.accent, lanes };
 
@@ -212,7 +219,7 @@
       if (pattern.length !== r.steps) label += ' · loops every ' + pattern.length;
     }
     d[lane + 'MuteLabel'].textContent = label;
-    d[lane + 'Fold'].hidden = !foldable(pattern);
+    d[lane + 'Fold'].hidden = !canFold(r, lane, pattern);
     d[lane + 'FoldIcon'].textContent = shown < pattern.length ? 'unfold_more' : 'unfold_less';
     if (lane === 'kick' && d.fourBtns) d.fourBtns.forEach((b) => b.classList.toggle('active', (b.dataset.four === '1') === s.four));
   }
@@ -269,16 +276,17 @@
 
     const grid = d[lane + 'Grid'] = el('div', 'steps');
     // A lane has as many steps as its own pattern: a free-looping part can be shorter than the row.
-    // The kick lane also needs room for the 16-step 4/4, which can be wider than a short row.
-    const laneLen = Math.max(patternOf(r, lane).length || r.steps, lane === 'kick' ? FOUR_GRID : 0);
+    const laneLen = patternOf(r, lane).length || r.steps;
     d[lane + 'Steps'] = Array.from({ length: laneLen }, (_, i) => {
       const b = el('button'); b.setAttribute('aria-label', (lane === 'kick' ? 'Kick' : 'Top') + ' step ' + (i + 1));
       b.addEventListener('click', () => {
         const s = state.rows[r.id];
         if (lane === 'kick' && s.four) return;
         const cur = patternOf(r, lane), half = cur.length / 2, folded = shownSteps(r, lane) < cur.length;
-        // One tap turns a step on or off; turning it back on restores the rhythm's own accent level.
-        const next = cur[i] !== '.' ? '.' : (topLine ? topLine.pattern[i] : (r[lane][i] !== '.' ? r[lane][i] : 'x'));
+        // One tap turns a step on or off. Turning it on gives the rhythm's own accent level when it had a hit there,
+        // and a plain hit when it was a rest, so new hits can always be added.
+        const own = ((topLine ? topLine.pattern : r[lane]) || '')[i];
+        const next = cur[i] !== '.' ? '.' : (own && own !== '.' ? own : 'x');
         const arr = cur.split('');
         arr[i] = next;
         if (folded) arr[i + half] = next;
@@ -445,13 +453,40 @@
       const steps = dom[id][lane + 'Steps'];
       if (steps) steps[at % shownSteps(r, lane)]?.classList.add('step-now');
     });
+    RX.nodeMap.step(id, abs, beats);
   }
   function paintTempo() {
     const cur = RX.audio.playing(), native = state.tempoMode === 'native';
-    $('bpm-value').textContent = native ? (cur ? byId[cur].bpm : 'Native') : state.bpm;
-    $('bpm-unit').hidden = native && !cur;
+    // The Native toggle sits beside the readout and already says "Native"; with nothing playing there is no tempo yet.
+    $('bpm-value').textContent = native ? (cur ? byId[cur].bpm : '–') : state.bpm;
+    $('bpm-unit').hidden = false;
     $('bpm-slider').value = native && cur ? byId[cur].bpm : state.bpm;
-    document.querySelectorAll('#tempo-mode .m3-pill-tab').forEach((b) => b.classList.toggle('active', b.dataset.mode === state.tempoMode));
+    const t = $('tempo-mode');
+    t.querySelector('.toggle-label').textContent = native ? 'Native' : 'Set bpm';
+    t.setAttribute('aria-pressed', String(!native));
+    t.title = native ? 'Each rhythm plays at its own tempo. Tap to use one set tempo.' : 'One set tempo for every rhythm. Tap to use each rhythm\'s own tempo.';
+  }
+
+  // ── List or node map ──
+  // The map shows the same rhythms placed by pattern similarity; it plays through togglePlay, so a tap while
+  // something is playing switches at the next bar, exactly as in the list.
+  function pictureLanes(id) {
+    const r = byId[id], p = playState(id), out = [];
+    p.lanes.forEach((l) => {
+      if (!/[^.]/.test(l.pattern)) return; // muted or hidden parts are not pictured
+      const label = l.id === 'kick' ? 'Kick' : l.label || (l.id === 'top' && VOICE_LABEL[voiceOf(r)]) || cap(voiceOf(r));
+      const grid = l.grid || r.steps, same = out.find((o) => o.pattern === l.pattern && o.grid === grid);
+      if (same) same.label += ' + ' + label; else out.push({ label, pattern: l.pattern, grid });
+    });
+    return out;
+  }
+  function applyMode() {
+    const map = state.view === 'map';
+    document.body.classList.toggle('mode-map', map);
+    const b = $('view-toggle');
+    b.setAttribute('aria-pressed', String(map));
+    b.title = map ? 'Map on: tap to go back to the list' : 'Show the rhythms as a map of similar patterns';
+    if (map) RX.nodeMap.show(); else { RX.nodeMap.hide(); applyView(); }
   }
   function paintPlaying() {
     const cur = RX.audio.playing();
@@ -471,6 +506,7 @@
       }
     });
     paintTempo();
+    RX.nodeMap.paint();
   }
   function togglePlay(id) {
     clearPlayhead();
@@ -629,7 +665,19 @@
     segmented('pulse-parts', [['off', 'Off'], ['on', 'On']], 'pulseParts', 'pulse', () => RX.RHYTHMS.forEach(paintRow));
     applyView();
 
-    segmented('tempo-mode', [['native', 'Native'], ['set', 'Set bpm']], 'tempoMode', 'mode', paintTempo);
+    // One toggle for the tempo mode, one for list / map.
+    $('tempo-mode').addEventListener('click', () => { state.tempoMode = state.tempoMode === 'native' ? 'set' : 'native'; paintTempo(); save(); });
+    RX.nodeMap.init({
+      ids: () => RX.RHYTHMS.map((r) => r.id), name: (id) => byId[id].name, region: (id) => byId[id].region, bpm: (id) => bpmOf(byId[id]),
+      lanes: pictureLanes, onTap: togglePlay, playing: () => RX.audio.playing(),
+      layout: () => state.mapLayout, setLayout: (l) => { if (state.mapLayout !== l) { state.mapLayout = l; save(); } },
+      pending: () => { const s = RX.audio.getSchedulerState && RX.audio.getSchedulerState(); return s && s.pendingSwitch ? s.pendingSwitch.rowId : null; },
+    });
+    const bar = document.querySelector('.app-bar');
+    const barH = () => document.documentElement.style.setProperty('--bar-h', bar.getBoundingClientRect().height + 'px');
+    if (window.ResizeObserver) new ResizeObserver(barH).observe(bar); barH();
+    $('view-toggle').addEventListener('click', () => { state.view = state.view === 'map' ? 'list' : 'map'; applyMode(); save(); });
+    applyMode();
     segmented('top-voice', TOP_VOICES, 'topVoice', 'voice', () => {
       RX.RHYTHMS.forEach((r) => paintRow(r));
       if (!RX.audio.playing() && state.topVoice !== 'typical') RX.audio.hit(state.topVoice);

@@ -14,6 +14,13 @@ window.RX = window.RX || {};
     base: 'samples/',
     // Per-rhythm exceptions: these sounds keep their synth voice in that rhythm even in Samples mode.
     keepSynth: { 111: ['tom'] },
+    // Modern dance rows play the drum-machine voice for these sounds (synth voices in js/audio.js, so they are the same
+    // in Synth and Samples mode). `swap` maps a sound name to its machine voice; add 'kick' and 'clap' here once
+    // 909-style voices exist for them.
+    machine: {
+      rows: ['111', 'afrohouse', 'afrohouse12', '3step', 'shangaan', 'batida', 'funk'],
+      swap: { tom: 'tom909', snare: 'snare909' },
+    },
     map: {
       // kick: the synth kick is preferred, so it has no sample here.
       // snare: the synth snare is preferred, so it has no sample here.
@@ -30,6 +37,10 @@ window.RX = window.RX || {};
 
       // Goblet and hand drums
       djembe: ['djembe-slap', 'djembe-tone', 'djembe-bass'],
+      // Two djembes in an ensemble play different roles. The lead is a big low hit; the accompaniment is a short,
+      // dry tap (a bright edge slap on accents). One player, Freesound domingus (CC0).
+      'djembe-lead': ['djembe-king', 'djembe-king', 'djembe-tone'],
+      'djembe-accomp': ['djembe-hi', 'djembe-tick', 'djembe-tick'],
       // Tabla bols: dha on accents, na on hits, te on ghost strokes; mridangam leads with tun.
       tabla: ['tabla-dha', 'tabla-na-sp', 'tabla-te'], mridangam: ['tabla-tun', 'tabla-na', 'tabla-te'],
       darbuka: DOUM_TEK, derbouka: DOUM_TEK, dumbak: DOUM_TEK,
@@ -57,6 +68,8 @@ window.RX = window.RX || {};
       // The two mbira dzavadzimu players use the same instrument and tuning but sit in different registers:
       // real recordings of two other keys of the same mbira (kushaura high, kutsinhira an octave below).
       'mbira-kushaura': 'mbira-e4', 'mbira-kutsinhira': 'mbira-e3',
+      // Bowed fiddle for the masinko (Ethiopian one-string fiddle): a recorded violin G3, no free masinko recording exists.
+      masinko: 'fiddle',
 
       // Keys used only by the name lookup below.
       wood: 'claves',
@@ -105,6 +118,8 @@ window.RX = window.RX || {};
       [/conga|kpanlogo|engalabi|enzeko|ngoma|fundeh|buleador/i, 'conga'],
       [/barril|kebero|tamb[oó]r \(lead/i, 'barril'],
       [/atumpan/i, 'talking'],
+      [/djembe.*lead|lead.*djembe/i, 'djembe-lead'],
+      [/djembe.*accomp/i, 'djembe-accomp'],
       [/djembe/i, 'djembe'],
       [/alfaia/i, 'alfaia'],
       [/surdo|zabumba|tant[aã]/i, 'surdo'],
@@ -112,6 +127,7 @@ window.RX = window.RX || {};
       [/caixa/i, 'caixa'],
       [/caja\b/i, 'caja'],
       [/foot stomp/i, 'kick'],
+      [/masinko|masenqo/i, 'masinko'],
       [/kushaura/i, 'mbira-kushaura'],
       [/kutsinhira/i, 'mbira-kutsinhira'],
     ],

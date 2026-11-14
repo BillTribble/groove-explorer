@@ -21,7 +21,7 @@ const DEMBOW = '...x..x....x..x.';
 
 RX.RHYTHMS = [
   // ── Featured ──
-  { id: '111', name: '111 (Ape Drums & JAMIIE)', region: 'Featured', bpm: 120, range: 'measured 120.0', steps: 16, family: 'tresillo',
+  { id: '111', name: '111 (Ape Drums & JAMIIE)', region: 'Global (Afro house scene)', bpm: 120, range: 'measured 120.0', steps: 16, family: 'tresillo',
     kick: F, top: '.x....x..x....x.', sound: 'tom', groove: 'straight', src: 'audio',
     etymology: 'Named for the 1-1-1 triplet feel; "Ape Drums" = producer Eric Alberto-Lopez, "JAMIIE" = vocalist.',
     note: 'Measured from audio. Kick is four on the floor at 120.0 bpm. Tom hits land on the "e" of 1, "and" of 2, "e" of 3, "and" of 4, with clap on 2 and 4. Across the barline hits fall 3-3-2: and-of-2, e-of-3, then kick on 4. A tresillo rotated to start on and-of-2, third stroke swallowed by kick. Same cell as dembow (keeps strokes 2&3 of unrotated tresillo), pushed six 16ths later. Quantised; only and-of-2 hit ~10 ms late. Every 2nd bar adds pickup on "a" of 1. Released Aug 2025 on Rampa\'s VOD label, tagged Afro-tech / Afro house.' },
@@ -285,38 +285,38 @@ RX.RHYTHMS = [
     etymology: 'Yoruba "afoxé" = "the word is spoken" / "speech acts". Candomblé processional. "Ijexá" = Yoruba subgroup in Bahia. Agogô = double bell.',
     note: 'Bahia, Brazil, from Yoruba ijexá. Top lane is the first bar of Ableton\'s "Afoxe Agogo" groove.' },
 
-  // ── Timelines & Claves (enhanced) ──
-  { id: 'tresillo', name: 'Tresillo (3-3-2)', region: 'Timelines & claves', bpm: 110, range: 'any', steps: 16, family: 'tresillo',
+  // ── Timelines & claves (region is where each comes from) ──
+  { id: 'tresillo', name: 'Tresillo (3-3-2)', region: 'Cuba', bpm: 110, range: 'any', steps: 16, family: 'tresillo',
     kick: F, top: 'x..x..x.x..x..x.', sound: 'snare', groove: 'straight', src: 'std',
     etymology: 'Spanish "tresillo" = little three (triplet). Cuban name for 3+3+2 cell. African root: "standard pattern" (Arom).',
     note: 'The cell under most rows here. Found across sub-Saharan Africa and carried into Cuban, Caribbean and New Orleans music.' },
 
-  { id: 'habanera', name: 'Habanera', region: 'Timelines & claves', bpm: 100, range: '80–120', steps: 16, family: 'tresillo',
+  { id: 'habanera', name: 'Habanera', region: 'Cuba', bpm: 100, range: '80–120', steps: 16, family: 'tresillo',
     kick: F, top: 'x..xx.x.x..xx.x.', sound: 'snare', groove: 'straight', src: 'std',
     etymology: 'Spanish "habanera" = from Havana (La Habana). Cuban contradanza → European salon. "Contradanza habanera". Bizet\'s Carmen.',
     note: 'Tresillo plus the backbeat. Called "congo" in parts of Cuba.' },
 
-  { id: 'cinquillo', name: 'Cinquillo', region: 'Timelines & claves', bpm: 110, range: '90–130', steps: 16, family: 'cinquillo',
+  { id: 'cinquillo', name: 'Cinquillo', region: 'Cuba & Haiti', bpm: 110, range: '90–130', steps: 16, family: 'cinquillo',
     kick: F, top: 'x.xx.xx.x.xx.xx.', sound: 'snare', groove: 'straight', src: 'std',
     etymology: 'Spanish "cinquillo" = little five (cinco). Cuban 5-stroke pattern. Tibwa (Antillean sticks) pattern. Haitian "cinq".',
     note: 'Five-stroke embellishment of the tresillo; the tibwa stick pattern of Antillean music.' },
 
-  { id: 'son', name: 'Son Clave 3-2', region: 'Timelines & claves', bpm: 100, range: '80–130', steps: 16, family: 'son-clave',
+  { id: 'son', name: 'Son Clave 3-2', region: 'Cuba', bpm: 100, range: '80–130', steps: 16, family: 'son-clave',
     kick: 'x.......x.......', top: 'x..x..x...x.x...', sound: 'snare', groove: 'straight', src: 'std',
     etymology: 'Cuban "son" = sound/voice. From "son cubano". 3-2 = three strokes first bar, two in second. Also Ga (Ghana) kpanlogo bell.',
     note: 'Also the kpanlogo bell of the Ga people of Ghana.' },
 
-  { id: 'rumba', name: 'Rumba Clave 3-2', region: 'Timelines & claves', bpm: 110, range: '90–140', steps: 16, family: 'son-clave',
+  { id: 'rumba', name: 'Rumba Clave 3-2', region: 'Cuba', bpm: 110, range: '90–140', steps: 16, family: 'son-clave',
     kick: 'x.......x.......', top: 'x..x...x..x.x...', sound: 'snare', groove: 'straight', src: 'std',
     etymology: 'Cuban "rumba" = party/spree. From Bantu "rumba" = to dance. 3-2 clave with 3rd stroke delayed. Central African roots.',
     note: 'Third stroke delayed by a sixteenth. Close to several Central African timelines.' },
 
-  { id: 'bossa', name: 'Bossa Clave', region: 'Timelines & claves', bpm: 120, range: '100–140', steps: 16, family: 'son-clave',
+  { id: 'bossa', name: 'Bossa Clave', region: 'Brazil (Rio)', bpm: 120, range: '100–140', steps: 16, family: 'son-clave',
     kick: 'x.....x.x.....x.', top: 'x..x..x...x..x..', sound: 'snare', groove: 'straight', src: 'std',
     etymology: 'Portuguese "bossa" = bump/hump/trend. "Bossa nova" = new trend. Jobim/Gilberto 1958. Son clave with last stroke delayed.',
     note: 'Son clave with the last stroke delayed.' },
 
-  { id: 'bell12', name: 'Standard Bell (12/8)', region: 'Timelines & claves', bpm: 120, range: '100–160', steps: 12, family: 'bell12',
+  { id: 'bell12', name: 'Standard Bell (12/8)', region: 'Ghana & West Africa', bpm: 120, range: '100–160', steps: 12, family: 'bell12',
     kick: F12, top: 'x.x.xx.x.x.x', sound: 'snare', groove: 'tri:even', src: 'std',
     etymology: 'The "standard pattern" (Arom) / "standard bell" (Ewe gankogui). 7-stroke timeline. Ewe agbekor, Yoruba, Cuban bembé.',
     note: 'The seven-stroke bell of Ewe agbekor, Yoruba and Cuban bembé music, on a true 12-pulse grid with the kick on each dotted quarter. For a played feel try the jembe ternary groove, which applies Rainer Polak\'s measured short-medium-long subdivision from Malian drumming.' },
@@ -405,10 +405,23 @@ RX.RHYTHMS = [
     note: 'Santiago, Cape Verde. Accordion and scraped ferrinho.' },
 
   // ── South Africa (enhanced) ──
-  { id: 'gqom', name: 'Gqom', region: 'South Africa', bpm: 125, range: '120–130', steps: 16, family: 'gqom',
-    kick: 'X...X.....X...X.', top: '.x.x.x.x.x.x.x.x', sound: 'tom', groove: 'ab:Gqom Kick Accent 16ths 125 bpm', src: 'agr',
+  { id: 'gqom', name: 'Gqom', region: 'South Africa', bpm: 120, range: '120–130', steps: 16, family: 'gqom',
+    kick: 'xx..xx..xx.xx.xx', top: '..x...x.........', sound: 'clap', groove: 'ab:Gqom Kick Accent 16ths 125 bpm', src: 'audio',
     etymology: 'Zulu "gqom" = drum / hit / thud. Onomatopoeic. Durban taxi-rank sound. 2010s+ (DJ Lag, Rudeboyz). Broken 4/4, off-grid.',
-    note: 'Durban. Kick is the accent pattern in Ableton\'s "Gqom Kick Accent" groove; the same file gives the off-16ths their lag.' },
+    note: 'Transcribed by onset detection from John Bartmann\'s "Gqom Urban African" (CC BY-SA 4.0, 120 bpm), most common of its bars: kick in bursts of two sixteenths, one clap pair with a long gap, hats on displaced eighths. The bar start is a best guess (strongest kick). A stock-music take on the style, not a township production; see also the unison phrase below. Groove timing from Ableton\'s Gqom groove.',
+    topLines: [
+      { name: 'Clap', pattern: '..x...x.........', sound: 'clap' },
+      { name: 'Hi-hat', pattern: 'x.x.x.x.x..x.ox.', sound: 'shaker' }
+    ] },
+
+  { id: 'gqom-unison', name: 'Gqom (unison phrase)', region: 'South Africa', bpm: 126, range: '120–130', steps: 16, family: 'gqom',
+    kick: 'x..x.x...x..x.x.', top: 'x..x.x...x..x.x.', sound: 'clap', groove: 'ab:Gqom Kick Accent 16ths 125 bpm', src: 'audio',
+    etymology: 'Zulu "gqom" = drum / hit / thud. The kick leaves holes instead of marking every beat, and the punch comes from layers hitting together.',
+    note: 'Transcribed by onset detection from the "Gqom Demo" on Wikimedia Commons (CC BY-SA 4.0, 126 bpm): the same bar in 53 of 63 bars. Kick, clap and hat all hit one lopsided phrase, 3-2-4-3-2-2 sixteenths, with no four-on-the-floor. The bar start is a best guess (strongest kick). Hobbyist demo, not a township production.',
+    topLines: [
+      { name: 'Clap', pattern: 'x..x.x...x..x.x.', sound: 'clap' },
+      { name: 'Hi-hat', pattern: 'x..x.x...x..x.x.', sound: 'shaker' }
+    ] },
 
   { id: 'amapiano', name: 'Amapiano', region: 'South Africa', bpm: 112, range: '108–115', steps: 16, family: 'amapiano',
     kick: F, top: '..x..x.x..x..xx.', sound: 'bass', groove: 'sw16:56', src: 'approx',
@@ -426,9 +439,9 @@ RX.RHYTHMS = [
     note: 'Pretoria (DJ Spoko, Mujava). Marching snare rolls over house kicks.' },
 
   { id: 'afrohouse', name: 'Afro House', region: 'South Africa', bpm: 122, range: '118–125', steps: 16, family: 'afrohouse',
-    kick: F, top: '...x..x...x..x.x', sound: 'tom', groove: 'ab:House Subtle Swung 16ths', src: 'approx',
+    kick: F, top: '...x..x...x.x...', sound: 'snare', groove: 'ab:House Subtle Swung 16ths', src: 'approx',
     etymology: '"Afro house" = South African house (Culoe De Song, Black Coffee) + African percussion. Tresillo fragments over 4/4.',
-    note: 'Percussion built from tresillo fragments over four on the floor.' },
+    note: 'Percussion built from tresillo fragments over four on the floor, on a short, snappy 909-style snare. The pattern (hits on 3, 6, 10 and 12) is the one heard in Afro House by the app\'s owner, not taken from a published source.' },
 
   { id: 'afrohouse12', name: 'Afro House Triplet Perc', region: 'South Africa', bpm: 122, range: '118–125', steps: 12, family: 'afrohouse',
     kick: F12, top: 'X..X.X...x..', sound: 'tom', groove: 'ab:House African Perc Accent 8T 122 bpm', src: 'agr',
@@ -933,15 +946,6 @@ RX.RHYTHMS = [
       { name: 'Gankogui', pattern: 'x.x.xx.x.x.x', sound: 'metal' }
     ] },
 
-  { id: 'nyabinghi', name: 'Nyabinghi (Rastafari)', region: 'Jamaica (Rastafari)', bpm: 60, range: '50–70', steps: 16, family: 'nyabinghi',
-    kick: 'x.......x.......', top: 'x...x...........', sound: 'fundeh', groove: 'straight', src: 'std',
-    etymology: '"Nyabinghi" = East African queen/warrior spirit. Rasta "binghi" = heartbeat of Africa. Three drums: bass, fundeh, repeater.',
-    note: 'Rasta heart-beat. Bass (thunder) on 1&3, fundeh (heart) on 2&4, repeater (spirit) improvises. Groundation ceremony.',
-    topLines: [
-      { name: 'Bass (thunder)', pattern: 'x.......x.......', sound: 'dunun' },
-      { name: 'Fundeh (heart)', pattern: 'x...x...........', sound: 'dunun' },
-      { name: 'Repeater (spirit)', pattern: 'x.x.x.x.x.x.x.x.', sound: 'snare' }
-    ] },
 
   // ── Maghreb / Andalusian (North Africa classical) ──
   // ── West African (additional) ──
@@ -964,7 +968,6 @@ RX.RHYTHMS = [
     topLines: [
       { name: 'Djembe lead', pattern: 'x.x.x.x.x.x.x.x.', sound: 'djembe' },
       { name: 'Djembe accomp.', pattern: '.x.x.x.x.x.x.x.x', sound: 'djembe' },
-      { name: 'Kenkeni', pattern: 'x...x...x...x...', sound: 'dunun' },
       { name: 'Sangban', pattern: '.x..x.x..x..x.x.', sound: 'dunun' },
       { name: 'Dununba', pattern: 'x..x..x...x..x..', sound: 'dunun' }
     ] },

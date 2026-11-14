@@ -110,3 +110,21 @@ trimmed to the attack.
 | doumbek-doum.wav, doumbek-tek.wav, doumbek-ka.wav | Doumbek_Doum, Doumbek_Tek, Doumbek_mute (268708, 268707, 268709) | gregstullsoundlab | https://freesound.org/people/gregstullsoundlab/packs/16580/ |
 | agogo-low.wav, agogo-high2.wav | Agogo Low1, High1 (524019, 524022) | BlueCircleSounds | https://freesound.org/people/BlueCircleSounds/packs/29528/ |
 | udu.wav | Udu 1 (479245) | iyankc | https://freesound.org/people/iyankc/sounds/479245/ |
+
+## University of Iowa Electronic Music Studios, Musical Instrument Samples
+
+Source: https://theremin.music.uiowa.edu/MIS.html. The site states that the recordings "may be downloaded and used for any
+projects, without restrictions". Credited here anyway.
+
+| File | Source |
+|:---|:---|
+| fiddle.wav | Strings/violin/Violin.arco.mf.sulG.G3B3.aiff (violin, arco, mf, G string): the G3 note (196 Hz), steady part cut out, quick fade-in, fade-out, stored at 20% of full level (peak 0.18) so it sits under the drums. Stands in for the masinko; see js/kit.js. |
+
+## Freesound, third search (CC0)
+
+Marked **Creative Commons 0** on the Freesound pack page ("Djembe Samples", one professional player, recorded 44.1 kHz /
+24-bit mono, Rode NT2); taken from the HQ previews and trimmed to the attack.
+
+| Files | Sounds | Author | Pack / page |
+|:---|:---|:---|:---|
+| djembe-king.wav, djembe-tick.wav, djembe-hi.wav | DJEMBE_LO_KING, DJEMBE_TICK, DJEMBE_HI_2 (54020, 54025, 54015) | domingus | https://freesound.org/people/domingus/packs/3456/ |

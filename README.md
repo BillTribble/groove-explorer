@@ -11,6 +11,7 @@ A web app for auditioning drum rhythms — African, Afro-diasporic, and global p
 - **100+ rhythms** from West African djembe ensembles, Ewe bell timelines, Gnawa trance, Ethiopian qenet, Brazilian samba groups, Cuban clave families, Middle Eastern iqa'at, Balkan odd meters, Indian talas, Flamenco compás, and more.
 - **Parts that loop on their own length** — a part need not fit the bar: a three-step gallop turns against a 16-step kick and realigns every three beats, in playback, the step grid and the exports.
 - **Multi-instrument ensemble patterns** — djembe+kenkeni+sangban+dununba, guembri+qraqeb, kebero+krar+masinko, all playable individually.
+- **Node map** — the Map toggle lays every rhythm out by pattern similarity, linked to its nearest neighbours and coloured by pattern group. Drag, pinch or wheel to zoom, tap to play; a picture of the playing rhythm sits under the map on phones and beside it on desktop. The World toggle moves every rhythm to its approximate centre of origin on a world outline (Natural Earth, public domain); global club styles float in the mid-Atlantic.
 - **Family carousel view** — "By Family" groups similar rhythms (tresillo, son clave, samba, kuduro, Balkan odd meters, etc.) for side-by-side comparison.
 - **Bar-quantized switching** — change pattern mid-play; the switch lands at the next bar boundary, perfectly aligned.
 - **Per-pattern settings** — each row has its own top-voice selector and instrument mute toggles.
